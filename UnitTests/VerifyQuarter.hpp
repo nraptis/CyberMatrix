@@ -20,8 +20,16 @@ public:
     static M88 SpawnTestMatrixQuarterD();
 
     static M QuarterBefore();
-    static M QuarterRotateRightExpected();
-    static M QuarterRotateLeftExpected();
+
+    static M QuarterRotAExpected();      // rotate right
+    static M QuarterRotBExpected();      // rotate left
+    static M QuarterRotCExpected();      // rotate 180
+
+    static M QuarterPinAExpected();
+    static M QuarterPinBExpected();
+
+    static M QuarterCastleAExpected();
+    static M QuarterCastleBExpected();
 
     static bool CheckQuarterA(const M88 &pBefore,
                               const M88 &pAfter,

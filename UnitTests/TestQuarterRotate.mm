@@ -30,7 +30,7 @@
     // aQuarter.RotateRight();
     // aAfter.Paste(aQuarter);
     
-    const M aExpected = VerifyQuarter::QuarterRotateRightExpected();
+    const M aExpected = VerifyQuarter::QuarterRotAExpected();
     
     if (!VerifyQuarter::CheckQuarterA(aBefore, aAfter, aExpected)) {
         Logging::Log("Before", aBefore);

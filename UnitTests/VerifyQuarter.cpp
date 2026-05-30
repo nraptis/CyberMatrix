@@ -35,7 +35,7 @@ M VerifyQuarter::QuarterBefore() {
     };
 }
 
-M VerifyQuarter::QuarterRotateRightExpected() {
+M VerifyQuarter::QuarterRotAExpected() {
     return {
         { 12,  8,  4,  0 },
         { 13,  9,  5,  1 },
@@ -44,12 +44,57 @@ M VerifyQuarter::QuarterRotateRightExpected() {
     };
 }
 
-M VerifyQuarter::QuarterRotateLeftExpected() {
+M VerifyQuarter::QuarterRotBExpected() {
     return {
         {  3,  7, 11, 15 },
         {  2,  6, 10, 14 },
         {  1,  5,  9, 13 },
         {  0,  4,  8, 12 }
+    };
+}
+
+M VerifyQuarter::QuarterRotCExpected() {
+    return {
+        { 15, 14, 13, 12 },
+        { 11, 10,  9,  8 },
+        {  7,  6,  5,  4 },
+        {  3,  2,  1,  0 }
+    };
+}
+
+M VerifyQuarter::QuarterPinAExpected() {
+    return {
+        { 12,  8,  4,  0 },
+        { 13,  6, 10,  1 },
+        { 14,  5,  9,  2 },
+        { 15, 11,  7,  3 }
+    };
+}
+
+M VerifyQuarter::QuarterPinBExpected() {
+    return {
+        {  3,  7, 11, 15 },
+        {  2,  9,  5, 14 },
+        {  1, 10,  6, 13 },
+        {  0,  4,  8, 12 }
+    };
+}
+
+M VerifyQuarter::QuarterCastleAExpected() {
+    return {
+        {  6, 11,  7, 10 },
+        {  1, 12,  0, 13 },
+        {  2, 15,  3, 14 },
+        {  5,  8,  4,  9 }
+    };
+}
+
+M VerifyQuarter::QuarterCastleBExpected() {
+    return {
+        {  9,  4,  8,  5 },
+        { 14,  3, 15,  2 },
+        { 13,  0, 12,  1 },
+        { 10,  7, 11,  6 }
     };
 }
 
