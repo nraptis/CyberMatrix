@@ -14,6 +14,116 @@
 #include <algorithm>
 #include <cstdlib>
 
+
+Quint::Quint() {
+    mXA = 0;
+    mYA = 0;
+    
+    mXB = 0;
+    mYB = 0;
+    
+    mXC = 0;
+    mYC = 0;
+    
+    mXD = 0;
+    mYD = 0;
+    
+    mSize = 0;
+}
+
+void Quint::MakeRight(int pX, int pY, int pSize) {
+    mXA = pX;
+    mYA = pY;
+    
+    mXB = (pSize - 1 - mYA);
+    mYB = mXA;
+    
+    mXC = (pSize - 1 - mYB);
+    mYC = mXB;
+    
+    mXD = (pSize - 1 - mYC);
+    mYD = mXC;
+    
+    mSize = pSize;
+}
+
+void Quint::MakeLeft(int pX, int pY, int pSize) {
+    mXA = pX;
+    mYA = pY;
+    
+    mXB = (mYA);
+    mYB = (pSize - 1 - mXA);
+    
+    mXC = (mYB);
+    mYC = (pSize - 1 - mXB);
+    
+    mXD = (mYC);
+    mYD = (pSize - 1 - mXC);
+    
+    mSize = pSize;
+}
+
+void Quint::_Rotate() {
+    
+    int aXA = mXA; int aYA = mYA;
+    int aXB = mXB; int aYB = mYB;
+    int aXC = mXC; int aYC = mYC;
+    int aXD = mXD; int aYD = mYD;
+    
+    mXA = aXD; mYA = aYD;
+    mXB = aXA; mYB = aYA;
+    mXC = aXB; mYC = aYB;
+    mXD = aXC; mYD = aYC;
+}
+
+void Quint::RotA() {
+    _Rotate();
+}
+
+void Quint::RotB() {
+    _Rotate();
+    _Rotate();
+    _Rotate();
+}
+
+void Quint::RotC() {
+    _Rotate();
+    _Rotate();
+}
+
+void Quint::CrossA() {
+    int aXA = mXA; int aYA = mYA;
+    int aXB = mXB; int aYB = mYB;
+    int aXC = mXC; int aYC = mYC;
+    int aXD = mXD; int aYD = mYD;
+    mXA = aXD; mYA = aYD;
+    mXD = aXA; mYD = aYA;
+    mXC = aXB; mYC = aYB;
+    mXB = aXC; mYB = aYC;
+}
+
+void Quint::CrossB() {
+    int aXA = mXA; int aYA = mYA;
+    int aXB = mXB; int aYB = mYB;
+    int aXC = mXC; int aYC = mYC;
+    int aXD = mXD; int aYD = mYD;
+    mXA = aXB; mYA = aYB;
+    mXB = aXA; mYB = aYA;
+    mXC = aXD; mYC = aYD;
+    mXD = aXC; mYD = aYC;
+}
+
+void Quint::CrossC() {
+    int aXA = mXA; int aYA = mYA;
+    int aXB = mXB; int aYB = mYB;
+    int aXC = mXC; int aYC = mYC;
+    int aXD = mXD; int aYD = mYD;
+    mXA = aXC; mYA = aYC;
+    mXC = aXA; mYC = aYA;
+    mXB = aXD; mYB = aYD;
+    mXD = aXB; mYD = aYB;
+}
+
 static void NormalizeCycle(Cycle &pCycle) {
     if (pCycle.mSlots.empty()) {
         return;
@@ -74,6 +184,7 @@ void Slice::Make(std::size_t pX, std::size_t pY, std::size_t pSize) {
         for (std::size_t y = 0; y < pSize; y++) {
             const std::size_t aSlot = M88::Slot(x + pX, y + pY);
             mSlot[x][y] = aSlot;
+            mData[x][y] = (y * pSize) + x;
         }
     }
 
@@ -90,126 +201,16 @@ void Slice::Flood(M88 &pMatrix) {
     }
 }
 
-bool Slice::Capable(Op pOp) const {
-    switch (pOp) {
-        case Op::kRotA:
-        case Op::kRotB:
-        case Op::kRotC:
-        case Op::kFlipA:
-        case Op::kFlipB:
-        case Op::kFlipC:
-        case Op::kFlipD:
-            return (mSize >= 2U);
-            
-        case Op::kPylonRotA:
-        case Op::kPylonRotB:
-        case Op::kPylonRotC:
-        case Op::kPylonFlipA:
-        case Op::kPylonFlipB:
-        case Op::kPylonFlipC:
-        case Op::kPylonFlipD:
-            return (mSize == 8U);
-
-        case Op::kBlockRotA:
-        case Op::kBlockRotB:
-        case Op::kBlockRotC:
-        case Op::kBlockFlipA:
-        case Op::kBlockFlipB:
-        case Op::kBlockFlipC:
-        case Op::kBlockFlipD:
-        case Op::kPinA:
-        case Op::kPinB:
-        case Op::kCastleA:
-        case Op::kCastleB:
-            return (mSize == 4U) || (mSize == 8U);
-            
-        case Op::kTriadAA:
-        case Op::kTriadAB:
-        case Op::kTriadBA:
-        case Op::kTriadBB:
-        case Op::kTriadCA:
-        case Op::kTriadCB:
-        case Op::kTriadDA:
-        case Op::kTriadDB:
-        case Op::kSnakeA:
-        case Op::kSnakeB:
-        case Op::kSnakeC:
-        case Op::kSnakeD:
-            return (mSize == 2U);
-    }
-
-    return false;
+Quint Slice::GetQuintRight(int pX, int pY) {
+    Quint aResult;
+    aResult.MakeRight(pX, pY, (int)mSize);
+    return aResult;
 }
 
-void Slice::Execute(Op pOp) {
-    std::vector<Op> aOps;
-    aOps.push_back(pOp);
-    Execute(aOps);
-}
-
-void Slice::Execute(std::vector<Op> pOps) {
-    for (std::size_t i = 0; i < pOps.size(); i++) {
-        if (!Capable(pOps[i])) {
-            std::printf("tried an impossible op...\n");
-            std::exit(0);
-        }
-    }
-
-    PrepareSlots();
-
-    for (std::size_t i = 0; i < pOps.size(); i++) {
-        switch (pOps[i]) {
-            case Op::kRotA:       _RotA();       break;
-            case Op::kRotB:       _RotB();       break;
-            case Op::kRotC:       _RotC();       break;
-
-            case Op::kFlipA:      _FlipA();      break;
-            case Op::kFlipB:      _FlipB();      break;
-            case Op::kFlipC:      _FlipC();      break;
-            case Op::kFlipD:      _FlipD();      break;
-
-            case Op::kBlockRotA:  _BlockRotA();  break;
-            case Op::kBlockRotB:  _BlockRotB();  break;
-            case Op::kBlockRotC:  _BlockRotC();  break;
-
-            case Op::kBlockFlipA: _BlockFlipA(); break;
-            case Op::kBlockFlipB: _BlockFlipB(); break;
-            case Op::kBlockFlipC: _BlockFlipC(); break;
-            case Op::kBlockFlipD: _BlockFlipD(); break;
-                
-            case Op::kPylonRotA:  _PylonRotA();  break;
-            case Op::kPylonRotB:  _PylonRotB();  break;
-            case Op::kPylonRotC:  _PylonRotC();  break;
-
-            case Op::kPylonFlipA: _PylonFlipA(); break;
-            case Op::kPylonFlipB: _PylonFlipB(); break;
-            case Op::kPylonFlipC: _PylonFlipC(); break;
-            case Op::kPylonFlipD: _PylonFlipD(); break;
-
-            case Op::kPinA:       _PinA();       break;
-            case Op::kPinB:       _PinB();       break;
-
-            case Op::kCastleA:    _CastleA();    break;
-            case Op::kCastleB:    _CastleB();    break;
-
-            case Op::kTriadAA:    _TriadAA();    break;
-            case Op::kTriadAB:    _TriadAB();    break;
-            case Op::kTriadBA:    _TriadBA();    break;
-            case Op::kTriadBB:    _TriadBB();    break;
-            case Op::kTriadCA:    _TriadCA();    break;
-            case Op::kTriadCB:    _TriadCB();    break;
-            case Op::kTriadDA:    _TriadDA();    break;
-            case Op::kTriadDB:    _TriadDB();    break;
-                
-            case Op::kSnakeA:  _SnakeA();  break;
-            case Op::kSnakeB:  _SnakeB();  break;
-            case Op::kSnakeC:  _SnakeC();  break;
-            case Op::kSnakeD:  _SnakeD();  break;
-                
-        }
-    }
-
-    RealizeSlots();
+Quint Slice::GetQuintLeft(int pX, int pY) {
+    Quint aResult;
+    aResult.MakeLeft(pX, pY, (int)mSize);
+    return aResult;
 }
 
 void Slice::PrepareSlots() {
@@ -226,7 +227,6 @@ std::size_t Slice::FindPreparedSlotForValue(std::uint8_t pValue) const {
             }
         }
     }
-
     return static_cast<std::size_t>(-1);
 }
 
@@ -234,6 +234,33 @@ void Slice::RealizeSlots() {
     for (std::size_t x = 0; x < mSize; x++) {
         for (std::size_t y = 0; y < mSize; y++) {
             mSlot[x][y] = FindPreparedSlotForValue(mData[x][y]);
+        }
+    }
+}
+
+void Slice::_ApplyBlockMap8x8(const std::uint8_t pMap[8][8]) {
+    const std::size_t aBlockSize = mSize / 8U;
+
+    std::memcpy(mTempData, mData, sizeof(mTempData));
+
+    for (std::size_t destBlockY = 0U; destBlockY < 8U; destBlockY++) {
+        for (std::size_t destBlockX = 0U; destBlockX < 8U; destBlockX++) {
+            const std::uint8_t aSourceBlock = pMap[destBlockY][destBlockX];
+
+            const std::size_t sourceBlockX = aSourceBlock & 7U;
+            const std::size_t sourceBlockY = aSourceBlock >> 3U;
+
+            for (std::size_t by = 0U; by < aBlockSize; by++) {
+                for (std::size_t bx = 0U; bx < aBlockSize; bx++) {
+                    const std::size_t destX = destBlockX * aBlockSize + bx;
+                    const std::size_t destY = destBlockY * aBlockSize + by;
+
+                    const std::size_t sourceX = sourceBlockX * aBlockSize + bx;
+                    const std::size_t sourceY = sourceBlockY * aBlockSize + by;
+
+                    mData[destX][destY] = mTempData[sourceX][sourceY];
+                }
+            }
         }
     }
 }
@@ -290,6 +317,38 @@ void Slice::_ApplyBlockMap2x2(const std::uint8_t pMap[2][2]) {
             }
         }
     }
+}
+
+void Slice::_Exchange(Quint &pQuintA, Quint &pQuintB) {
+    std::memcpy(mTempData, mData, sizeof(mTempData));
+    mData[pQuintA.mXA][pQuintA.mYA] = mTempData[pQuintB.mXA][pQuintB.mYA]; mData[pQuintA.mXB][pQuintA.mYB] = mTempData[pQuintB.mXB][pQuintB.mYB];
+    mData[pQuintA.mXC][pQuintA.mYC] = mTempData[pQuintB.mXC][pQuintB.mYC]; mData[pQuintA.mXD][pQuintA.mYD] = mTempData[pQuintB.mXD][pQuintB.mYD];
+}
+
+void Slice::_Weave(Quint &pQuintA, Quint &pQuintB) {
+    std::memcpy(mTempData, mData, sizeof(mTempData));
+    mData[pQuintA.mXA][pQuintA.mYA] = mTempData[pQuintB.mXA][pQuintB.mYA]; mData[pQuintB.mXA][pQuintB.mYA] = mTempData[pQuintA.mXA][pQuintA.mYA];
+    mData[pQuintA.mXB][pQuintA.mYB] = mTempData[pQuintB.mXB][pQuintB.mYB]; mData[pQuintB.mXB][pQuintB.mYB] = mTempData[pQuintA.mXB][pQuintA.mYB];
+    mData[pQuintA.mXC][pQuintA.mYC] = mTempData[pQuintB.mXC][pQuintB.mYC]; mData[pQuintB.mXC][pQuintB.mYC] = mTempData[pQuintA.mXC][pQuintA.mYC];
+    mData[pQuintA.mXD][pQuintA.mYD] = mTempData[pQuintB.mXD][pQuintB.mYD]; mData[pQuintB.mXD][pQuintB.mYD] = mTempData[pQuintA.mXD][pQuintA.mYD];
+}
+
+void Slice::_RotA(Quint &pQuint) {
+    Quint aOther = pQuint;
+    aOther.RotA();
+    _Exchange(pQuint, aOther);
+}
+
+void Slice::_RotB(Quint &pQuint) {
+    Quint aOther = pQuint;
+    aOther.RotB();
+    _Exchange(pQuint, aOther);
+}
+
+void Slice::_RotC(Quint &pQuint) {
+    Quint aOther = pQuint;
+    aOther.RotC();
+    _Exchange(pQuint, aOther);
 }
 
 void Slice::_RotA() {
@@ -376,322 +435,75 @@ void Slice::_FlipD() {
     }
 }
 
-void Slice::_PylonRotA() {
-    static const std::uint8_t kMap[4][4] = {
-        { 12U,  8U,  4U,  0U },
-        { 13U,  9U,  5U,  1U },
-        { 14U, 10U,  6U,  2U },
-        { 15U, 11U,  7U,  3U }
-    };
-
-    _ApplyBlockMap4x4(kMap);
-}
-
-void Slice::_PylonRotB() {
-    static const std::uint8_t kMap[4][4] = {
-        {  3U,  7U, 11U, 15U },
-        {  2U,  6U, 10U, 14U },
-        {  1U,  5U,  9U, 13U },
-        {  0U,  4U,  8U, 12U }
-    };
-
-    _ApplyBlockMap4x4(kMap);
-}
-
-void Slice::_PylonRotC() {
-    static const std::uint8_t kMap[4][4] = {
-        { 15U, 14U, 13U, 12U },
-        { 11U, 10U,  9U,  8U },
-        {  7U,  6U,  5U,  4U },
-        {  3U,  2U,  1U,  0U }
-    };
-
-    _ApplyBlockMap4x4(kMap);
-}
-
-void Slice::_PylonFlipA() {
-    static const std::uint8_t kMap[4][4] = {
-        {  3U,  2U,  1U,  0U },
-        {  7U,  6U,  5U,  4U },
-        { 11U, 10U,  9U,  8U },
-        { 15U, 14U, 13U, 12U }
-    };
-
-    _ApplyBlockMap4x4(kMap);
-}
-
-void Slice::_PylonFlipB() {
-    static const std::uint8_t kMap[4][4] = {
-        { 12U, 13U, 14U, 15U },
-        {  8U,  9U, 10U, 11U },
-        {  4U,  5U,  6U,  7U },
-        {  0U,  1U,  2U,  3U }
-    };
-
-    _ApplyBlockMap4x4(kMap);
-}
-
-void Slice::_PylonFlipC() {
-    static const std::uint8_t kMap[4][4] = {
-        {  0U,  4U,  8U, 12U },
-        {  1U,  5U,  9U, 13U },
-        {  2U,  6U, 10U, 14U },
-        {  3U,  7U, 11U, 15U }
-    };
-
-    _ApplyBlockMap4x4(kMap);
-}
-
-void Slice::_PylonFlipD() {
-    static const std::uint8_t kMap[4][4] = {
-        { 15U, 11U,  7U,  3U },
-        { 14U, 10U,  6U,  2U },
-        { 13U,  9U,  5U,  1U },
-        { 12U,  8U,  4U,  0U }
-    };
-
-    _ApplyBlockMap4x4(kMap);
-}
-
 void Slice::_PinA() {
-    static const std::uint8_t kMap[4][4] = {
-        { 12U,  8U,  4U,  0U },
-        { 13U,  6U, 10U,  1U },
-        { 14U,  5U,  9U,  2U },
-        { 15U, 11U,  7U,  3U }
-    };
-
-    _ApplyBlockMap4x4(kMap);
+    // Starts right:
+    // each ring's top-left corner moves to that ring's top-right corner.
+    _Pin(1);
 }
 
 void Slice::_PinB() {
-    static const std::uint8_t kMap[4][4] = {
-        {  3U,  7U, 11U, 15U },
-        {  2U,  9U,  5U, 14U },
-        {  1U, 10U,  6U, 13U },
-        {  0U,  4U,  8U, 12U }
-    };
-
-    _ApplyBlockMap4x4(kMap);
+    // Starts left:
+    // reverse of PinA.
+    _Pin(-1);
 }
 
-void Slice::_BlockRotA() {
-    static const std::uint8_t kMap[2][2] = {
-        { 2U, 0U },
-        { 3U, 1U }
-    };
+void Slice::_Pin(int pStartDirection) {
+    const std::size_t aRingCount = mSize / 2U;
 
-    _ApplyBlockMap2x2(kMap);
-}
+    for (std::size_t aRing = 0U; aRing < aRingCount; aRing++) {
+        const std::size_t aMin = aRing;
+        const std::size_t aMax = mSize - 1U - aRing;
+        const std::size_t aSide = aMax - aMin + 1U;
+        const std::size_t aShift = aSide - 1U;
 
-void Slice::_BlockRotB() {
-    static const std::uint8_t kMap[2][2] = {
-        { 1U, 3U },
-        { 0U, 2U }
-    };
+        int aDirection = pStartDirection;
 
-    _ApplyBlockMap2x2(kMap);
-}
+        if ((aRing & 1U) != 0U) {
+            aDirection = -aDirection;
+        }
 
-void Slice::_BlockRotC() {
-    static const std::uint8_t kMap[2][2] = {
-        { 3U, 2U },
-        { 1U, 0U }
-    };
+        for (std::size_t aStep = 0U; aStep < aShift; aStep++) {
+            std::memcpy(mTempData, mData, sizeof(mTempData));
 
-    _ApplyBlockMap2x2(kMap);
-}
+            if (aDirection > 0) {
+                // Right / clockwise:
+                // top-left moves right along the top edge.
+                for (std::size_t x = aMin; x < aMax; x++) {
+                    mData[x + 1U][aMin] = mTempData[x][aMin];
+                }
 
-void Slice::_BlockFlipA() {
-    static const std::uint8_t kMap[2][2] = {
-        { 1U, 0U },
-        { 3U, 2U }
-    };
+                for (std::size_t y = aMin; y < aMax; y++) {
+                    mData[aMax][y + 1U] = mTempData[aMax][y];
+                }
 
-    _ApplyBlockMap2x2(kMap);
-}
+                for (std::size_t x = aMax; x > aMin; x--) {
+                    mData[x - 1U][aMax] = mTempData[x][aMax];
+                }
 
-void Slice::_BlockFlipB() {
-    static const std::uint8_t kMap[2][2] = {
-        { 2U, 3U },
-        { 0U, 1U }
-    };
+                for (std::size_t y = aMax; y > aMin; y--) {
+                    mData[aMin][y - 1U] = mTempData[aMin][y];
+                }
+            } else {
+                // Left / counter-clockwise:
+                // top-left moves down along the left edge.
+                for (std::size_t x = aMin; x < aMax; x++) {
+                    mData[x][aMin] = mTempData[x + 1U][aMin];
+                }
 
-    _ApplyBlockMap2x2(kMap);
-}
+                for (std::size_t y = aMin; y < aMax; y++) {
+                    mData[aMax][y] = mTempData[aMax][y + 1U];
+                }
 
-void Slice::_BlockFlipC() {
-    static const std::uint8_t kMap[2][2] = {
-        { 0U, 2U },
-        { 1U, 3U }
-    };
+                for (std::size_t x = aMax; x > aMin; x--) {
+                    mData[x][aMax] = mTempData[x - 1U][aMax];
+                }
 
-    _ApplyBlockMap2x2(kMap);
-}
-
-void Slice::_BlockFlipD() {
-    static const std::uint8_t kMap[2][2] = {
-        { 3U, 1U },
-        { 2U, 0U }
-    };
-
-    _ApplyBlockMap2x2(kMap);
-}
-
-void Slice::_CastleA() {
-    static const std::uint8_t kMap[4][4] = {
-        {  6U, 11U,  7U, 10U },
-        {  1U, 12U,  0U, 13U },
-        {  2U, 15U,  3U, 14U },
-        {  5U,  8U,  4U,  9U }
-    };
-
-    _ApplyBlockMap4x4(kMap);
-}
-
-void Slice::_CastleB() {
-    static const std::uint8_t kMap[4][4] = {
-        {  9U,  4U,  8U,  5U },
-        { 14U,  3U, 15U,  2U },
-        { 13U,  0U, 12U,  1U },
-        { 10U,  7U, 11U,  6U }
-    };
-
-    _ApplyBlockMap4x4(kMap);
-}
-
-static std::size_t LocalX(std::size_t pIndex) {
-    return pIndex & 1U;
-}
-
-static std::size_t LocalY(std::size_t pIndex) {
-    return pIndex >> 1U;
-}
-
-void Slice::_SwapLocal(std::size_t pA, std::size_t pB) {
-    std::memcpy(mTempData, mData, sizeof(mTempData));
-
-    const std::size_t ax = LocalX(pA);
-    const std::size_t ay = LocalY(pA);
-    const std::size_t bx = LocalX(pB);
-    const std::size_t by = LocalY(pB);
-
-    mData[ax][ay] = mTempData[bx][by];
-    mData[bx][by] = mTempData[ax][ay];
-}
-
-void Slice::_CycleLocal3(std::size_t pA,
-                         std::size_t pB,
-                         std::size_t pC) {
-    std::memcpy(mTempData, mData, sizeof(mTempData));
-
-    const std::size_t ax = LocalX(pA);
-    const std::size_t ay = LocalY(pA);
-    const std::size_t bx = LocalX(pB);
-    const std::size_t by = LocalY(pB);
-    const std::size_t cx = LocalX(pC);
-    const std::size_t cy = LocalY(pC);
-
-    mData[ax][ay] = mTempData[bx][by];
-    mData[bx][by] = mTempData[cx][cy];
-    mData[cx][cy] = mTempData[ax][ay];
-}
-
-void Slice::_LayoutLocal4(std::size_t pA,
-                          std::size_t pB,
-                          std::size_t pC,
-                          std::size_t pD) {
-    std::memcpy(mTempData, mData, sizeof(mTempData));
-
-    const std::size_t ax = LocalX(pA);
-    const std::size_t ay = LocalY(pA);
-    const std::size_t bx = LocalX(pB);
-    const std::size_t by = LocalY(pB);
-    const std::size_t cx = LocalX(pC);
-    const std::size_t cy = LocalY(pC);
-    const std::size_t dx = LocalX(pD);
-    const std::size_t dy = LocalY(pD);
-
-    mData[0][0] = mTempData[ax][ay];
-    mData[1][0] = mTempData[bx][by];
-    mData[0][1] = mTempData[cx][cy];
-    mData[1][1] = mTempData[dx][dy];
-}
-
-void Slice::_TriadAA() {
-    // BCAD
-    // A B / C D -> B C / A D
-    // D fixed, opposite corner A, clockwise
-    _CycleLocal3(0U, 1U, 2U);
-}
-
-void Slice::_TriadAB() {
-    // CABD
-    // A B / C D -> C A / B D
-    // D fixed, opposite corner A, counter-clockwise
-    _CycleLocal3(0U, 2U, 1U);
-}
-
-void Slice::_TriadBA() {
-    // BDCA
-    // A B / C D -> B D / C A
-    // C fixed, opposite corner B, clockwise
-    _CycleLocal3(0U, 1U, 3U);
-}
-
-void Slice::_TriadBB() {
-    // DACB
-    // A B / C D -> D A / C B
-    // C fixed, opposite corner B, counter-clockwise
-    _CycleLocal3(0U, 3U, 1U);
-}
-
-void Slice::_TriadCA() {
-    // CBDA
-    // A B / C D -> C B / D A
-    // B fixed, opposite corner C, clockwise
-    _CycleLocal3(0U, 2U, 3U);
-}
-
-void Slice::_TriadCB() {
-    // DBAC
-    // A B / C D -> D B / A C
-    // B fixed, opposite corner C, counter-clockwise
-    _CycleLocal3(0U, 3U, 2U);
-}
-
-void Slice::_TriadDA() {
-    // ACDB
-    // A B / C D -> A C / D B
-    // A fixed, opposite corner D, clockwise
-    _CycleLocal3(1U, 2U, 3U);
-}
-
-void Slice::_TriadDB() {
-    // ADBC
-    // A B / C D -> A D / B C
-    // A fixed, opposite corner D, counter-clockwise
-    _CycleLocal3(1U, 3U, 2U);
-}
-
-void Slice::_SnakeA() {
-    // BCDA
-    _LayoutLocal4(1U, 2U, 3U, 0U);
-}
-
-void Slice::_SnakeB() {
-    // DABC
-    _LayoutLocal4(3U, 0U, 1U, 2U);
-}
-
-void Slice::_SnakeC() {
-    // CDBA
-    _LayoutLocal4(2U, 3U, 1U, 0U);
-}
-
-void Slice::_SnakeD() {
-    // DCAB
-    _LayoutLocal4(3U, 2U, 0U, 1U);
+                for (std::size_t y = aMax; y > aMin; y--) {
+                    mData[aMin][y] = mTempData[aMin][y - 1U];
+                }
+            }
+        }
+    }
 }
 
 std::vector<Cycle> Slice::FindCycles() const {
@@ -797,6 +609,309 @@ void Slice::PrintCycleCode(const char *pDataName) const {
     }
 }
 
+void Slice::PrintBlockMapFunction(const std::string pName) {
+    
+    
+    
+    printf("void\t\t\t\t_%s();\n\n", pName.c_str());
+    
+    
+    printf("void Slice::_%s() {\n", pName.c_str());
+    
+    if (mSize == 4) {
+        printf("\tstatic const std::uint8_t kMap[4][4] = {\n");
+    } else if (mSize == 2) {
+        printf("\tstatic const std::uint8_t kMap[2][2] = {\n");
+    }
+    
+    for (int n=0;n<mSize;n++) {
+        printf("\t\t{ ");
+        for (int i=0;i<mSize;i++) {
+            printf("%2d", mData[i][n]);
+            if (i == (mSize - 1)) {
+                printf(" }");
+            } else {
+                printf(", ");
+            }
+        }
+        printf(",\n");
+    }
+    printf("\t};\n");
+    printf("\n");
+    
+    if (mSize == 4) {
+        printf("\t_ApplyBlockMap4x4(kMap);\n");
+    } else if (mSize == 2) {
+        printf("\t_ApplyBlockMap2x2(kMap);\n");
+    }
+    printf("}\n");
+    
+}
+
+void Slice::PrintVerifyExpected(const std::string pClass, const std::string pType, std::string pName) {
+    
+    std::vector<int> aList;
+    for (int n=0;n<mSize;n++) {
+        for (int i=0;i<mSize;i++) {
+            aList.push_back(mData[i][n]);
+        }
+    }
+    
+    std::sort(aList.begin(), aList.end());
+    
+    std::unordered_map<int, int> aMap;
+    for (int i=0; i<aList.size(); i++) {
+        aMap[aList[i]] = i;
+    }
+    
+    printf("\tstatic M\t\t\t%s%sExpected();\n\n", pType.c_str(), pName.c_str());
+    printf("M %s::%s%sExpected() {\n", pClass.c_str(), pType.c_str(), pName.c_str());
+    printf("\treturn {\n");
+    
+    for (int n=0;n<mSize;n++) {
+        printf("\t\t{ ");
+        for (int i=0;i<mSize;i++) {
+            printf("%2d", aMap[mData[i][n]]);
+            if (i == (mSize - 1)) {
+                printf(" }");
+            } else {
+                printf(", ");
+            }
+        }
+        printf(",\n");
+    }
+    printf("\t};\n");
+    printf("}\n\n");
+}
+
+void Slice::PrintRecipeFactory2x2(const std::string pName) const {
+
+    if (mSize != 2U) {
+        printf("// PrintRecipeFactory2x2 requires mSize == 2, got %zu\n", mSize);
+        return;
+    }
+
+    std::vector<int> aList;
+    for (int n = 0; n < mSize; n++) {
+        for (int i = 0; i < mSize; i++) {
+            aList.push_back(mData[i][n]);
+        }
+    }
+
+    std::sort(aList.begin(), aList.end());
+
+    std::unordered_map<int, int> aMap;
+    for (int i = 0; i < aList.size(); i++) {
+        aMap[aList[i]] = i;
+    }
+
+    printf("\tstatic Recipe2x2\t\t%s();\n\n", pName.c_str());
+
+    printf("Recipe2x2 RecipeFactory2x2::%s() {\n", pName.c_str());
+
+    auto Letter = [](int pValue) -> char {
+        return static_cast<char>('A' + pValue);
+    };
+
+    printf("\t//  A  B      %c  %c\n",
+           Letter(aMap[mData[0][0]]),
+           Letter(aMap[mData[1][0]]));
+
+    printf("\t//  C  D  ->  %c  %c\n",
+           Letter(aMap[mData[0][1]]),
+           Letter(aMap[mData[1][1]]));
+
+    printf("\treturn Make(\"%s\",\n", pName.c_str());
+
+    for (int n = 0; n < mSize; n++) {
+        printf("\t\t\t\t");
+
+        for (int i = 0; i < mSize; i++) {
+            printf("%2dU", aMap[mData[i][n]]);
+
+            const bool aLast = (n == (mSize - 1)) && (i == (mSize - 1));
+
+            if (!aLast) {
+                printf(", ");
+            }
+        }
+
+        printf("\n");
+    }
+
+    printf("\t);\n");
+    printf("}\n\n");
+}
+
+void Slice::PrintRecipeFactory4x4(const std::string pName) const {
+
+    if (mSize != 4U) {
+        printf("// PrintRecipeFactory4x4 requires mSize == 4, got %zu\n", mSize);
+        return;
+    }
+
+    std::vector<int> aList;
+    for (int n = 0; n < mSize; n++) {
+        for (int i = 0; i < mSize; i++) {
+            aList.push_back(mData[i][n]);
+        }
+    }
+
+    std::sort(aList.begin(), aList.end());
+
+    std::unordered_map<int, int> aMap;
+    for (int i = 0; i < aList.size(); i++) {
+        aMap[aList[i]] = i;
+    }
+
+    printf("\tstatic Recipe4x4\t\t%s();\n\n", pName.c_str());
+
+    printf("Recipe4x4 RecipeFactory4x4::%s() {\n", pName.c_str());
+
+    auto Letter = [](int pValue) -> char {
+        return static_cast<char>('A' + pValue);
+    };
+
+    printf("\t//  A  B  C  D      %c  %c  %c  %c\n",
+           Letter(aMap[mData[0][0]]),
+           Letter(aMap[mData[1][0]]),
+           Letter(aMap[mData[2][0]]),
+           Letter(aMap[mData[3][0]]));
+
+    printf("\t//  E  F  G  H  ->  %c  %c  %c  %c\n",
+           Letter(aMap[mData[0][1]]),
+           Letter(aMap[mData[1][1]]),
+           Letter(aMap[mData[2][1]]),
+           Letter(aMap[mData[3][1]]));
+
+    printf("\t//  I  J  K  L      %c  %c  %c  %c\n",
+           Letter(aMap[mData[0][2]]),
+           Letter(aMap[mData[1][2]]),
+           Letter(aMap[mData[2][2]]),
+           Letter(aMap[mData[3][2]]));
+
+    printf("\t//  M  N  O  P      %c  %c  %c  %c\n",
+           Letter(aMap[mData[0][3]]),
+           Letter(aMap[mData[1][3]]),
+           Letter(aMap[mData[2][3]]),
+           Letter(aMap[mData[3][3]]));
+
+    printf("\treturn Make(\"%s\",\n", pName.c_str());
+
+    for (int n = 0; n < mSize; n++) {
+        printf("\t\t\t\t");
+
+        for (int i = 0; i < mSize; i++) {
+            printf("%2dU", aMap[mData[i][n]]);
+
+            const bool aLast = (n == (mSize - 1)) && (i == (mSize - 1));
+
+            if (!aLast) {
+                printf(", ");
+            }
+        }
+
+        printf("\n");
+    }
+
+    printf("\t);\n");
+    printf("}\n\n");
+}
+
+
+void Slice::PrintRecipeFactory8x8(const std::string pName) const {
+
+    
+    if (mSize != 8U) {
+        printf("// PrintRecipeFactory8x8 requires mSize == 8, got %zu\n", mSize);
+        return;
+    }
+    
+    auto PrintLabel = [](int pValue) {
+        const char aRow = static_cast<char>('A' + (pValue >> 3));
+        const char aCol = static_cast<char>('A' + (pValue & 7));
+        std::printf("%c%c", aRow, aCol);
+    };
+
+    auto PrintInputLabel = [](int pY, int pX) {
+        const char aRow = static_cast<char>('A' + pY);
+        const char aCol = static_cast<char>('A' + pX);
+        std::printf("%c%c", aRow, aCol);
+    };
+
+    std::vector<int> aList;
+    for (int n = 0; n < mSize; n++) {
+        for (int i = 0; i < mSize; i++) {
+            aList.push_back(mData[i][n]);
+        }
+    }
+
+    std::sort(aList.begin(), aList.end());
+
+    std::unordered_map<int, int> aMap;
+    for (int i = 0; i < aList.size(); i++) {
+        aMap[aList[i]] = i;
+    }
+
+    auto Letter = [](int pValue) -> char {
+        if (pValue < 26) {
+            return static_cast<char>('A' + pValue);
+        }
+        return static_cast<char>('a' + (pValue - 26));
+    };
+
+    printf("\tstatic Recipe8x8\t\t%s();\n\n", pName.c_str());
+
+    printf("Recipe8x8 RecipeFactory8x8::%s() {\n", pName.c_str());
+
+    for (int y = 0; y < 8; y++) {
+        std::printf("\t//  ");
+
+        for (int x = 0; x < 8; x++) {
+            PrintInputLabel(y, x);
+            if (x < 7) {
+                std::printf(" ");
+            }
+        }
+
+        if (y == 1) {
+            std::printf("  ->  ");
+        } else {
+            std::printf("      ");
+        }
+
+        for (int x = 0; x < 8; x++) {
+            PrintLabel(aMap[mData[x][y]]);
+            if (x < 7) {
+                std::printf(" ");
+            }
+        }
+
+        std::printf("\n");
+    }
+
+    printf("\treturn Make(\"%s\",\n", pName.c_str());
+
+    for (int n = 0; n < mSize; n++) {
+        printf("\t\t\t\t");
+
+        for (int i = 0; i < mSize; i++) {
+            printf("%2dU", aMap[mData[i][n]]);
+
+            const bool aLast = (n == (mSize - 1)) && (i == (mSize - 1));
+
+            if (!aLast) {
+                printf(", ");
+            }
+        }
+
+        printf("\n");
+    }
+
+    printf("\t);\n");
+    printf("}\n\n");
+}
+
 std::string Slice::BuildFunctionName(std::vector<std::string> pNameChunks) {
     std::string aResult;
 
@@ -818,6 +933,8 @@ void Slice::PrintCPP(std::vector<std::string> pNameChunks) const {
     const std::string aName = BuildFunctionName(pNameChunks);
     const std::vector<Cycle> aCycles = FindCycles();
 
+    const std::size_t kMaxStatementsPerLine = 8U;
+
     std::printf("void M88::%s() {\n", aName.c_str());
 
     if (aCycles.empty()) {
@@ -826,7 +943,7 @@ void Slice::PrintCPP(std::vector<std::string> pNameChunks) const {
         return;
     }
 
-    std::printf("    std::uint8_t aHold = 0;\n\n");
+    std::printf("    std::uint8_t aHold = 0;\n");
 
     for (std::size_t i = 0; i < aCycles.size(); i++) {
         const Cycle &aCycle = aCycles[i];
@@ -835,16 +952,13 @@ void Slice::PrintCPP(std::vector<std::string> pNameChunks) const {
             continue;
         }
 
-        std::printf("    // cycle %zu\n", i);
-
         std::size_t aStatementsOnLine = 0U;
 
-        std::printf("    aHold = mData[%zu];",
-                    aCycle.mSlots[0]);
+        std::printf("    aHold = mData[%zu];", aCycle.mSlots[0]);
         aStatementsOnLine++;
 
         for (std::size_t j = 0; j + 1U < aCycle.mSlots.size(); j++) {
-            if (aStatementsOnLine >= 4U) {
+            if (aStatementsOnLine >= kMaxStatementsPerLine) {
                 std::printf("\n    ");
                 aStatementsOnLine = 0U;
             } else {
@@ -857,14 +971,14 @@ void Slice::PrintCPP(std::vector<std::string> pNameChunks) const {
             aStatementsOnLine++;
         }
 
-        if (aStatementsOnLine >= 4U) {
+        if (aStatementsOnLine >= kMaxStatementsPerLine) {
             std::printf("\n    ");
             aStatementsOnLine = 0U;
         } else {
             std::printf(" ");
         }
 
-        std::printf("mData[%zu] = aHold;\n\n",
+        std::printf("mData[%zu] = aHold;\n",
                     aCycle.mSlots[aCycle.mSlots.size() - 1U]);
     }
 

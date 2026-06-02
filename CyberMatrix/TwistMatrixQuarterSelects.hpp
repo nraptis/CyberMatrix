@@ -5,12 +5,12 @@
 //  Created by nick on 5/29/26.
 //
 
-#ifndef TwistMatrixQuarterSelects_hpp
-#define TwistMatrixQuarterSelects_hpp
+#ifndef TwistMatrixQuadSelects_hpp
+#define TwistMatrixQuadSelects_hpp
 
 #include <cstdint>
 
-class TwistMatrixQuarterSelects {
+class TwistMatrixQuadSelects {
 public:
     static constexpr std::uint32_t kPick4Count = 1820U;
 

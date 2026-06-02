@@ -16,75 +16,40 @@
 
 #include "M88Slice.hpp"
 
-/*
- D fixed, opposite corner A:
- [Y] BCAD = TriadAA   // clockwise
- [Y] CABD = TriadAB   // counter-clockwise
-
- C fixed, opposite corner B:
- [Y] BDCA = TriadBA   // clockwise
- [Y] DACB = TriadBB   // counter-clockwise
-
- B fixed, opposite corner C:
- [Y] CBDA = TriadCA   // clockwise
- [Y] DBAC = TriadCB   // counter-clockwise
-
-A fixed, opposite corner D:
- [Y] ACDB = TriadDA   // clockwise
- [Y] ADBC = TriadDB   // counter-clockwise
-
-[Y] BADC = FlipA // 03
-[Y] CDAB = FlipB // 04
-//// [N] DCBA = RotC
-[Y] CADB = RotA // 06
-[Y] BDAC = RotB // 07
-
-[Y] BCDA // 01 (D/B)
-[Y] DABC // 02 (A)
- 
-[Y] CDBA // 14
-[Y] DCAB // 05 (A)
- 
-BC
-DA
- 
-DA
-BC
- 
-CD
-BA
- 
-DC
-AB
- 
-*/
-
-
 class M88 {
 public:
     M88();
-
-    static std::size_t  Slot(std::size_t pX, std::size_t pY);
-    static std::size_t  X(std::size_t pSlot);
-    static std::size_t  Y(std::size_t pSlot);
-
-    void                Reset();
-
-    void                Paste(Slice pSlice);
-
-    void                RecordStart();
-    void                RecordStop();
-    bool                HasChange() const;
-
-    void                RecordPrintFunction(std::vector<std::string> pNameChunks);
-    void                RecordPrintFunction(const char *pOpName,
-                                            const char *pPartName,
-                                            int pNumber);
-
+    
+    static std::size_t                          Slot(std::size_t pX, std::size_t pY);
+    static std::size_t                          X(std::size_t pSlot);
+    static std::size_t                          Y(std::size_t pSlot);
+    
+    void                                        Reset();
+    
+    void                                        Paste(Slice pSlice);
+    
+    void                                        RecordStart();
+    void                                        RecordStop();
+    bool                                        HasChange() const;
+    
+    void                                        RecordPrintFunction(std::vector<std::string> pNameChunks);
+    void                                        RecordPrintFunction(const char *pOpName,
+                                                                    const char *pPartName,
+                                                                    int pNumber);
+    
     std::uint8_t                                mData[64];
+    std::uint8_t                                mTemp[64];
+    
+    
+    void                                        SwapRows(std::uint8_t pRowA, std::uint8_t pRowB);
+    void                                        SwapCols(std::uint8_t pColA, std::uint8_t pColB);
+    
+    void                                        SwapRows(std::uint8_t pInstruction);
+    void                                        SwapCols(std::uint8_t pInstruction);
+    
     std::uint8_t                                mBefore[64];
     std::uint8_t                                mAfter[64];
-
+    
     
     // ignores bytes 1 and 2, uses last byte to unroll
     void                                        Slickshot(std::uint8_t *pOperationData,
@@ -93,327 +58,621 @@ public:
     
     
     Slice                                       Get(std::size_t pX, std::size_t pY, std::size_t pSize);
-
+    
     Slice                                       GetFull();
-
-    Slice                                       GetQuarter(int pWhich);
-    Slice                                       GetQuarterA();
-    Slice                                       GetQuarterB();
-    Slice                                       GetQuarterC();
-    Slice                                       GetQuarterD();
-
-    Slice                                       GetSixteenth(int pWhich);
-    Slice                                       GetSixteenthA();
-    Slice                                       GetSixteenthB();
-    Slice                                       GetSixteenthC();
-    Slice                                       GetSixteenthD();
-    Slice                                       GetSixteenthE();
-    Slice                                       GetSixteenthF();
-    Slice                                       GetSixteenthG();
-    Slice                                       GetSixteenthH();
-    Slice                                       GetSixteenthI();
-    Slice                                       GetSixteenthJ();
-    Slice                                       GetSixteenthK();
-    Slice                                       GetSixteenthL();
-    Slice                                       GetSixteenthM();
-    Slice                                       GetSixteenthN();
-    Slice                                       GetSixteenthO();
-    Slice                                       GetSixteenthP();
     
-    void                                        RotateRightQuarterA();
+    Slice                                       GetQuad(int pWhich);
+    Slice                                       GetQuadA();
+    Slice                                       GetQuadB();
+    Slice                                       GetQuadC();
+    Slice                                       GetQuadD();
     
-    void                                        CastleAQuarterA();
-    void                                        CastleBQuarterA();
+    Slice                                       GetMini(int pWhich);
+    Slice                                       GetMiniA();
+    Slice                                       GetMiniB();
+    Slice                                       GetMiniC();
+    Slice                                       GetMiniD();
+    Slice                                       GetMiniE();
+    Slice                                       GetMiniF();
+    Slice                                       GetMiniG();
+    Slice                                       GetMiniH();
+    Slice                                       GetMiniI();
+    Slice                                       GetMiniJ();
+    Slice                                       GetMiniK();
+    Slice                                       GetMiniL();
+    Slice                                       GetMiniM();
+    Slice                                       GetMiniN();
+    Slice                                       GetMiniO();
+    Slice                                       GetMiniP();
     
     
-    
-    // Full Ops (256 target, at 3)
-    
-    void                                        RotA();
-    void                                        RotB();
-    void                                        RotC();
-    void                                        BlockRotA();
-    void                                        BlockRotB();
-    void                                        BlockRotC();
-    void                                        PylonRotA();
-    void                                        PylonRotB();
-    void                                        PylonRotC();
+    // Quad Ops (256)
+    void                                        SlickshotMini(std::uint8_t pByte);
     
     
-    // Quarter Ops (256)
-    void                                        SlickshotSix(std::uint8_t pByte);
     
-    void                                        RotASixA();
-    void                                        RotASixB();
-    void                                        RotASixC();
-    void                                        RotASixD();
-    void                                        RotASixE();
-    void                                        RotASixF();
-    void                                        RotASixG();
-    void                                        RotASixH();
-    void                                        RotASixI();
-    void                                        RotASixJ();
-    void                                        RotASixK();
-    void                                        RotASixL();
-    void                                        RotASixM();
-    void                                        RotASixN();
-    void                                        RotASixO();
-    void                                        RotASixP();
+    // Full - 78
+    void                                        Full_RotA_8x8();
+    void                                        Full_RotA_2x2();
+    void                                        Full_RotA_4x4();
+    void                                        Full_RotA_EachQuad_2x2();
+    void                                        Full_RotA_EachQuad_4x4();
+    void                                        Full_RotA_EachMini_2x2();
+    void                                        Full_RotB_8x8();
+    void                                        Full_RotB_2x2();
+    void                                        Full_RotB_EachQuad_2x2();
+    void                                        Full_RotB_EachMini_2x2();
+    void                                        Full_RotB_4x4();
+    void                                        Full_RotB_EachQuad_4x4();
+    void                                        Full_RotC_2x2();
+    void                                        Full_RotC_EachQuad_2x2();
+    void                                        Full_RotC_EachMini_2x2();
+    void                                        Full_RotC_4x4();
+    void                                        Full_RotC_EachQuad_4x4();
+    void                                        Full_RotC_8x8();
     
-    void                                        RotBSixA();
-    void                                        RotBSixB();
-    void                                        RotBSixC();
-    void                                        RotBSixD();
-    void                                        RotBSixE();
-    void                                        RotBSixF();
-    void                                        RotBSixG();
-    void                                        RotBSixH();
-    void                                        RotBSixI();
-    void                                        RotBSixJ();
-    void                                        RotBSixK();
-    void                                        RotBSixL();
-    void                                        RotBSixM();
-    void                                        RotBSixN();
-    void                                        RotBSixO();
-    void                                        RotBSixP();
+    void                                        Full_FlipA_2x2();
+    void                                        Full_FlipA_EachQuad_2x2();
+    void                                        Full_FlipA_EachMini_2x2();
+    void                                        Full_FlipA_4x4();
+    void                                        Full_FlipA_EachQuad_4x4();
+    void                                        Full_FlipA_8x8();
+    void                                        Full_FlipB_2x2();
+    void                                        Full_FlipB_EachQuad_2x2();
+    void                                        Full_FlipB_EachMini_2x2();
+    void                                        Full_FlipB_4x4();
+    void                                        Full_FlipB_EachQuad_4x4();
+    void                                        Full_FlipB_8x8();
+    void                                        Full_FlipC_2x2();
+    void                                        Full_FlipC_EachQuad_2x2();
+    void                                        Full_FlipC_EachMini_2x2();
+    void                                        Full_FlipC_4x4();
+    void                                        Full_FlipC_EachQuad_4x4();
+    void                                        Full_FlipC_8x8();
+    void                                        Full_FlipD_2x2();
+    void                                        Full_FlipD_EachQuad_2x2();
+    void                                        Full_FlipD_EachMini_2x2();
+    void                                        Full_FlipD_4x4();
+    void                                        Full_FlipD_EachQuad_4x4();
+    void                                        Full_FlipD_8x8();
     
-    void                                        FlipASixA();
-    void                                        FlipASixB();
-    void                                        FlipASixC();
-    void                                        FlipASixD();
-    void                                        FlipASixE();
-    void                                        FlipASixF();
-    void                                        FlipASixG();
-    void                                        FlipASixH();
-    void                                        FlipASixI();
-    void                                        FlipASixJ();
-    void                                        FlipASixK();
-    void                                        FlipASixL();
-    void                                        FlipASixM();
-    void                                        FlipASixN();
-    void                                        FlipASixO();
-    void                                        FlipASixP();
-
-    void                                        FlipBSixA();
-    void                                        FlipBSixB();
-    void                                        FlipBSixC();
-    void                                        FlipBSixD();
-    void                                        FlipBSixE();
-    void                                        FlipBSixF();
-    void                                        FlipBSixG();
-    void                                        FlipBSixH();
-    void                                        FlipBSixI();
-    void                                        FlipBSixJ();
-    void                                        FlipBSixK();
-    void                                        FlipBSixL();
-    void                                        FlipBSixM();
-    void                                        FlipBSixN();
-    void                                        FlipBSixO();
-    void                                        FlipBSixP();
+    void                                        Full_TriadA_2x2();
+    void                                        Full_TriadA_EachQuad_2x2();
+    void                                        Full_TriadA_EachMini_2x2();
+    void                                        Full_TriadB_2x2();
+    void                                        Full_TriadB_EachQuad_2x2();
+    void                                        Full_TriadB_EachMini_2x2();
+    void                                        Full_TriadC_2x2();
+    void                                        Full_TriadC_EachQuad_2x2();
+    void                                        Full_TriadC_EachMini_2x2();
+    void                                        Full_TriadD_2x2();
+    void                                        Full_TriadD_EachQuad_2x2();
+    void                                        Full_TriadD_EachMini_2x2();
+    void                                        Full_TriadE_2x2();
+    void                                        Full_TriadE_EachQuad_2x2();
+    void                                        Full_TriadE_EachMini_2x2();
+    void                                        Full_TriadF_2x2();
+    void                                        Full_TriadF_EachQuad_2x2();
+    void                                        Full_TriadF_EachMini_2x2();
+    void                                        Full_TriadG_2x2();
+    void                                        Full_TriadG_EachQuad_2x2();
+    void                                        Full_TriadG_EachMini_2x2();
+    void                                        Full_TriadH_2x2();
+    void                                        Full_TriadH_EachQuad_2x2();
+    void                                        Full_TriadH_EachMini_2x2();
     
-    void                                        TriadAASixA();
-    void                                        TriadAASixB();
-    void                                        TriadAASixC();
-    void                                        TriadAASixD();
-    void                                        TriadAASixE();
-    void                                        TriadAASixF();
-    void                                        TriadAASixG();
-    void                                        TriadAASixH();
-    void                                        TriadAASixI();
-    void                                        TriadAASixJ();
-    void                                        TriadAASixK();
-    void                                        TriadAASixL();
-    void                                        TriadAASixM();
-    void                                        TriadAASixN();
-    void                                        TriadAASixO();
-    void                                        TriadAASixP();
+    void                                        Full_SnakeA_2x2();
+    void                                        Full_SnakeA_EachQuad_2x2();
+    void                                        Full_SnakeA_EachMini_2x2();
+    void                                        Full_SnakeB_2x2();
+    void                                        Full_SnakeB_EachQuad_2x2();
+    void                                        Full_SnakeB_EachMini_2x2();
+    void                                        Full_SnakeC_2x2();
+    void                                        Full_SnakeC_EachQuad_2x2();
+    void                                        Full_SnakeC_EachMini_2x2();
+    void                                        Full_SnakeD_2x2();
+    void                                        Full_SnakeD_EachQuad_2x2();
+    void                                        Full_SnakeD_EachMini_2x2();
     
-    void                                        TriadABSixA();
-    void                                        TriadABSixB();
-    void                                        TriadABSixC();
-    void                                        TriadABSixD();
-    void                                        TriadABSixE();
-    void                                        TriadABSixF();
-    void                                        TriadABSixG();
-    void                                        TriadABSixH();
-    void                                        TriadABSixI();
-    void                                        TriadABSixJ();
-    void                                        TriadABSixK();
-    void                                        TriadABSixL();
-    void                                        TriadABSixM();
-    void                                        TriadABSixN();
-    void                                        TriadABSixO();
-    void                                        TriadABSixP();
     
-    void                                        TriadBASixA();
-    void                                        TriadBASixB();
-    void                                        TriadBASixC();
-    void                                        TriadBASixD();
-    void                                        TriadBASixE();
-    void                                        TriadBASixF();
-    void                                        TriadBASixG();
-    void                                        TriadBASixH();
-    void                                        TriadBASixI();
-    void                                        TriadBASixJ();
-    void                                        TriadBASixK();
-    void                                        TriadBASixL();
-    void                                        TriadBASixM();
-    void                                        TriadBASixN();
-    void                                        TriadBASixO();
-    void                                        TriadBASixP();
+    // Quad A - 45
+    void                                        Quad_RotA_2x2_A();
+    void                                        Quad_RotA_4x4_A();
+    void                                        Quad_RotA_EachMini_2x2_A();
+    void                                        Quad_RotB_EachMini_2x2_A();
+    void                                        Quad_RotB_2x2_A();
+    void                                        Quad_RotB_4x4_A();
+    void                                        Quad_RotC_EachMini_2x2_A();
+    void                                        Quad_RotC_2x2_A();
+    void                                        Quad_RotC_4x4_A();
+    void                                        Quad_FlipA_EachMini_2x2_A();
+    void                                        Quad_FlipA_2x2_A();
+    void                                        Quad_FlipA_4x4_A();
+    void                                        Quad_FlipB_EachMini_2x2_A();
+    void                                        Quad_FlipB_2x2_A();
+    void                                        Quad_FlipB_4x4_A();
+    void                                        Quad_FlipC_EachMini_2x2_A();
+    void                                        Quad_FlipC_2x2_A();
+    void                                        Quad_FlipC_4x4_A();
+    void                                        Quad_FlipD_EachMini_2x2_A();
+    void                                        Quad_FlipD_2x2_A();
+    void                                        Quad_FlipD_4x4_A();
+    void                                        Quad_TriadA_EachMini_2x2_A();
+    void                                        Quad_TriadA_2x2_A();
+    void                                        Quad_TriadB_EachMini_2x2_A();
+    void                                        Quad_TriadB_2x2_A();
+    void                                        Quad_TriadC_EachMini_2x2_A();
+    void                                        Quad_TriadC_2x2_A();
+    void                                        Quad_TriadD_EachMini_2x2_A();
+    void                                        Quad_TriadD_2x2_A();
+    void                                        Quad_TriadE_EachMini_2x2_A();
+    void                                        Quad_TriadE_2x2_A();
+    void                                        Quad_TriadF_EachMini_2x2_A();
+    void                                        Quad_TriadF_2x2_A();
+    void                                        Quad_TriadG_EachMini_2x2_A();
+    void                                        Quad_TriadG_2x2_A();
+    void                                        Quad_TriadH_EachMini_2x2_A();
+    void                                        Quad_TriadH_2x2_A();
+    void                                        Quad_SnakeA_EachMini_2x2_A();
+    void                                        Quad_SnakeA_2x2_A();
+    void                                        Quad_SnakeB_EachMini_2x2_A();
+    void                                        Quad_SnakeB_2x2_A();
+    void                                        Quad_SnakeC_EachMini_2x2_A();
+    void                                        Quad_SnakeC_2x2_A();
+    void                                        Quad_SnakeD_EachMini_2x2_A();
+    void                                        Quad_SnakeD_2x2_A();
     
-    void                                        TriadBBSixA();
-    void                                        TriadBBSixB();
-    void                                        TriadBBSixC();
-    void                                        TriadBBSixD();
-    void                                        TriadBBSixE();
-    void                                        TriadBBSixF();
-    void                                        TriadBBSixG();
-    void                                        TriadBBSixH();
-    void                                        TriadBBSixI();
-    void                                        TriadBBSixJ();
-    void                                        TriadBBSixK();
-    void                                        TriadBBSixL();
-    void                                        TriadBBSixM();
-    void                                        TriadBBSixN();
-    void                                        TriadBBSixO();
-    void                                        TriadBBSixP();
+    // Quad B - 45
+    void                                        Quad_RotA_2x2_B();
+    void                                        Quad_RotA_4x4_B();
+    void                                        Quad_RotA_EachMini_2x2_B();
+    void                                        Quad_RotB_EachMini_2x2_B();
+    void                                        Quad_RotB_2x2_B();
+    void                                        Quad_RotB_4x4_B();
+    void                                        Quad_RotC_EachMini_2x2_B();
+    void                                        Quad_RotC_2x2_B();
+    void                                        Quad_RotC_4x4_B();
+    void                                        Quad_FlipA_EachMini_2x2_B();
+    void                                        Quad_FlipA_2x2_B();
+    void                                        Quad_FlipA_4x4_B();
+    void                                        Quad_FlipB_EachMini_2x2_B();
+    void                                        Quad_FlipB_2x2_B();
+    void                                        Quad_FlipB_4x4_B();
+    void                                        Quad_FlipC_EachMini_2x2_B();
+    void                                        Quad_FlipC_2x2_B();
+    void                                        Quad_FlipC_4x4_B();
+    void                                        Quad_FlipD_EachMini_2x2_B();
+    void                                        Quad_FlipD_2x2_B();
+    void                                        Quad_FlipD_4x4_B();
+    void                                        Quad_TriadA_EachMini_2x2_B();
+    void                                        Quad_TriadA_2x2_B();
+    void                                        Quad_TriadB_EachMini_2x2_B();
+    void                                        Quad_TriadB_2x2_B();
+    void                                        Quad_TriadC_EachMini_2x2_B();
+    void                                        Quad_TriadC_2x2_B();
+    void                                        Quad_TriadD_EachMini_2x2_B();
+    void                                        Quad_TriadD_2x2_B();
+    void                                        Quad_TriadE_EachMini_2x2_B();
+    void                                        Quad_TriadE_2x2_B();
+    void                                        Quad_TriadF_EachMini_2x2_B();
+    void                                        Quad_TriadF_2x2_B();
+    void                                        Quad_TriadG_EachMini_2x2_B();
+    void                                        Quad_TriadG_2x2_B();
+    void                                        Quad_TriadH_EachMini_2x2_B();
+    void                                        Quad_TriadH_2x2_B();
+    void                                        Quad_SnakeA_EachMini_2x2_B();
+    void                                        Quad_SnakeA_2x2_B();
+    void                                        Quad_SnakeB_EachMini_2x2_B();
+    void                                        Quad_SnakeB_2x2_B();
+    void                                        Quad_SnakeC_EachMini_2x2_B();
+    void                                        Quad_SnakeC_2x2_B();
+    void                                        Quad_SnakeD_EachMini_2x2_B();
+    void                                        Quad_SnakeD_2x2_B();
     
-    void                                        TriadCASixA();
-    void                                        TriadCASixB();
-    void                                        TriadCASixC();
-    void                                        TriadCASixD();
-    void                                        TriadCASixE();
-    void                                        TriadCASixF();
-    void                                        TriadCASixG();
-    void                                        TriadCASixH();
-    void                                        TriadCASixI();
-    void                                        TriadCASixJ();
-    void                                        TriadCASixK();
-    void                                        TriadCASixL();
-    void                                        TriadCASixM();
-    void                                        TriadCASixN();
-    void                                        TriadCASixO();
-    void                                        TriadCASixP();
+    // Quad C - 45
+    void                                        Quad_RotA_2x2_C();
+    void                                        Quad_RotA_4x4_C();
+    void                                        Quad_RotA_EachMini_2x2_C();
+    void                                        Quad_RotB_EachMini_2x2_C();
+    void                                        Quad_RotB_2x2_C();
+    void                                        Quad_RotB_4x4_C();
+    void                                        Quad_RotC_EachMini_2x2_C();
+    void                                        Quad_RotC_2x2_C();
+    void                                        Quad_RotC_4x4_C();
+    void                                        Quad_FlipA_EachMini_2x2_C();
+    void                                        Quad_FlipA_2x2_C();
+    void                                        Quad_FlipA_4x4_C();
+    void                                        Quad_FlipB_EachMini_2x2_C();
+    void                                        Quad_FlipB_2x2_C();
+    void                                        Quad_FlipB_4x4_C();
+    void                                        Quad_FlipC_EachMini_2x2_C();
+    void                                        Quad_FlipC_2x2_C();
+    void                                        Quad_FlipC_4x4_C();
+    void                                        Quad_FlipD_EachMini_2x2_C();
+    void                                        Quad_FlipD_2x2_C();
+    void                                        Quad_FlipD_4x4_C();
+    void                                        Quad_TriadA_EachMini_2x2_C();
+    void                                        Quad_TriadA_2x2_C();
+    void                                        Quad_TriadB_EachMini_2x2_C();
+    void                                        Quad_TriadB_2x2_C();
+    void                                        Quad_TriadC_EachMini_2x2_C();
+    void                                        Quad_TriadC_2x2_C();
+    void                                        Quad_TriadD_EachMini_2x2_C();
+    void                                        Quad_TriadD_2x2_C();
+    void                                        Quad_TriadE_EachMini_2x2_C();
+    void                                        Quad_TriadE_2x2_C();
+    void                                        Quad_TriadF_EachMini_2x2_C();
+    void                                        Quad_TriadF_2x2_C();
+    void                                        Quad_TriadG_EachMini_2x2_C();
+    void                                        Quad_TriadG_2x2_C();
+    void                                        Quad_TriadH_EachMini_2x2_C();
+    void                                        Quad_TriadH_2x2_C();
+    void                                        Quad_SnakeA_EachMini_2x2_C();
+    void                                        Quad_SnakeA_2x2_C();
+    void                                        Quad_SnakeB_EachMini_2x2_C();
+    void                                        Quad_SnakeB_2x2_C();
+    void                                        Quad_SnakeC_EachMini_2x2_C();
+    void                                        Quad_SnakeC_2x2_C();
+    void                                        Quad_SnakeD_EachMini_2x2_C();
+    void                                        Quad_SnakeD_2x2_C();
     
-    void                                        TriadCBSixA();
-    void                                        TriadCBSixB();
-    void                                        TriadCBSixC();
-    void                                        TriadCBSixD();
-    void                                        TriadCBSixE();
-    void                                        TriadCBSixF();
-    void                                        TriadCBSixG();
-    void                                        TriadCBSixH();
-    void                                        TriadCBSixI();
-    void                                        TriadCBSixJ();
-    void                                        TriadCBSixK();
-    void                                        TriadCBSixL();
-    void                                        TriadCBSixM();
-    void                                        TriadCBSixN();
-    void                                        TriadCBSixO();
-    void                                        TriadCBSixP();
+    // Quad D - 45
+    void                                        Quad_RotA_2x2_D();
+    void                                        Quad_RotA_4x4_D();
+    void                                        Quad_RotA_EachMini_2x2_D();
+    void                                        Quad_RotB_EachMini_2x2_D();
+    void                                        Quad_RotB_2x2_D();
+    void                                        Quad_RotB_4x4_D();
+    void                                        Quad_RotC_EachMini_2x2_D();
+    void                                        Quad_RotC_2x2_D();
+    void                                        Quad_RotC_4x4_D();
+    void                                        Quad_FlipA_EachMini_2x2_D();
+    void                                        Quad_FlipA_2x2_D();
+    void                                        Quad_FlipA_4x4_D();
+    void                                        Quad_FlipB_EachMini_2x2_D();
+    void                                        Quad_FlipB_2x2_D();
+    void                                        Quad_FlipB_4x4_D();
+    void                                        Quad_FlipC_EachMini_2x2_D();
+    void                                        Quad_FlipC_2x2_D();
+    void                                        Quad_FlipC_4x4_D();
+    void                                        Quad_FlipD_EachMini_2x2_D();
+    void                                        Quad_FlipD_2x2_D();
+    void                                        Quad_FlipD_4x4_D();
+    void                                        Quad_TriadA_EachMini_2x2_D();
+    void                                        Quad_TriadA_2x2_D();
+    void                                        Quad_TriadB_EachMini_2x2_D();
+    void                                        Quad_TriadB_2x2_D();
+    void                                        Quad_TriadC_EachMini_2x2_D();
+    void                                        Quad_TriadC_2x2_D();
+    void                                        Quad_TriadD_EachMini_2x2_D();
+    void                                        Quad_TriadD_2x2_D();
+    void                                        Quad_TriadE_EachMini_2x2_D();
+    void                                        Quad_TriadE_2x2_D();
+    void                                        Quad_TriadF_EachMini_2x2_D();
+    void                                        Quad_TriadF_2x2_D();
+    void                                        Quad_TriadG_EachMini_2x2_D();
+    void                                        Quad_TriadG_2x2_D();
+    void                                        Quad_TriadH_EachMini_2x2_D();
+    void                                        Quad_TriadH_2x2_D();
+    void                                        Quad_SnakeA_EachMini_2x2_D();
+    void                                        Quad_SnakeA_2x2_D();
+    void                                        Quad_SnakeB_EachMini_2x2_D();
+    void                                        Quad_SnakeB_2x2_D();
+    void                                        Quad_SnakeC_EachMini_2x2_D();
+    void                                        Quad_SnakeC_2x2_D();
+    void                                        Quad_SnakeD_EachMini_2x2_D();
+    void                                        Quad_SnakeD_2x2_D();
     
-    void                                        TriadDASixA();
-    void                                        TriadDASixB();
-    void                                        TriadDASixC();
-    void                                        TriadDASixD();
-    void                                        TriadDASixE();
-    void                                        TriadDASixF();
-    void                                        TriadDASixG();
-    void                                        TriadDASixH();
-    void                                        TriadDASixI();
-    void                                        TriadDASixJ();
-    void                                        TriadDASixK();
-    void                                        TriadDASixL();
-    void                                        TriadDASixM();
-    void                                        TriadDASixN();
-    void                                        TriadDASixO();
-    void                                        TriadDASixP();
     
-    void                                        TriadDBSixA();
-    void                                        TriadDBSixB();
-    void                                        TriadDBSixC();
-    void                                        TriadDBSixD();
-    void                                        TriadDBSixE();
-    void                                        TriadDBSixF();
-    void                                        TriadDBSixG();
-    void                                        TriadDBSixH();
-    void                                        TriadDBSixI();
-    void                                        TriadDBSixJ();
-    void                                        TriadDBSixK();
-    void                                        TriadDBSixL();
-    void                                        TriadDBSixM();
-    void                                        TriadDBSixN();
-    void                                        TriadDBSixO();
-    void                                        TriadDBSixP();
+    // Mini - 304
+    void                                        Mini_RotA_2x2_A();
+    void                                        Mini_RotA_2x2_B();
+    void                                        Mini_RotA_2x2_C();
+    void                                        Mini_RotA_2x2_D();
+    void                                        Mini_RotA_2x2_E();
+    void                                        Mini_RotA_2x2_F();
+    void                                        Mini_RotA_2x2_G();
+    void                                        Mini_RotA_2x2_H();
+    void                                        Mini_RotA_2x2_I();
+    void                                        Mini_RotA_2x2_J();
+    void                                        Mini_RotA_2x2_K();
+    void                                        Mini_RotA_2x2_L();
+    void                                        Mini_RotA_2x2_M();
+    void                                        Mini_RotA_2x2_N();
+    void                                        Mini_RotA_2x2_O();
+    void                                        Mini_RotA_2x2_P();
+    void                                        Mini_RotB_2x2_A();
+    void                                        Mini_RotB_2x2_B();
+    void                                        Mini_RotB_2x2_C();
+    void                                        Mini_RotB_2x2_D();
+    void                                        Mini_RotB_2x2_E();
+    void                                        Mini_RotB_2x2_F();
+    void                                        Mini_RotB_2x2_G();
+    void                                        Mini_RotB_2x2_H();
+    void                                        Mini_RotB_2x2_I();
+    void                                        Mini_RotB_2x2_J();
+    void                                        Mini_RotB_2x2_K();
+    void                                        Mini_RotB_2x2_L();
+    void                                        Mini_RotB_2x2_M();
+    void                                        Mini_RotB_2x2_N();
+    void                                        Mini_RotB_2x2_O();
+    void                                        Mini_RotB_2x2_P();
+    void                                        Mini_RotC_2x2_A();
+    void                                        Mini_RotC_2x2_B();
+    void                                        Mini_RotC_2x2_C();
+    void                                        Mini_RotC_2x2_D();
+    void                                        Mini_RotC_2x2_E();
+    void                                        Mini_RotC_2x2_F();
+    void                                        Mini_RotC_2x2_G();
+    void                                        Mini_RotC_2x2_H();
+    void                                        Mini_RotC_2x2_I();
+    void                                        Mini_RotC_2x2_J();
+    void                                        Mini_RotC_2x2_K();
+    void                                        Mini_RotC_2x2_L();
+    void                                        Mini_RotC_2x2_M();
+    void                                        Mini_RotC_2x2_N();
+    void                                        Mini_RotC_2x2_O();
+    void                                        Mini_RotC_2x2_P();
     
-    void                                        SnakeASixA();
-    void                                        SnakeASixB();
-    void                                        SnakeASixC();
-    void                                        SnakeASixD();
-    void                                        SnakeASixE();
-    void                                        SnakeASixF();
-    void                                        SnakeASixG();
-    void                                        SnakeASixH();
-    void                                        SnakeASixI();
-    void                                        SnakeASixJ();
-    void                                        SnakeASixK();
-    void                                        SnakeASixL();
-    void                                        SnakeASixM();
-    void                                        SnakeASixN();
-    void                                        SnakeASixO();
-    void                                        SnakeASixP();
+    void                                        Mini_FlipA_2x2_A();
+    void                                        Mini_FlipA_2x2_B();
+    void                                        Mini_FlipA_2x2_C();
+    void                                        Mini_FlipA_2x2_D();
+    void                                        Mini_FlipA_2x2_E();
+    void                                        Mini_FlipA_2x2_F();
+    void                                        Mini_FlipA_2x2_G();
+    void                                        Mini_FlipA_2x2_H();
+    void                                        Mini_FlipA_2x2_I();
+    void                                        Mini_FlipA_2x2_J();
+    void                                        Mini_FlipA_2x2_K();
+    void                                        Mini_FlipA_2x2_L();
+    void                                        Mini_FlipA_2x2_M();
+    void                                        Mini_FlipA_2x2_N();
+    void                                        Mini_FlipA_2x2_O();
+    void                                        Mini_FlipA_2x2_P();
+    void                                        Mini_FlipB_2x2_A();
+    void                                        Mini_FlipB_2x2_B();
+    void                                        Mini_FlipB_2x2_C();
+    void                                        Mini_FlipB_2x2_D();
+    void                                        Mini_FlipB_2x2_E();
+    void                                        Mini_FlipB_2x2_F();
+    void                                        Mini_FlipB_2x2_G();
+    void                                        Mini_FlipB_2x2_H();
+    void                                        Mini_FlipB_2x2_I();
+    void                                        Mini_FlipB_2x2_J();
+    void                                        Mini_FlipB_2x2_K();
+    void                                        Mini_FlipB_2x2_L();
+    void                                        Mini_FlipB_2x2_M();
+    void                                        Mini_FlipB_2x2_N();
+    void                                        Mini_FlipB_2x2_O();
+    void                                        Mini_FlipB_2x2_P();
+    void                                        Mini_FlipC_2x2_A();
+    void                                        Mini_FlipC_2x2_B();
+    void                                        Mini_FlipC_2x2_C();
+    void                                        Mini_FlipC_2x2_D();
+    void                                        Mini_FlipC_2x2_E();
+    void                                        Mini_FlipC_2x2_F();
+    void                                        Mini_FlipC_2x2_G();
+    void                                        Mini_FlipC_2x2_H();
+    void                                        Mini_FlipC_2x2_I();
+    void                                        Mini_FlipC_2x2_J();
+    void                                        Mini_FlipC_2x2_K();
+    void                                        Mini_FlipC_2x2_L();
+    void                                        Mini_FlipC_2x2_M();
+    void                                        Mini_FlipC_2x2_N();
+    void                                        Mini_FlipC_2x2_O();
+    void                                        Mini_FlipC_2x2_P();
+    void                                        Mini_FlipD_2x2_A();
+    void                                        Mini_FlipD_2x2_B();
+    void                                        Mini_FlipD_2x2_C();
+    void                                        Mini_FlipD_2x2_D();
+    void                                        Mini_FlipD_2x2_E();
+    void                                        Mini_FlipD_2x2_F();
+    void                                        Mini_FlipD_2x2_G();
+    void                                        Mini_FlipD_2x2_H();
+    void                                        Mini_FlipD_2x2_I();
+    void                                        Mini_FlipD_2x2_J();
+    void                                        Mini_FlipD_2x2_K();
+    void                                        Mini_FlipD_2x2_L();
+    void                                        Mini_FlipD_2x2_M();
+    void                                        Mini_FlipD_2x2_N();
+    void                                        Mini_FlipD_2x2_O();
+    void                                        Mini_FlipD_2x2_P();
     
-    void                                        SnakeBSixA();
-    void                                        SnakeBSixB();
-    void                                        SnakeBSixC();
-    void                                        SnakeBSixD();
-    void                                        SnakeBSixE();
-    void                                        SnakeBSixF();
-    void                                        SnakeBSixG();
-    void                                        SnakeBSixH();
-    void                                        SnakeBSixI();
-    void                                        SnakeBSixJ();
-    void                                        SnakeBSixK();
-    void                                        SnakeBSixL();
-    void                                        SnakeBSixM();
-    void                                        SnakeBSixN();
-    void                                        SnakeBSixO();
-    void                                        SnakeBSixP();
-
-    void                                        SnakeCSixA();
-    void                                        SnakeCSixB();
-    void                                        SnakeCSixC();
-    void                                        SnakeCSixD();
-    void                                        SnakeCSixE();
-    void                                        SnakeCSixF();
-    void                                        SnakeCSixG();
-    void                                        SnakeCSixH();
-    void                                        SnakeCSixI();
-    void                                        SnakeCSixJ();
-    void                                        SnakeCSixK();
-    void                                        SnakeCSixL();
-    void                                        SnakeCSixM();
-    void                                        SnakeCSixN();
-    void                                        SnakeCSixO();
-    void                                        SnakeCSixP();
-
-    void                                        SnakeDSixA();
-    void                                        SnakeDSixB();
-    void                                        SnakeDSixC();
-    void                                        SnakeDSixD();
-    void                                        SnakeDSixE();
-    void                                        SnakeDSixF();
-    void                                        SnakeDSixG();
-    void                                        SnakeDSixH();
-    void                                        SnakeDSixI();
-    void                                        SnakeDSixJ();
-    void                                        SnakeDSixK();
-    void                                        SnakeDSixL();
-    void                                        SnakeDSixM();
-    void                                        SnakeDSixN();
-    void                                        SnakeDSixO();
-    void                                        SnakeDSixP();
+    void                                        Mini_TriadA_2x2_A();
+    void                                        Mini_TriadA_2x2_B();
+    void                                        Mini_TriadA_2x2_C();
+    void                                        Mini_TriadA_2x2_D();
+    void                                        Mini_TriadA_2x2_E();
+    void                                        Mini_TriadA_2x2_F();
+    void                                        Mini_TriadA_2x2_G();
+    void                                        Mini_TriadA_2x2_H();
+    void                                        Mini_TriadA_2x2_I();
+    void                                        Mini_TriadA_2x2_J();
+    void                                        Mini_TriadA_2x2_K();
+    void                                        Mini_TriadA_2x2_L();
+    void                                        Mini_TriadA_2x2_M();
+    void                                        Mini_TriadA_2x2_N();
+    void                                        Mini_TriadA_2x2_O();
+    void                                        Mini_TriadA_2x2_P();
+    void                                        Mini_TriadB_2x2_A();
+    void                                        Mini_TriadB_2x2_B();
+    void                                        Mini_TriadB_2x2_C();
+    void                                        Mini_TriadB_2x2_D();
+    void                                        Mini_TriadB_2x2_E();
+    void                                        Mini_TriadB_2x2_F();
+    void                                        Mini_TriadB_2x2_G();
+    void                                        Mini_TriadB_2x2_H();
+    void                                        Mini_TriadB_2x2_I();
+    void                                        Mini_TriadB_2x2_J();
+    void                                        Mini_TriadB_2x2_K();
+    void                                        Mini_TriadB_2x2_L();
+    void                                        Mini_TriadB_2x2_M();
+    void                                        Mini_TriadB_2x2_N();
+    void                                        Mini_TriadB_2x2_O();
+    void                                        Mini_TriadB_2x2_P();
+    void                                        Mini_TriadC_2x2_A();
+    void                                        Mini_TriadC_2x2_B();
+    void                                        Mini_TriadC_2x2_C();
+    void                                        Mini_TriadC_2x2_D();
+    void                                        Mini_TriadC_2x2_E();
+    void                                        Mini_TriadC_2x2_F();
+    void                                        Mini_TriadC_2x2_G();
+    void                                        Mini_TriadC_2x2_H();
+    void                                        Mini_TriadC_2x2_I();
+    void                                        Mini_TriadC_2x2_J();
+    void                                        Mini_TriadC_2x2_K();
+    void                                        Mini_TriadC_2x2_L();
+    void                                        Mini_TriadC_2x2_M();
+    void                                        Mini_TriadC_2x2_N();
+    void                                        Mini_TriadC_2x2_O();
+    void                                        Mini_TriadC_2x2_P();
+    void                                        Mini_TriadD_2x2_A();
+    void                                        Mini_TriadD_2x2_B();
+    void                                        Mini_TriadD_2x2_C();
+    void                                        Mini_TriadD_2x2_D();
+    void                                        Mini_TriadD_2x2_E();
+    void                                        Mini_TriadD_2x2_F();
+    void                                        Mini_TriadD_2x2_G();
+    void                                        Mini_TriadD_2x2_H();
+    void                                        Mini_TriadD_2x2_I();
+    void                                        Mini_TriadD_2x2_J();
+    void                                        Mini_TriadD_2x2_K();
+    void                                        Mini_TriadD_2x2_L();
+    void                                        Mini_TriadD_2x2_M();
+    void                                        Mini_TriadD_2x2_N();
+    void                                        Mini_TriadD_2x2_O();
+    void                                        Mini_TriadD_2x2_P();
+    void                                        Mini_TriadE_2x2_A();
+    void                                        Mini_TriadE_2x2_B();
+    void                                        Mini_TriadE_2x2_C();
+    void                                        Mini_TriadE_2x2_D();
+    void                                        Mini_TriadE_2x2_E();
+    void                                        Mini_TriadE_2x2_F();
+    void                                        Mini_TriadE_2x2_G();
+    void                                        Mini_TriadE_2x2_H();
+    void                                        Mini_TriadE_2x2_I();
+    void                                        Mini_TriadE_2x2_J();
+    void                                        Mini_TriadE_2x2_K();
+    void                                        Mini_TriadE_2x2_L();
+    void                                        Mini_TriadE_2x2_M();
+    void                                        Mini_TriadE_2x2_N();
+    void                                        Mini_TriadE_2x2_O();
+    void                                        Mini_TriadE_2x2_P();
+    void                                        Mini_TriadF_2x2_A();
+    void                                        Mini_TriadF_2x2_B();
+    void                                        Mini_TriadF_2x2_C();
+    void                                        Mini_TriadF_2x2_D();
+    void                                        Mini_TriadF_2x2_E();
+    void                                        Mini_TriadF_2x2_F();
+    void                                        Mini_TriadF_2x2_G();
+    void                                        Mini_TriadF_2x2_H();
+    void                                        Mini_TriadF_2x2_I();
+    void                                        Mini_TriadF_2x2_J();
+    void                                        Mini_TriadF_2x2_K();
+    void                                        Mini_TriadF_2x2_L();
+    void                                        Mini_TriadF_2x2_M();
+    void                                        Mini_TriadF_2x2_N();
+    void                                        Mini_TriadF_2x2_O();
+    void                                        Mini_TriadF_2x2_P();
+    void                                        Mini_TriadG_2x2_A();
+    void                                        Mini_TriadG_2x2_B();
+    void                                        Mini_TriadG_2x2_C();
+    void                                        Mini_TriadG_2x2_D();
+    void                                        Mini_TriadG_2x2_E();
+    void                                        Mini_TriadG_2x2_F();
+    void                                        Mini_TriadG_2x2_G();
+    void                                        Mini_TriadG_2x2_H();
+    void                                        Mini_TriadG_2x2_I();
+    void                                        Mini_TriadG_2x2_J();
+    void                                        Mini_TriadG_2x2_K();
+    void                                        Mini_TriadG_2x2_L();
+    void                                        Mini_TriadG_2x2_M();
+    void                                        Mini_TriadG_2x2_N();
+    void                                        Mini_TriadG_2x2_O();
+    void                                        Mini_TriadG_2x2_P();
+    void                                        Mini_TriadH_2x2_A();
+    void                                        Mini_TriadH_2x2_B();
+    void                                        Mini_TriadH_2x2_C();
+    void                                        Mini_TriadH_2x2_D();
+    void                                        Mini_TriadH_2x2_E();
+    void                                        Mini_TriadH_2x2_F();
+    void                                        Mini_TriadH_2x2_G();
+    void                                        Mini_TriadH_2x2_H();
+    void                                        Mini_TriadH_2x2_I();
+    void                                        Mini_TriadH_2x2_J();
+    void                                        Mini_TriadH_2x2_K();
+    void                                        Mini_TriadH_2x2_L();
+    void                                        Mini_TriadH_2x2_M();
+    void                                        Mini_TriadH_2x2_N();
+    void                                        Mini_TriadH_2x2_O();
+    void                                        Mini_TriadH_2x2_P();
+    
+    void                                        Mini_SnakeA_2x2_A();
+    void                                        Mini_SnakeA_2x2_B();
+    void                                        Mini_SnakeA_2x2_C();
+    void                                        Mini_SnakeA_2x2_D();
+    void                                        Mini_SnakeA_2x2_E();
+    void                                        Mini_SnakeA_2x2_F();
+    void                                        Mini_SnakeA_2x2_G();
+    void                                        Mini_SnakeA_2x2_H();
+    void                                        Mini_SnakeA_2x2_I();
+    void                                        Mini_SnakeA_2x2_J();
+    void                                        Mini_SnakeA_2x2_K();
+    void                                        Mini_SnakeA_2x2_L();
+    void                                        Mini_SnakeA_2x2_M();
+    void                                        Mini_SnakeA_2x2_N();
+    void                                        Mini_SnakeA_2x2_O();
+    void                                        Mini_SnakeA_2x2_P();
+    void                                        Mini_SnakeB_2x2_A();
+    void                                        Mini_SnakeB_2x2_B();
+    void                                        Mini_SnakeB_2x2_C();
+    void                                        Mini_SnakeB_2x2_D();
+    void                                        Mini_SnakeB_2x2_E();
+    void                                        Mini_SnakeB_2x2_F();
+    void                                        Mini_SnakeB_2x2_G();
+    void                                        Mini_SnakeB_2x2_H();
+    void                                        Mini_SnakeB_2x2_I();
+    void                                        Mini_SnakeB_2x2_J();
+    void                                        Mini_SnakeB_2x2_K();
+    void                                        Mini_SnakeB_2x2_L();
+    void                                        Mini_SnakeB_2x2_M();
+    void                                        Mini_SnakeB_2x2_N();
+    void                                        Mini_SnakeB_2x2_O();
+    void                                        Mini_SnakeB_2x2_P();
+    void                                        Mini_SnakeC_2x2_A();
+    void                                        Mini_SnakeC_2x2_B();
+    void                                        Mini_SnakeC_2x2_C();
+    void                                        Mini_SnakeC_2x2_D();
+    void                                        Mini_SnakeC_2x2_E();
+    void                                        Mini_SnakeC_2x2_F();
+    void                                        Mini_SnakeC_2x2_G();
+    void                                        Mini_SnakeC_2x2_H();
+    void                                        Mini_SnakeC_2x2_I();
+    void                                        Mini_SnakeC_2x2_J();
+    void                                        Mini_SnakeC_2x2_K();
+    void                                        Mini_SnakeC_2x2_L();
+    void                                        Mini_SnakeC_2x2_M();
+    void                                        Mini_SnakeC_2x2_N();
+    void                                        Mini_SnakeC_2x2_O();
+    void                                        Mini_SnakeC_2x2_P();
+    void                                        Mini_SnakeD_2x2_A();
+    void                                        Mini_SnakeD_2x2_B();
+    void                                        Mini_SnakeD_2x2_C();
+    void                                        Mini_SnakeD_2x2_D();
+    void                                        Mini_SnakeD_2x2_E();
+    void                                        Mini_SnakeD_2x2_F();
+    void                                        Mini_SnakeD_2x2_G();
+    void                                        Mini_SnakeD_2x2_H();
+    void                                        Mini_SnakeD_2x2_I();
+    void                                        Mini_SnakeD_2x2_J();
+    void                                        Mini_SnakeD_2x2_K();
+    void                                        Mini_SnakeD_2x2_L();
+    void                                        Mini_SnakeD_2x2_M();
+    void                                        Mini_SnakeD_2x2_N();
+    void                                        Mini_SnakeD_2x2_O();
+    void                                        Mini_SnakeD_2x2_P();
+    
     
 };
 

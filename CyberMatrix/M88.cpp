@@ -36,6 +36,140 @@ std::size_t M88::Y(std::size_t pSlot) {
     return pSlot / 8U;
 }
 
+#include <cstdint>
+#include <cstddef>
+
+static inline std::uint8_t ConstantTimeMask8(std::uint8_t pBit)
+{
+    // pBit must be 0 or 1.
+    // Returns 0xFF if pBit == 1, else 0x00.
+    return static_cast<std::uint8_t>(0U - pBit);
+}
+
+static inline std::uint8_t ConstantTimeEqual8(std::uint8_t pLeft, std::uint8_t pRight) {
+    std::uint8_t aDiff = static_cast<std::uint8_t>(pLeft ^ pRight);
+    aDiff |= static_cast<std::uint8_t>(aDiff >> 4);
+    aDiff |= static_cast<std::uint8_t>(aDiff >> 2);
+    aDiff |= static_cast<std::uint8_t>(aDiff >> 1);
+    return static_cast<std::uint8_t>((aDiff ^ 1U) & 1U);
+}
+
+static inline std::uint8_t ConstantTimeSelect8(std::uint8_t pMask, std::uint8_t pYes, std::uint8_t pNo) {
+    return static_cast<std::uint8_t>((pYes & pMask) | (pNo & ~pMask));
+}
+
+void M88::SwapRows(std::uint8_t pRowA, std::uint8_t pRowB) {
+    pRowA = static_cast<std::uint8_t>(pRowA & 0x07U);
+    pRowB = static_cast<std::uint8_t>(pRowB & 0x07U);
+
+    std::uint8_t aTempA[8];
+    std::uint8_t aTempB[8];
+
+    for (std::size_t aX = 0; aX < 8; ++aX) {
+        aTempA[aX] = 0;
+        aTempB[aX] = 0;
+    }
+
+    // Extract pRowA and pRowB while scanning every row.
+    for (std::size_t aY = 0; aY < 8; ++aY) {
+        const std::uint8_t aY8 = static_cast<std::uint8_t>(aY);
+
+        const std::uint8_t aMaskA =
+            ConstantTimeMask8(ConstantTimeEqual8(aY8, pRowA));
+
+        const std::uint8_t aMaskB =
+            ConstantTimeMask8(ConstantTimeEqual8(aY8, pRowB));
+
+        for (std::size_t aX = 0; aX < 8; ++aX) {
+            const std::uint8_t aValue = mData[Slot(aX, aY)];
+
+            aTempA[aX] = ConstantTimeSelect8(aMaskA, aValue, aTempA[aX]);
+            aTempB[aX] = ConstantTimeSelect8(aMaskB, aValue, aTempB[aX]);
+        }
+    }
+
+    // Write every row back. Only pRowA and pRowB actually change.
+    for (std::size_t aY = 0; aY < 8; ++aY) {
+        const std::uint8_t aY8 = static_cast<std::uint8_t>(aY);
+
+        const std::uint8_t aMaskA =
+            ConstantTimeMask8(ConstantTimeEqual8(aY8, pRowA));
+
+        const std::uint8_t aMaskB =
+            ConstantTimeMask8(ConstantTimeEqual8(aY8, pRowB));
+
+        for (std::size_t aX = 0; aX < 8; ++aX) {
+            std::uint8_t aValue = mData[Slot(aX, aY)];
+
+            aValue = ConstantTimeSelect8(aMaskA, aTempB[aX], aValue);
+            aValue = ConstantTimeSelect8(aMaskB, aTempA[aX], aValue);
+
+            mData[Slot(aX, aY)] = aValue;
+        }
+    }
+}
+
+void M88::SwapRows(std::uint8_t pInstruction)
+{
+    const std::uint8_t aRowA =
+        static_cast<std::uint8_t>((pInstruction >> 4U) & 0x07U);
+
+    const std::uint8_t aRowB =
+        static_cast<std::uint8_t>(pInstruction & 0x07U);
+
+    SwapRows(aRowA, aRowB);
+}
+
+void M88::SwapCols(std::uint8_t pColA, std::uint8_t pColB) {
+    pColA = static_cast<std::uint8_t>(pColA & 0x07U);
+    pColB = static_cast<std::uint8_t>(pColB & 0x07U);
+
+    std::uint8_t aTempA[8];
+    std::uint8_t aTempB[8];
+
+    for (std::size_t aY = 0; aY < 8; ++aY) {
+        aTempA[aY] = 0;
+        aTempB[aY] = 0;
+    }
+
+    // Extract pColA and pColB while scanning every column.
+    for (std::size_t aX = 0; aX < 8; ++aX) {
+        const std::uint8_t aX8 = static_cast<std::uint8_t>(aX);
+        const std::uint8_t aMaskA = ConstantTimeMask8(ConstantTimeEqual8(aX8, pColA));
+        const std::uint8_t aMaskB = ConstantTimeMask8(ConstantTimeEqual8(aX8, pColB));
+        for (std::size_t aY = 0; aY < 8; ++aY) {
+            const std::uint8_t aValue = mData[Slot(aX, aY)];
+            aTempA[aY] = ConstantTimeSelect8(aMaskA, aValue, aTempA[aY]);
+            aTempB[aY] = ConstantTimeSelect8(aMaskB, aValue, aTempB[aY]);
+        }
+    }
+
+    // Write every column back. Only pColA and pColB actually change.
+    for (std::size_t aX = 0; aX < 8; ++aX) {
+        const std::uint8_t aX8 = static_cast<std::uint8_t>(aX);
+        const std::uint8_t aMaskA = ConstantTimeMask8(ConstantTimeEqual8(aX8, pColA));
+        const std::uint8_t aMaskB = ConstantTimeMask8(ConstantTimeEqual8(aX8, pColB));
+        for (std::size_t aY = 0; aY < 8; ++aY) {
+            std::uint8_t aValue = mData[Slot(aX, aY)];
+            aValue = ConstantTimeSelect8(aMaskA, aTempB[aY], aValue);
+            aValue = ConstantTimeSelect8(aMaskB, aTempA[aY], aValue);
+            mData[Slot(aX, aY)] = aValue;
+        }
+    }
+}
+
+void M88::SwapCols(std::uint8_t pInstruction)
+{
+    const std::uint8_t aColA =
+        static_cast<std::uint8_t>((pInstruction >> 4U) & 0x07U);
+
+    const std::uint8_t aColB =
+        static_cast<std::uint8_t>(pInstruction & 0x07U);
+
+    SwapCols(aColA, aColB);
+}
+
+
 void M88::RecordStart() {
     std::memcpy(mBefore, mData, sizeof(mData));
 }
@@ -87,3450 +221,4932 @@ Slice M88::GetFull() {
     return Get(0, 0, 8);
 }
 
-Slice M88::GetQuarter(int pWhich) {
+Slice M88::GetQuad(int pWhich) {
     switch (pWhich % 4) {
-        case 0: return GetQuarterA();
-        case 1: return GetQuarterB();
-        case 2: return GetQuarterC();
-        default: return GetQuarterD();
+        case 0: return GetQuadA();
+        case 1: return GetQuadB();
+        case 2: return GetQuadC();
+        default: return GetQuadD();
     }
 }
 
-Slice M88::GetQuarterA() {
+Slice M88::GetQuadA() {
     return Get(0, 0, 4);
 }
 
-Slice M88::GetQuarterB() {
+Slice M88::GetQuadB() {
     return Get(4, 0, 4);
 }
 
-Slice M88::GetQuarterC() {
+Slice M88::GetQuadC() {
     return Get(0, 4, 4);
 }
 
-Slice M88::GetQuarterD() {
+Slice M88::GetQuadD() {
     return Get(4, 4, 4);
 }
 
-Slice M88::GetSixteenth(int pWhich) {
+Slice M88::GetMini(int pWhich) {
     switch (pWhich % 16) {
-        case 0:  return GetSixteenthA();
-        case 1:  return GetSixteenthB();
-        case 2:  return GetSixteenthC();
-        case 3:  return GetSixteenthD();
-        case 4:  return GetSixteenthE();
-        case 5:  return GetSixteenthF();
-        case 6:  return GetSixteenthG();
-        case 7:  return GetSixteenthH();
-        case 8:  return GetSixteenthI();
-        case 9:  return GetSixteenthJ();
-        case 10: return GetSixteenthK();
-        case 11: return GetSixteenthL();
-        case 12: return GetSixteenthM();
-        case 13: return GetSixteenthN();
-        case 14: return GetSixteenthO();
-        default: return GetSixteenthP();
+        case 0:  return GetMiniA();
+        case 1:  return GetMiniB();
+        case 2:  return GetMiniC();
+        case 3:  return GetMiniD();
+        case 4:  return GetMiniE();
+        case 5:  return GetMiniF();
+        case 6:  return GetMiniG();
+        case 7:  return GetMiniH();
+        case 8:  return GetMiniI();
+        case 9:  return GetMiniJ();
+        case 10: return GetMiniK();
+        case 11: return GetMiniL();
+        case 12: return GetMiniM();
+        case 13: return GetMiniN();
+        case 14: return GetMiniO();
+        default: return GetMiniP();
     }
 }
 
-void M88::SlickshotSix(std::uint8_t pByte) {
+Slice M88::GetMiniA() {
+    return Get(0, 0, 2);
+}
+
+Slice M88::GetMiniB() {
+    return Get(2, 0, 2);
+}
+
+Slice M88::GetMiniC() {
+    return Get(4, 0, 2);
+}
+
+Slice M88::GetMiniD() {
+    return Get(6, 0, 2);
+}
+
+Slice M88::GetMiniE() {
+    return Get(0, 2, 2);
+}
+
+Slice M88::GetMiniF() {
+    return Get(2, 2, 2);
+}
+
+Slice M88::GetMiniG() {
+    return Get(4, 2, 2);
+}
+
+Slice M88::GetMiniH() {
+    return Get(6, 2, 2);
+}
+
+Slice M88::GetMiniI() {
+    return Get(0, 4, 2);
+}
+
+Slice M88::GetMiniJ() {
+    return Get(2, 4, 2);
+}
+
+Slice M88::GetMiniK() {
+    return Get(4, 4, 2);
+}
+
+Slice M88::GetMiniL() {
+    return Get(6, 4, 2);
+}
+
+Slice M88::GetMiniM() {
+    return Get(0, 6, 2);
+}
+
+Slice M88::GetMiniN() {
+    return Get(2, 6, 2);
+}
+
+Slice M88::GetMiniO() {
+    return Get(4, 6, 2);
+}
+
+Slice M88::GetMiniP() {
+    return Get(6, 6, 2);
+}
+
+
+
+void M88::SlickshotMini(std::uint8_t pByte) {
+    
+    /*
     typedef void (M88::*Fn)();
 
     static const Fn kTable[16][16] = {
         {
-            &M88::RotASixA,
-            &M88::RotASixB,
-            &M88::RotASixC,
-            &M88::RotASixD,
-            &M88::RotASixE,
-            &M88::RotASixF,
-            &M88::RotASixG,
-            &M88::RotASixH,
-            &M88::RotASixI,
-            &M88::RotASixJ,
-            &M88::RotASixK,
-            &M88::RotASixL,
-            &M88::RotASixM,
-            &M88::RotASixN,
-            &M88::RotASixO,
-            &M88::RotASixP
+            &M88::RotAMiniA,
+            &M88::RotAMiniB,
+            &M88::RotAMiniC,
+            &M88::RotAMiniD,
+            &M88::RotAMiniE,
+            &M88::RotAMiniF,
+            &M88::RotAMiniG,
+            &M88::RotAMiniH,
+            &M88::RotAMiniI,
+            &M88::RotAMiniJ,
+            &M88::RotAMiniK,
+            &M88::RotAMiniL,
+            &M88::RotAMiniM,
+            &M88::RotAMiniN,
+            &M88::RotAMiniO,
+            &M88::RotAMiniP
         },
         {
-            &M88::RotBSixA,
-            &M88::RotBSixB,
-            &M88::RotBSixC,
-            &M88::RotBSixD,
-            &M88::RotBSixE,
-            &M88::RotBSixF,
-            &M88::RotBSixG,
-            &M88::RotBSixH,
-            &M88::RotBSixI,
-            &M88::RotBSixJ,
-            &M88::RotBSixK,
-            &M88::RotBSixL,
-            &M88::RotBSixM,
-            &M88::RotBSixN,
-            &M88::RotBSixO,
-            &M88::RotBSixP
+            &M88::RotBMiniA,
+            &M88::RotBMiniB,
+            &M88::RotBMiniC,
+            &M88::RotBMiniD,
+            &M88::RotBMiniE,
+            &M88::RotBMiniF,
+            &M88::RotBMiniG,
+            &M88::RotBMiniH,
+            &M88::RotBMiniI,
+            &M88::RotBMiniJ,
+            &M88::RotBMiniK,
+            &M88::RotBMiniL,
+            &M88::RotBMiniM,
+            &M88::RotBMiniN,
+            &M88::RotBMiniO,
+            &M88::RotBMiniP
         },
         {
-            &M88::FlipASixA,
-            &M88::FlipASixB,
-            &M88::FlipASixC,
-            &M88::FlipASixD,
-            &M88::FlipASixE,
-            &M88::FlipASixF,
-            &M88::FlipASixG,
-            &M88::FlipASixH,
-            &M88::FlipASixI,
-            &M88::FlipASixJ,
-            &M88::FlipASixK,
-            &M88::FlipASixL,
-            &M88::FlipASixM,
-            &M88::FlipASixN,
-            &M88::FlipASixO,
-            &M88::FlipASixP
+            &M88::FlipAMiniA,
+            &M88::FlipAMiniB,
+            &M88::FlipAMiniC,
+            &M88::FlipAMiniD,
+            &M88::FlipAMiniE,
+            &M88::FlipAMiniF,
+            &M88::FlipAMiniG,
+            &M88::FlipAMiniH,
+            &M88::FlipAMiniI,
+            &M88::FlipAMiniJ,
+            &M88::FlipAMiniK,
+            &M88::FlipAMiniL,
+            &M88::FlipAMiniM,
+            &M88::FlipAMiniN,
+            &M88::FlipAMiniO,
+            &M88::FlipAMiniP
         },
         {
-            &M88::FlipBSixA,
-            &M88::FlipBSixB,
-            &M88::FlipBSixC,
-            &M88::FlipBSixD,
-            &M88::FlipBSixE,
-            &M88::FlipBSixF,
-            &M88::FlipBSixG,
-            &M88::FlipBSixH,
-            &M88::FlipBSixI,
-            &M88::FlipBSixJ,
-            &M88::FlipBSixK,
-            &M88::FlipBSixL,
-            &M88::FlipBSixM,
-            &M88::FlipBSixN,
-            &M88::FlipBSixO,
-            &M88::FlipBSixP
+            &M88::FlipBMiniA,
+            &M88::FlipBMiniB,
+            &M88::FlipBMiniC,
+            &M88::FlipBMiniD,
+            &M88::FlipBMiniE,
+            &M88::FlipBMiniF,
+            &M88::FlipBMiniG,
+            &M88::FlipBMiniH,
+            &M88::FlipBMiniI,
+            &M88::FlipBMiniJ,
+            &M88::FlipBMiniK,
+            &M88::FlipBMiniL,
+            &M88::FlipBMiniM,
+            &M88::FlipBMiniN,
+            &M88::FlipBMiniO,
+            &M88::FlipBMiniP
         },
         {
-            &M88::SnakeASixA,
-            &M88::SnakeASixB,
-            &M88::SnakeASixC,
-            &M88::SnakeASixD,
-            &M88::SnakeASixE,
-            &M88::SnakeASixF,
-            &M88::SnakeASixG,
-            &M88::SnakeASixH,
-            &M88::SnakeASixI,
-            &M88::SnakeASixJ,
-            &M88::SnakeASixK,
-            &M88::SnakeASixL,
-            &M88::SnakeASixM,
-            &M88::SnakeASixN,
-            &M88::SnakeASixO,
-            &M88::SnakeASixP
+            &M88::SnakeAMiniA,
+            &M88::SnakeAMiniB,
+            &M88::SnakeAMiniC,
+            &M88::SnakeAMiniD,
+            &M88::SnakeAMiniE,
+            &M88::SnakeAMiniF,
+            &M88::SnakeAMiniG,
+            &M88::SnakeAMiniH,
+            &M88::SnakeAMiniI,
+            &M88::SnakeAMiniJ,
+            &M88::SnakeAMiniK,
+            &M88::SnakeAMiniL,
+            &M88::SnakeAMiniM,
+            &M88::SnakeAMiniN,
+            &M88::SnakeAMiniO,
+            &M88::SnakeAMiniP
         },
         {
-            &M88::SnakeBSixA,
-            &M88::SnakeBSixB,
-            &M88::SnakeBSixC,
-            &M88::SnakeBSixD,
-            &M88::SnakeBSixE,
-            &M88::SnakeBSixF,
-            &M88::SnakeBSixG,
-            &M88::SnakeBSixH,
-            &M88::SnakeBSixI,
-            &M88::SnakeBSixJ,
-            &M88::SnakeBSixK,
-            &M88::SnakeBSixL,
-            &M88::SnakeBSixM,
-            &M88::SnakeBSixN,
-            &M88::SnakeBSixO,
-            &M88::SnakeBSixP
+            &M88::SnakeBMiniA,
+            &M88::SnakeBMiniB,
+            &M88::SnakeBMiniC,
+            &M88::SnakeBMiniD,
+            &M88::SnakeBMiniE,
+            &M88::SnakeBMiniF,
+            &M88::SnakeBMiniG,
+            &M88::SnakeBMiniH,
+            &M88::SnakeBMiniI,
+            &M88::SnakeBMiniJ,
+            &M88::SnakeBMiniK,
+            &M88::SnakeBMiniL,
+            &M88::SnakeBMiniM,
+            &M88::SnakeBMiniN,
+            &M88::SnakeBMiniO,
+            &M88::SnakeBMiniP
         },
         {
-            &M88::SnakeCSixA,
-            &M88::SnakeCSixB,
-            &M88::SnakeCSixC,
-            &M88::SnakeCSixD,
-            &M88::SnakeCSixE,
-            &M88::SnakeCSixF,
-            &M88::SnakeCSixG,
-            &M88::SnakeCSixH,
-            &M88::SnakeCSixI,
-            &M88::SnakeCSixJ,
-            &M88::SnakeCSixK,
-            &M88::SnakeCSixL,
-            &M88::SnakeCSixM,
-            &M88::SnakeCSixN,
-            &M88::SnakeCSixO,
-            &M88::SnakeCSixP
+            &M88::SnakeCMiniA,
+            &M88::SnakeCMiniB,
+            &M88::SnakeCMiniC,
+            &M88::SnakeCMiniD,
+            &M88::SnakeCMiniE,
+            &M88::SnakeCMiniF,
+            &M88::SnakeCMiniG,
+            &M88::SnakeCMiniH,
+            &M88::SnakeCMiniI,
+            &M88::SnakeCMiniJ,
+            &M88::SnakeCMiniK,
+            &M88::SnakeCMiniL,
+            &M88::SnakeCMiniM,
+            &M88::SnakeCMiniN,
+            &M88::SnakeCMiniO,
+            &M88::SnakeCMiniP
         },
         {
-            &M88::SnakeDSixA,
-            &M88::SnakeDSixB,
-            &M88::SnakeDSixC,
-            &M88::SnakeDSixD,
-            &M88::SnakeDSixE,
-            &M88::SnakeDSixF,
-            &M88::SnakeDSixG,
-            &M88::SnakeDSixH,
-            &M88::SnakeDSixI,
-            &M88::SnakeDSixJ,
-            &M88::SnakeDSixK,
-            &M88::SnakeDSixL,
-            &M88::SnakeDSixM,
-            &M88::SnakeDSixN,
-            &M88::SnakeDSixO,
-            &M88::SnakeDSixP
+            &M88::SnakeDMiniA,
+            &M88::SnakeDMiniB,
+            &M88::SnakeDMiniC,
+            &M88::SnakeDMiniD,
+            &M88::SnakeDMiniE,
+            &M88::SnakeDMiniF,
+            &M88::SnakeDMiniG,
+            &M88::SnakeDMiniH,
+            &M88::SnakeDMiniI,
+            &M88::SnakeDMiniJ,
+            &M88::SnakeDMiniK,
+            &M88::SnakeDMiniL,
+            &M88::SnakeDMiniM,
+            &M88::SnakeDMiniN,
+            &M88::SnakeDMiniO,
+            &M88::SnakeDMiniP
         },
         {
-            &M88::TriadAASixA,
-            &M88::TriadAASixB,
-            &M88::TriadAASixC,
-            &M88::TriadAASixD,
-            &M88::TriadAASixE,
-            &M88::TriadAASixF,
-            &M88::TriadAASixG,
-            &M88::TriadAASixH,
-            &M88::TriadAASixI,
-            &M88::TriadAASixJ,
-            &M88::TriadAASixK,
-            &M88::TriadAASixL,
-            &M88::TriadAASixM,
-            &M88::TriadAASixN,
-            &M88::TriadAASixO,
-            &M88::TriadAASixP
+            &M88::TriadAAMiniA,
+            &M88::TriadAAMiniB,
+            &M88::TriadAAMiniC,
+            &M88::TriadAAMiniD,
+            &M88::TriadAAMiniE,
+            &M88::TriadAAMiniF,
+            &M88::TriadAAMiniG,
+            &M88::TriadAAMiniH,
+            &M88::TriadAAMiniI,
+            &M88::TriadAAMiniJ,
+            &M88::TriadAAMiniK,
+            &M88::TriadAAMiniL,
+            &M88::TriadAAMiniM,
+            &M88::TriadAAMiniN,
+            &M88::TriadAAMiniO,
+            &M88::TriadAAMiniP
         },
         {
-            &M88::TriadABSixA,
-            &M88::TriadABSixB,
-            &M88::TriadABSixC,
-            &M88::TriadABSixD,
-            &M88::TriadABSixE,
-            &M88::TriadABSixF,
-            &M88::TriadABSixG,
-            &M88::TriadABSixH,
-            &M88::TriadABSixI,
-            &M88::TriadABSixJ,
-            &M88::TriadABSixK,
-            &M88::TriadABSixL,
-            &M88::TriadABSixM,
-            &M88::TriadABSixN,
-            &M88::TriadABSixO,
-            &M88::TriadABSixP
+            &M88::TriadABMiniA,
+            &M88::TriadABMiniB,
+            &M88::TriadABMiniC,
+            &M88::TriadABMiniD,
+            &M88::TriadABMiniE,
+            &M88::TriadABMiniF,
+            &M88::TriadABMiniG,
+            &M88::TriadABMiniH,
+            &M88::TriadABMiniI,
+            &M88::TriadABMiniJ,
+            &M88::TriadABMiniK,
+            &M88::TriadABMiniL,
+            &M88::TriadABMiniM,
+            &M88::TriadABMiniN,
+            &M88::TriadABMiniO,
+            &M88::TriadABMiniP
         },
         {
-            &M88::TriadBASixA,
-            &M88::TriadBASixB,
-            &M88::TriadBASixC,
-            &M88::TriadBASixD,
-            &M88::TriadBASixE,
-            &M88::TriadBASixF,
-            &M88::TriadBASixG,
-            &M88::TriadBASixH,
-            &M88::TriadBASixI,
-            &M88::TriadBASixJ,
-            &M88::TriadBASixK,
-            &M88::TriadBASixL,
-            &M88::TriadBASixM,
-            &M88::TriadBASixN,
-            &M88::TriadBASixO,
-            &M88::TriadBASixP
+            &M88::TriadBAMiniA,
+            &M88::TriadBAMiniB,
+            &M88::TriadBAMiniC,
+            &M88::TriadBAMiniD,
+            &M88::TriadBAMiniE,
+            &M88::TriadBAMiniF,
+            &M88::TriadBAMiniG,
+            &M88::TriadBAMiniH,
+            &M88::TriadBAMiniI,
+            &M88::TriadBAMiniJ,
+            &M88::TriadBAMiniK,
+            &M88::TriadBAMiniL,
+            &M88::TriadBAMiniM,
+            &M88::TriadBAMiniN,
+            &M88::TriadBAMiniO,
+            &M88::TriadBAMiniP
         },
         {
-            &M88::TriadBBSixA,
-            &M88::TriadBBSixB,
-            &M88::TriadBBSixC,
-            &M88::TriadBBSixD,
-            &M88::TriadBBSixE,
-            &M88::TriadBBSixF,
-            &M88::TriadBBSixG,
-            &M88::TriadBBSixH,
-            &M88::TriadBBSixI,
-            &M88::TriadBBSixJ,
-            &M88::TriadBBSixK,
-            &M88::TriadBBSixL,
-            &M88::TriadBBSixM,
-            &M88::TriadBBSixN,
-            &M88::TriadBBSixO,
-            &M88::TriadBBSixP
+            &M88::TriadBBMiniA,
+            &M88::TriadBBMiniB,
+            &M88::TriadBBMiniC,
+            &M88::TriadBBMiniD,
+            &M88::TriadBBMiniE,
+            &M88::TriadBBMiniF,
+            &M88::TriadBBMiniG,
+            &M88::TriadBBMiniH,
+            &M88::TriadBBMiniI,
+            &M88::TriadBBMiniJ,
+            &M88::TriadBBMiniK,
+            &M88::TriadBBMiniL,
+            &M88::TriadBBMiniM,
+            &M88::TriadBBMiniN,
+            &M88::TriadBBMiniO,
+            &M88::TriadBBMiniP
         },
         {
-            &M88::TriadCASixA,
-            &M88::TriadCASixB,
-            &M88::TriadCASixC,
-            &M88::TriadCASixD,
-            &M88::TriadCASixE,
-            &M88::TriadCASixF,
-            &M88::TriadCASixG,
-            &M88::TriadCASixH,
-            &M88::TriadCASixI,
-            &M88::TriadCASixJ,
-            &M88::TriadCASixK,
-            &M88::TriadCASixL,
-            &M88::TriadCASixM,
-            &M88::TriadCASixN,
-            &M88::TriadCASixO,
-            &M88::TriadCASixP
+            &M88::TriadCAMiniA,
+            &M88::TriadCAMiniB,
+            &M88::TriadCAMiniC,
+            &M88::TriadCAMiniD,
+            &M88::TriadCAMiniE,
+            &M88::TriadCAMiniF,
+            &M88::TriadCAMiniG,
+            &M88::TriadCAMiniH,
+            &M88::TriadCAMiniI,
+            &M88::TriadCAMiniJ,
+            &M88::TriadCAMiniK,
+            &M88::TriadCAMiniL,
+            &M88::TriadCAMiniM,
+            &M88::TriadCAMiniN,
+            &M88::TriadCAMiniO,
+            &M88::TriadCAMiniP
         },
         {
-            &M88::TriadCBSixA,
-            &M88::TriadCBSixB,
-            &M88::TriadCBSixC,
-            &M88::TriadCBSixD,
-            &M88::TriadCBSixE,
-            &M88::TriadCBSixF,
-            &M88::TriadCBSixG,
-            &M88::TriadCBSixH,
-            &M88::TriadCBSixI,
-            &M88::TriadCBSixJ,
-            &M88::TriadCBSixK,
-            &M88::TriadCBSixL,
-            &M88::TriadCBSixM,
-            &M88::TriadCBSixN,
-            &M88::TriadCBSixO,
-            &M88::TriadCBSixP
+            &M88::TriadCBMiniA,
+            &M88::TriadCBMiniB,
+            &M88::TriadCBMiniC,
+            &M88::TriadCBMiniD,
+            &M88::TriadCBMiniE,
+            &M88::TriadCBMiniF,
+            &M88::TriadCBMiniG,
+            &M88::TriadCBMiniH,
+            &M88::TriadCBMiniI,
+            &M88::TriadCBMiniJ,
+            &M88::TriadCBMiniK,
+            &M88::TriadCBMiniL,
+            &M88::TriadCBMiniM,
+            &M88::TriadCBMiniN,
+            &M88::TriadCBMiniO,
+            &M88::TriadCBMiniP
         },
         {
-            &M88::TriadDASixA,
-            &M88::TriadDASixB,
-            &M88::TriadDASixC,
-            &M88::TriadDASixD,
-            &M88::TriadDASixE,
-            &M88::TriadDASixF,
-            &M88::TriadDASixG,
-            &M88::TriadDASixH,
-            &M88::TriadDASixI,
-            &M88::TriadDASixJ,
-            &M88::TriadDASixK,
-            &M88::TriadDASixL,
-            &M88::TriadDASixM,
-            &M88::TriadDASixN,
-            &M88::TriadDASixO,
-            &M88::TriadDASixP
+            &M88::TriadDAMiniA,
+            &M88::TriadDAMiniB,
+            &M88::TriadDAMiniC,
+            &M88::TriadDAMiniD,
+            &M88::TriadDAMiniE,
+            &M88::TriadDAMiniF,
+            &M88::TriadDAMiniG,
+            &M88::TriadDAMiniH,
+            &M88::TriadDAMiniI,
+            &M88::TriadDAMiniJ,
+            &M88::TriadDAMiniK,
+            &M88::TriadDAMiniL,
+            &M88::TriadDAMiniM,
+            &M88::TriadDAMiniN,
+            &M88::TriadDAMiniO,
+            &M88::TriadDAMiniP
         },
         {
-            &M88::TriadDBSixA,
-            &M88::TriadDBSixB,
-            &M88::TriadDBSixC,
-            &M88::TriadDBSixD,
-            &M88::TriadDBSixE,
-            &M88::TriadDBSixF,
-            &M88::TriadDBSixG,
-            &M88::TriadDBSixH,
-            &M88::TriadDBSixI,
-            &M88::TriadDBSixJ,
-            &M88::TriadDBSixK,
-            &M88::TriadDBSixL,
-            &M88::TriadDBSixM,
-            &M88::TriadDBSixN,
-            &M88::TriadDBSixO,
-            &M88::TriadDBSixP
+            &M88::TriadDBMiniA,
+            &M88::TriadDBMiniB,
+            &M88::TriadDBMiniC,
+            &M88::TriadDBMiniD,
+            &M88::TriadDBMiniE,
+            &M88::TriadDBMiniF,
+            &M88::TriadDBMiniG,
+            &M88::TriadDBMiniH,
+            &M88::TriadDBMiniI,
+            &M88::TriadDBMiniJ,
+            &M88::TriadDBMiniK,
+            &M88::TriadDBMiniL,
+            &M88::TriadDBMiniM,
+            &M88::TriadDBMiniN,
+            &M88::TriadDBMiniO,
+            &M88::TriadDBMiniP
         }
     };
     
-    const std::uint8_t aSix = pByte & 0x0FU;
+    
+    //
+    // Side channel is leaked, an internal
+    // secret chooses which function is called.
+    //
+    // Strong German style encryption allows
+    // brute force attack to derive internal
+    // secret through cryptanalysis.
+    //
+    // Only when observing the victim's machine?
+    //
+    const std::uint8_t aMini = pByte & 0x0FU;
     const std::uint8_t aOp = (pByte >> 4U) & 0x0FU;
-    (this->*kTable[aOp][aSix])();
+    (this->*kTable[aOp][aMini])();
+    
+    
+    */
     
 }
 
-Slice M88::GetSixteenthA() {
-    return Get(0, 0, 2);
-}
 
-Slice M88::GetSixteenthB() {
-    return Get(2, 0, 2);
-}
 
-Slice M88::GetSixteenthC() {
-    return Get(4, 0, 2);
-}
 
-Slice M88::GetSixteenthD() {
-    return Get(6, 0, 2);
-}
-
-Slice M88::GetSixteenthE() {
-    return Get(0, 2, 2);
-}
-
-Slice M88::GetSixteenthF() {
-    return Get(2, 2, 2);
-}
-
-Slice M88::GetSixteenthG() {
-    return Get(4, 2, 2);
-}
-
-Slice M88::GetSixteenthH() {
-    return Get(6, 2, 2);
-}
-
-Slice M88::GetSixteenthI() {
-    return Get(0, 4, 2);
-}
-
-Slice M88::GetSixteenthJ() {
-    return Get(2, 4, 2);
-}
-
-Slice M88::GetSixteenthK() {
-    return Get(4, 4, 2);
-}
-
-Slice M88::GetSixteenthL() {
-    return Get(6, 4, 2);
-}
-
-Slice M88::GetSixteenthM() {
-    return Get(0, 6, 2);
-}
-
-Slice M88::GetSixteenthN() {
-    return Get(2, 6, 2);
-}
-
-Slice M88::GetSixteenthO() {
-    return Get(4, 6, 2);
-}
-
-Slice M88::GetSixteenthP() {
-    return Get(6, 6, 2);
-}
-
-void M88::RotateRightQuarterA() {
+// ---------- CPP ----------
+void M88::Full_RotA_2x2() {
     std::uint8_t aHold = 0;
-
-    // cycle 0
-    aHold = mData[0]; mData[0] = mData[24]; mData[24] = mData[27]; mData[27] = mData[3];
-    mData[3] = aHold;
-
-    // cycle 1
-    aHold = mData[1]; mData[1] = mData[16]; mData[16] = mData[26]; mData[26] = mData[11];
-    mData[11] = aHold;
-
-    // cycle 2
-    aHold = mData[2]; mData[2] = mData[8]; mData[8] = mData[25]; mData[25] = mData[19];
-    mData[19] = aHold;
-
-    // cycle 3
-    aHold = mData[9]; mData[9] = mData[17]; mData[17] = mData[18]; mData[18] = mData[10];
-    mData[10] = aHold;
-
+    aHold = mData[0]; mData[0] = mData[32]; mData[32] = mData[36]; mData[36] = mData[4]; mData[4] = aHold;
+    aHold = mData[1]; mData[1] = mData[33]; mData[33] = mData[37]; mData[37] = mData[5]; mData[5] = aHold;
+    aHold = mData[2]; mData[2] = mData[34]; mData[34] = mData[38]; mData[38] = mData[6]; mData[6] = aHold;
+    aHold = mData[3]; mData[3] = mData[35]; mData[35] = mData[39]; mData[39] = mData[7]; mData[7] = aHold;
+    aHold = mData[8]; mData[8] = mData[40]; mData[40] = mData[44]; mData[44] = mData[12]; mData[12] = aHold;
+    aHold = mData[9]; mData[9] = mData[41]; mData[41] = mData[45]; mData[45] = mData[13]; mData[13] = aHold;
+    aHold = mData[10]; mData[10] = mData[42]; mData[42] = mData[46]; mData[46] = mData[14]; mData[14] = aHold;
+    aHold = mData[11]; mData[11] = mData[43]; mData[43] = mData[47]; mData[47] = mData[15]; mData[15] = aHold;
+    aHold = mData[16]; mData[16] = mData[48]; mData[48] = mData[52]; mData[52] = mData[20]; mData[20] = aHold;
+    aHold = mData[17]; mData[17] = mData[49]; mData[49] = mData[53]; mData[53] = mData[21]; mData[21] = aHold;
+    aHold = mData[18]; mData[18] = mData[50]; mData[50] = mData[54]; mData[54] = mData[22]; mData[22] = aHold;
+    aHold = mData[19]; mData[19] = mData[51]; mData[51] = mData[55]; mData[55] = mData[23]; mData[23] = aHold;
+    aHold = mData[24]; mData[24] = mData[56]; mData[56] = mData[60]; mData[60] = mData[28]; mData[28] = aHold;
+    aHold = mData[25]; mData[25] = mData[57]; mData[57] = mData[61]; mData[61] = mData[29]; mData[29] = aHold;
+    aHold = mData[26]; mData[26] = mData[58]; mData[58] = mData[62]; mData[62] = mData[30]; mData[30] = aHold;
+    aHold = mData[27]; mData[27] = mData[59]; mData[59] = mData[63]; mData[63] = mData[31]; mData[31] = aHold;
 }
 
-void M88::CastleAQuarterA() {
-    std::uint8_t aHold = 0;
-
-    // cycle 0
-    aHold = mData[0]; mData[0] = mData[10]; mData[10] = aHold;
-
-    // cycle 1
-    aHold = mData[1]; mData[1] = mData[19]; mData[19] = mData[26]; mData[26] = mData[8];
-    mData[8] = aHold;
-
-    // cycle 2
-    aHold = mData[2]; mData[2] = mData[11]; mData[11] = mData[25]; mData[25] = mData[16];
-    mData[16] = aHold;
-
-    // cycle 3
-    aHold = mData[3]; mData[3] = mData[18]; mData[18] = aHold;
-
-    // cycle 4
-    aHold = mData[9]; mData[9] = mData[24]; mData[24] = aHold;
-
-    // cycle 5
-    aHold = mData[17]; mData[17] = mData[27]; mData[27] = aHold;
-
+void M88::Full_RotA_EachQuad_2x2() {
+    Quad_RotA_2x2_A();
+    Quad_RotA_2x2_B();
+    Quad_RotA_2x2_C();
+    Quad_RotA_2x2_D();
 }
 
-void M88::CastleBQuarterA() {
-    std::uint8_t aHold = 0;
-
-    // cycle 0
-    aHold = mData[0]; mData[0] = mData[17]; mData[17] = aHold;
-
-    // cycle 1
-    aHold = mData[1]; mData[1] = mData[8]; mData[8] = mData[26]; mData[26] = mData[19];
-    mData[19] = aHold;
-
-    // cycle 2
-    aHold = mData[2]; mData[2] = mData[16]; mData[16] = mData[25]; mData[25] = mData[11];
-    mData[11] = aHold;
-
-    // cycle 3
-    aHold = mData[3]; mData[3] = mData[9]; mData[9] = aHold;
-
-    // cycle 4
-    aHold = mData[10]; mData[10] = mData[27]; mData[27] = aHold;
-
-    // cycle 5
-    aHold = mData[18]; mData[18] = mData[24]; mData[24] = aHold;
-
+void M88::Full_RotA_EachMini_2x2() {
+    Mini_RotA_2x2_A();
+    Mini_RotA_2x2_B();
+    Mini_RotA_2x2_C();
+    Mini_RotA_2x2_D();
+    Mini_RotA_2x2_E();
+    Mini_RotA_2x2_F();
+    Mini_RotA_2x2_G();
+    Mini_RotA_2x2_H();
+    Mini_RotA_2x2_I();
+    Mini_RotA_2x2_J();
+    Mini_RotA_2x2_K();
+    Mini_RotA_2x2_L();
+    Mini_RotA_2x2_M();
+    Mini_RotA_2x2_N();
+    Mini_RotA_2x2_O();
+    Mini_RotA_2x2_P();
 }
 
-
-
-
-
-
-void M88::RotA() {
-    std::uint8_t aHold = 0;
-    
-    // cycle 0
-    aHold = mData[0]; mData[0] = mData[56]; mData[56] = mData[63]; mData[63] = mData[7];
-    mData[7] = aHold;
-    
-    // cycle 1
-    aHold = mData[1]; mData[1] = mData[48]; mData[48] = mData[62]; mData[62] = mData[15];
-    mData[15] = aHold;
-    
-    // cycle 2
-    aHold = mData[2]; mData[2] = mData[40]; mData[40] = mData[61]; mData[61] = mData[23];
-    mData[23] = aHold;
-    
-    // cycle 3
-    aHold = mData[3]; mData[3] = mData[32]; mData[32] = mData[60]; mData[60] = mData[31];
-    mData[31] = aHold;
-    
-    // cycle 4
-    aHold = mData[4]; mData[4] = mData[24]; mData[24] = mData[59]; mData[59] = mData[39];
-    mData[39] = aHold;
-    
-    // cycle 5
-    aHold = mData[5]; mData[5] = mData[16]; mData[16] = mData[58]; mData[58] = mData[47];
-    mData[47] = aHold;
-    
-    // cycle 6
-    aHold = mData[6]; mData[6] = mData[8]; mData[8] = mData[57]; mData[57] = mData[55];
-    mData[55] = aHold;
-    
-    // cycle 7
-    aHold = mData[9]; mData[9] = mData[49]; mData[49] = mData[54]; mData[54] = mData[14];
-    mData[14] = aHold;
-    
-    // cycle 8
-    aHold = mData[10]; mData[10] = mData[41]; mData[41] = mData[53]; mData[53] = mData[22];
-    mData[22] = aHold;
-    
-    // cycle 9
-    aHold = mData[11]; mData[11] = mData[33]; mData[33] = mData[52]; mData[52] = mData[30];
-    mData[30] = aHold;
-    
-    // cycle 10
-    aHold = mData[12]; mData[12] = mData[25]; mData[25] = mData[51]; mData[51] = mData[38];
-    mData[38] = aHold;
-    
-    // cycle 11
-    aHold = mData[13]; mData[13] = mData[17]; mData[17] = mData[50]; mData[50] = mData[46];
-    mData[46] = aHold;
-    
-    // cycle 12
-    aHold = mData[18]; mData[18] = mData[42]; mData[42] = mData[45]; mData[45] = mData[21];
-    mData[21] = aHold;
-    
-    // cycle 13
-    aHold = mData[19]; mData[19] = mData[34]; mData[34] = mData[44]; mData[44] = mData[29];
-    mData[29] = aHold;
-    
-    // cycle 14
-    aHold = mData[20]; mData[20] = mData[26]; mData[26] = mData[43]; mData[43] = mData[37];
-    mData[37] = aHold;
-    
-    // cycle 15
-    aHold = mData[27]; mData[27] = mData[35]; mData[35] = mData[36]; mData[36] = mData[28];
-    mData[28] = aHold;
-    
+void M88::Quad_RotA_EachMini_2x2_A() {
+    Mini_RotA_2x2_A();
+    Mini_RotA_2x2_B();
+    Mini_RotA_2x2_E();
+    Mini_RotA_2x2_F();
 }
 
-void M88::RotB() {
-    std::uint8_t aHold = 0;
-    
-    // cycle 0
-    aHold = mData[0]; mData[0] = mData[7]; mData[7] = mData[63]; mData[63] = mData[56];
-    mData[56] = aHold;
-    
-    // cycle 1
-    aHold = mData[1]; mData[1] = mData[15]; mData[15] = mData[62]; mData[62] = mData[48];
-    mData[48] = aHold;
-    
-    // cycle 2
-    aHold = mData[2]; mData[2] = mData[23]; mData[23] = mData[61]; mData[61] = mData[40];
-    mData[40] = aHold;
-    
-    // cycle 3
-    aHold = mData[3]; mData[3] = mData[31]; mData[31] = mData[60]; mData[60] = mData[32];
-    mData[32] = aHold;
-    
-    // cycle 4
-    aHold = mData[4]; mData[4] = mData[39]; mData[39] = mData[59]; mData[59] = mData[24];
-    mData[24] = aHold;
-    
-    // cycle 5
-    aHold = mData[5]; mData[5] = mData[47]; mData[47] = mData[58]; mData[58] = mData[16];
-    mData[16] = aHold;
-    
-    // cycle 6
-    aHold = mData[6]; mData[6] = mData[55]; mData[55] = mData[57]; mData[57] = mData[8];
-    mData[8] = aHold;
-    
-    // cycle 7
-    aHold = mData[9]; mData[9] = mData[14]; mData[14] = mData[54]; mData[54] = mData[49];
-    mData[49] = aHold;
-    
-    // cycle 8
-    aHold = mData[10]; mData[10] = mData[22]; mData[22] = mData[53]; mData[53] = mData[41];
-    mData[41] = aHold;
-    
-    // cycle 9
-    aHold = mData[11]; mData[11] = mData[30]; mData[30] = mData[52]; mData[52] = mData[33];
-    mData[33] = aHold;
-    
-    // cycle 10
-    aHold = mData[12]; mData[12] = mData[38]; mData[38] = mData[51]; mData[51] = mData[25];
-    mData[25] = aHold;
-    
-    // cycle 11
-    aHold = mData[13]; mData[13] = mData[46]; mData[46] = mData[50]; mData[50] = mData[17];
-    mData[17] = aHold;
-    
-    // cycle 12
-    aHold = mData[18]; mData[18] = mData[21]; mData[21] = mData[45]; mData[45] = mData[42];
-    mData[42] = aHold;
-    
-    // cycle 13
-    aHold = mData[19]; mData[19] = mData[29]; mData[29] = mData[44]; mData[44] = mData[34];
-    mData[34] = aHold;
-    
-    // cycle 14
-    aHold = mData[20]; mData[20] = mData[37]; mData[37] = mData[43]; mData[43] = mData[26];
-    mData[26] = aHold;
-    
-    // cycle 15
-    aHold = mData[27]; mData[27] = mData[28]; mData[28] = mData[36]; mData[36] = mData[35];
-    mData[35] = aHold;
-    
+void M88::Quad_RotA_EachMini_2x2_B() {
+    Mini_RotA_2x2_C();
+    Mini_RotA_2x2_D();
+    Mini_RotA_2x2_G();
+    Mini_RotA_2x2_H();
 }
 
-void M88::RotC() {
+void M88::Quad_RotA_EachMini_2x2_C() {
+    Mini_RotA_2x2_I();
+    Mini_RotA_2x2_J();
+    Mini_RotA_2x2_M();
+    Mini_RotA_2x2_N();
+}
+
+void M88::Quad_RotA_EachMini_2x2_D() {
+    Mini_RotA_2x2_K();
+    Mini_RotA_2x2_L();
+    Mini_RotA_2x2_O();
+    Mini_RotA_2x2_P();
+}
+
+void M88::Quad_RotA_2x2_A() {
     std::uint8_t aHold = 0;
-    
-    // cycle 0
-    aHold = mData[0]; mData[0] = mData[63]; mData[63] = aHold;
-    
-    // cycle 1
-    aHold = mData[1]; mData[1] = mData[62]; mData[62] = aHold;
-    
-    // cycle 2
-    aHold = mData[2]; mData[2] = mData[61]; mData[61] = aHold;
-    
-    // cycle 3
-    aHold = mData[3]; mData[3] = mData[60]; mData[60] = aHold;
-    
-    // cycle 4
-    aHold = mData[4]; mData[4] = mData[59]; mData[59] = aHold;
-    
-    // cycle 5
-    aHold = mData[5]; mData[5] = mData[58]; mData[58] = aHold;
-    
-    // cycle 6
-    aHold = mData[6]; mData[6] = mData[57]; mData[57] = aHold;
-    
-    // cycle 7
-    aHold = mData[7]; mData[7] = mData[56]; mData[56] = aHold;
-    
-    // cycle 8
-    aHold = mData[8]; mData[8] = mData[55]; mData[55] = aHold;
-    
-    // cycle 9
-    aHold = mData[9]; mData[9] = mData[54]; mData[54] = aHold;
-    
-    // cycle 10
-    aHold = mData[10]; mData[10] = mData[53]; mData[53] = aHold;
-    
-    // cycle 11
-    aHold = mData[11]; mData[11] = mData[52]; mData[52] = aHold;
-    
-    // cycle 12
-    aHold = mData[12]; mData[12] = mData[51]; mData[51] = aHold;
-    
-    // cycle 13
-    aHold = mData[13]; mData[13] = mData[50]; mData[50] = aHold;
-    
-    // cycle 14
-    aHold = mData[14]; mData[14] = mData[49]; mData[49] = aHold;
-    
-    // cycle 15
-    aHold = mData[15]; mData[15] = mData[48]; mData[48] = aHold;
-    
-    // cycle 16
-    aHold = mData[16]; mData[16] = mData[47]; mData[47] = aHold;
-    
-    // cycle 17
-    aHold = mData[17]; mData[17] = mData[46]; mData[46] = aHold;
-    
-    // cycle 18
-    aHold = mData[18]; mData[18] = mData[45]; mData[45] = aHold;
-    
-    // cycle 19
-    aHold = mData[19]; mData[19] = mData[44]; mData[44] = aHold;
-    
-    // cycle 20
-    aHold = mData[20]; mData[20] = mData[43]; mData[43] = aHold;
-    
-    // cycle 21
-    aHold = mData[21]; mData[21] = mData[42]; mData[42] = aHold;
-    
-    // cycle 22
-    aHold = mData[22]; mData[22] = mData[41]; mData[41] = aHold;
-    
-    // cycle 23
-    aHold = mData[23]; mData[23] = mData[40]; mData[40] = aHold;
-    
-    // cycle 24
-    aHold = mData[24]; mData[24] = mData[39]; mData[39] = aHold;
-    
-    // cycle 25
-    aHold = mData[25]; mData[25] = mData[38]; mData[38] = aHold;
-    
-    // cycle 26
-    aHold = mData[26]; mData[26] = mData[37]; mData[37] = aHold;
-    
-    // cycle 27
-    aHold = mData[27]; mData[27] = mData[36]; mData[36] = aHold;
-    
-    // cycle 28
-    aHold = mData[28]; mData[28] = mData[35]; mData[35] = aHold;
-    
-    // cycle 29
-    aHold = mData[29]; mData[29] = mData[34]; mData[34] = aHold;
-    
-    // cycle 30
-    aHold = mData[30]; mData[30] = mData[33]; mData[33] = aHold;
-    
-    // cycle 31
-    aHold = mData[31]; mData[31] = mData[32]; mData[32] = aHold;
-    
+    aHold = mData[0]; mData[0] = mData[16]; mData[16] = mData[18]; mData[18] = mData[2]; mData[2] = aHold;
+    aHold = mData[1]; mData[1] = mData[17]; mData[17] = mData[19]; mData[19] = mData[3]; mData[3] = aHold;
+    aHold = mData[8]; mData[8] = mData[24]; mData[24] = mData[26]; mData[26] = mData[10]; mData[10] = aHold;
+    aHold = mData[9]; mData[9] = mData[25]; mData[25] = mData[27]; mData[27] = mData[11]; mData[11] = aHold;
+}
+
+void M88::Quad_RotA_2x2_B() {
+    std::uint8_t aHold = 0;
+    aHold = mData[4]; mData[4] = mData[20]; mData[20] = mData[22]; mData[22] = mData[6]; mData[6] = aHold;
+    aHold = mData[5]; mData[5] = mData[21]; mData[21] = mData[23]; mData[23] = mData[7]; mData[7] = aHold;
+    aHold = mData[12]; mData[12] = mData[28]; mData[28] = mData[30]; mData[30] = mData[14]; mData[14] = aHold;
+    aHold = mData[13]; mData[13] = mData[29]; mData[29] = mData[31]; mData[31] = mData[15]; mData[15] = aHold;
+}
+
+void M88::Quad_RotA_2x2_C() {
+    std::uint8_t aHold = 0;
+    aHold = mData[32]; mData[32] = mData[48]; mData[48] = mData[50]; mData[50] = mData[34]; mData[34] = aHold;
+    aHold = mData[33]; mData[33] = mData[49]; mData[49] = mData[51]; mData[51] = mData[35]; mData[35] = aHold;
+    aHold = mData[40]; mData[40] = mData[56]; mData[56] = mData[58]; mData[58] = mData[42]; mData[42] = aHold;
+    aHold = mData[41]; mData[41] = mData[57]; mData[57] = mData[59]; mData[59] = mData[43]; mData[43] = aHold;
+}
+
+void M88::Quad_RotA_2x2_D() {
+    std::uint8_t aHold = 0;
+    aHold = mData[36]; mData[36] = mData[52]; mData[52] = mData[54]; mData[54] = mData[38]; mData[38] = aHold;
+    aHold = mData[37]; mData[37] = mData[53]; mData[53] = mData[55]; mData[55] = mData[39]; mData[39] = aHold;
+    aHold = mData[44]; mData[44] = mData[60]; mData[60] = mData[62]; mData[62] = mData[46]; mData[46] = aHold;
+    aHold = mData[45]; mData[45] = mData[61]; mData[61] = mData[63]; mData[63] = mData[47]; mData[47] = aHold;
+}
+
+void M88::Mini_RotA_2x2_A() {
+    std::uint8_t aHold = 0;
+    aHold = mData[0]; mData[0] = mData[8]; mData[8] = mData[9]; mData[9] = mData[1]; mData[1] = aHold;
+}
+
+void M88::Mini_RotA_2x2_B() {
+    std::uint8_t aHold = 0;
+    aHold = mData[2]; mData[2] = mData[10]; mData[10] = mData[11]; mData[11] = mData[3]; mData[3] = aHold;
+}
+
+void M88::Mini_RotA_2x2_C() {
+    std::uint8_t aHold = 0;
+    aHold = mData[4]; mData[4] = mData[12]; mData[12] = mData[13]; mData[13] = mData[5]; mData[5] = aHold;
+}
+
+void M88::Mini_RotA_2x2_D() {
+    std::uint8_t aHold = 0;
+    aHold = mData[6]; mData[6] = mData[14]; mData[14] = mData[15]; mData[15] = mData[7]; mData[7] = aHold;
+}
+
+void M88::Mini_RotA_2x2_E() {
+    std::uint8_t aHold = 0;
+    aHold = mData[16]; mData[16] = mData[24]; mData[24] = mData[25]; mData[25] = mData[17]; mData[17] = aHold;
+}
+
+void M88::Mini_RotA_2x2_F() {
+    std::uint8_t aHold = 0;
+    aHold = mData[18]; mData[18] = mData[26]; mData[26] = mData[27]; mData[27] = mData[19]; mData[19] = aHold;
+}
+
+void M88::Mini_RotA_2x2_G() {
+    std::uint8_t aHold = 0;
+    aHold = mData[20]; mData[20] = mData[28]; mData[28] = mData[29]; mData[29] = mData[21]; mData[21] = aHold;
+}
+
+void M88::Mini_RotA_2x2_H() {
+    std::uint8_t aHold = 0;
+    aHold = mData[22]; mData[22] = mData[30]; mData[30] = mData[31]; mData[31] = mData[23]; mData[23] = aHold;
+}
+
+void M88::Mini_RotA_2x2_I() {
+    std::uint8_t aHold = 0;
+    aHold = mData[32]; mData[32] = mData[40]; mData[40] = mData[41]; mData[41] = mData[33]; mData[33] = aHold;
+}
+
+void M88::Mini_RotA_2x2_J() {
+    std::uint8_t aHold = 0;
+    aHold = mData[34]; mData[34] = mData[42]; mData[42] = mData[43]; mData[43] = mData[35]; mData[35] = aHold;
+}
+
+void M88::Mini_RotA_2x2_K() {
+    std::uint8_t aHold = 0;
+    aHold = mData[36]; mData[36] = mData[44]; mData[44] = mData[45]; mData[45] = mData[37]; mData[37] = aHold;
+}
+
+void M88::Mini_RotA_2x2_L() {
+    std::uint8_t aHold = 0;
+    aHold = mData[38]; mData[38] = mData[46]; mData[46] = mData[47]; mData[47] = mData[39]; mData[39] = aHold;
+}
+
+void M88::Mini_RotA_2x2_M() {
+    std::uint8_t aHold = 0;
+    aHold = mData[48]; mData[48] = mData[56]; mData[56] = mData[57]; mData[57] = mData[49]; mData[49] = aHold;
+}
+
+void M88::Mini_RotA_2x2_N() {
+    std::uint8_t aHold = 0;
+    aHold = mData[50]; mData[50] = mData[58]; mData[58] = mData[59]; mData[59] = mData[51]; mData[51] = aHold;
+}
+
+void M88::Mini_RotA_2x2_O() {
+    std::uint8_t aHold = 0;
+    aHold = mData[52]; mData[52] = mData[60]; mData[60] = mData[61]; mData[61] = mData[53]; mData[53] = aHold;
+}
+
+void M88::Mini_RotA_2x2_P() {
+    std::uint8_t aHold = 0;
+    aHold = mData[54]; mData[54] = mData[62]; mData[62] = mData[63]; mData[63] = mData[55]; mData[55] = aHold;
 }
 
 
-void M88::BlockRotA() {
+
+
+
+
+
+// ---------- CPP ----------
+void M88::Full_RotA_4x4() {
     std::uint8_t aHold = 0;
-    
-    // cycle 0
-    aHold = mData[0]; mData[0] = mData[32]; mData[32] = mData[36]; mData[36] = mData[4];
-    mData[4] = aHold;
-    
-    // cycle 1
-    aHold = mData[1]; mData[1] = mData[33]; mData[33] = mData[37]; mData[37] = mData[5];
-    mData[5] = aHold;
-    
-    // cycle 2
-    aHold = mData[2]; mData[2] = mData[34]; mData[34] = mData[38]; mData[38] = mData[6];
-    mData[6] = aHold;
-    
-    // cycle 3
-    aHold = mData[3]; mData[3] = mData[35]; mData[35] = mData[39]; mData[39] = mData[7];
-    mData[7] = aHold;
-    
-    // cycle 4
-    aHold = mData[8]; mData[8] = mData[40]; mData[40] = mData[44]; mData[44] = mData[12];
-    mData[12] = aHold;
-    
-    // cycle 5
-    aHold = mData[9]; mData[9] = mData[41]; mData[41] = mData[45]; mData[45] = mData[13];
-    mData[13] = aHold;
-    
-    // cycle 6
-    aHold = mData[10]; mData[10] = mData[42]; mData[42] = mData[46]; mData[46] = mData[14];
-    mData[14] = aHold;
-    
-    // cycle 7
-    aHold = mData[11]; mData[11] = mData[43]; mData[43] = mData[47]; mData[47] = mData[15];
-    mData[15] = aHold;
-    
-    // cycle 8
-    aHold = mData[16]; mData[16] = mData[48]; mData[48] = mData[52]; mData[52] = mData[20];
-    mData[20] = aHold;
-    
-    // cycle 9
-    aHold = mData[17]; mData[17] = mData[49]; mData[49] = mData[53]; mData[53] = mData[21];
-    mData[21] = aHold;
-    
-    // cycle 10
-    aHold = mData[18]; mData[18] = mData[50]; mData[50] = mData[54]; mData[54] = mData[22];
-    mData[22] = aHold;
-    
-    // cycle 11
-    aHold = mData[19]; mData[19] = mData[51]; mData[51] = mData[55]; mData[55] = mData[23];
-    mData[23] = aHold;
-    
-    // cycle 12
-    aHold = mData[24]; mData[24] = mData[56]; mData[56] = mData[60]; mData[60] = mData[28];
-    mData[28] = aHold;
-    
-    // cycle 13
-    aHold = mData[25]; mData[25] = mData[57]; mData[57] = mData[61]; mData[61] = mData[29];
-    mData[29] = aHold;
-    
-    // cycle 14
-    aHold = mData[26]; mData[26] = mData[58]; mData[58] = mData[62]; mData[62] = mData[30];
-    mData[30] = aHold;
-    
-    // cycle 15
-    aHold = mData[27]; mData[27] = mData[59]; mData[59] = mData[63]; mData[63] = mData[31];
-    mData[31] = aHold;
-    
+    aHold = mData[0]; mData[0] = mData[48]; mData[48] = mData[54]; mData[54] = mData[6]; mData[6] = aHold;
+    aHold = mData[1]; mData[1] = mData[49]; mData[49] = mData[55]; mData[55] = mData[7]; mData[7] = aHold;
+    aHold = mData[2]; mData[2] = mData[32]; mData[32] = mData[52]; mData[52] = mData[22]; mData[22] = aHold;
+    aHold = mData[3]; mData[3] = mData[33]; mData[33] = mData[53]; mData[53] = mData[23]; mData[23] = aHold;
+    aHold = mData[4]; mData[4] = mData[16]; mData[16] = mData[50]; mData[50] = mData[38]; mData[38] = aHold;
+    aHold = mData[5]; mData[5] = mData[17]; mData[17] = mData[51]; mData[51] = mData[39]; mData[39] = aHold;
+    aHold = mData[8]; mData[8] = mData[56]; mData[56] = mData[62]; mData[62] = mData[14]; mData[14] = aHold;
+    aHold = mData[9]; mData[9] = mData[57]; mData[57] = mData[63]; mData[63] = mData[15]; mData[15] = aHold;
+    aHold = mData[10]; mData[10] = mData[40]; mData[40] = mData[60]; mData[60] = mData[30]; mData[30] = aHold;
+    aHold = mData[11]; mData[11] = mData[41]; mData[41] = mData[61]; mData[61] = mData[31]; mData[31] = aHold;
+    aHold = mData[12]; mData[12] = mData[24]; mData[24] = mData[58]; mData[58] = mData[46]; mData[46] = aHold;
+    aHold = mData[13]; mData[13] = mData[25]; mData[25] = mData[59]; mData[59] = mData[47]; mData[47] = aHold;
+    aHold = mData[18]; mData[18] = mData[34]; mData[34] = mData[36]; mData[36] = mData[20]; mData[20] = aHold;
+    aHold = mData[19]; mData[19] = mData[35]; mData[35] = mData[37]; mData[37] = mData[21]; mData[21] = aHold;
+    aHold = mData[26]; mData[26] = mData[42]; mData[42] = mData[44]; mData[44] = mData[28]; mData[28] = aHold;
+    aHold = mData[27]; mData[27] = mData[43]; mData[43] = mData[45]; mData[45] = mData[29]; mData[29] = aHold;
 }
 
-void M88::BlockRotB() {
-    std::uint8_t aHold = 0;
-    
-    // cycle 0
-    aHold = mData[0]; mData[0] = mData[4]; mData[4] = mData[36]; mData[36] = mData[32];
-    mData[32] = aHold;
-    
-    // cycle 1
-    aHold = mData[1]; mData[1] = mData[5]; mData[5] = mData[37]; mData[37] = mData[33];
-    mData[33] = aHold;
-    
-    // cycle 2
-    aHold = mData[2]; mData[2] = mData[6]; mData[6] = mData[38]; mData[38] = mData[34];
-    mData[34] = aHold;
-    
-    // cycle 3
-    aHold = mData[3]; mData[3] = mData[7]; mData[7] = mData[39]; mData[39] = mData[35];
-    mData[35] = aHold;
-    
-    // cycle 4
-    aHold = mData[8]; mData[8] = mData[12]; mData[12] = mData[44]; mData[44] = mData[40];
-    mData[40] = aHold;
-    
-    // cycle 5
-    aHold = mData[9]; mData[9] = mData[13]; mData[13] = mData[45]; mData[45] = mData[41];
-    mData[41] = aHold;
-    
-    // cycle 6
-    aHold = mData[10]; mData[10] = mData[14]; mData[14] = mData[46]; mData[46] = mData[42];
-    mData[42] = aHold;
-    
-    // cycle 7
-    aHold = mData[11]; mData[11] = mData[15]; mData[15] = mData[47]; mData[47] = mData[43];
-    mData[43] = aHold;
-    
-    // cycle 8
-    aHold = mData[16]; mData[16] = mData[20]; mData[20] = mData[52]; mData[52] = mData[48];
-    mData[48] = aHold;
-    
-    // cycle 9
-    aHold = mData[17]; mData[17] = mData[21]; mData[21] = mData[53]; mData[53] = mData[49];
-    mData[49] = aHold;
-    
-    // cycle 10
-    aHold = mData[18]; mData[18] = mData[22]; mData[22] = mData[54]; mData[54] = mData[50];
-    mData[50] = aHold;
-    
-    // cycle 11
-    aHold = mData[19]; mData[19] = mData[23]; mData[23] = mData[55]; mData[55] = mData[51];
-    mData[51] = aHold;
-    
-    // cycle 12
-    aHold = mData[24]; mData[24] = mData[28]; mData[28] = mData[60]; mData[60] = mData[56];
-    mData[56] = aHold;
-    
-    // cycle 13
-    aHold = mData[25]; mData[25] = mData[29]; mData[29] = mData[61]; mData[61] = mData[57];
-    mData[57] = aHold;
-    
-    // cycle 14
-    aHold = mData[26]; mData[26] = mData[30]; mData[30] = mData[62]; mData[62] = mData[58];
-    mData[58] = aHold;
-    
-    // cycle 15
-    aHold = mData[27]; mData[27] = mData[31]; mData[31] = mData[63]; mData[63] = mData[59];
-    mData[59] = aHold;
-    
+void M88::Full_RotA_EachQuad_4x4() {
+    Quad_RotA_4x4_A();
+    Quad_RotA_4x4_B();
+    Quad_RotA_4x4_C();
+    Quad_RotA_4x4_D();
 }
 
-void M88::BlockRotC() {
+void M88::Quad_RotA_4x4_A() {
     std::uint8_t aHold = 0;
-    
-    // cycle 0
+    aHold = mData[0]; mData[0] = mData[24]; mData[24] = mData[27]; mData[27] = mData[3]; mData[3] = aHold;
+    aHold = mData[1]; mData[1] = mData[16]; mData[16] = mData[26]; mData[26] = mData[11]; mData[11] = aHold;
+    aHold = mData[2]; mData[2] = mData[8]; mData[8] = mData[25]; mData[25] = mData[19]; mData[19] = aHold;
+    aHold = mData[9]; mData[9] = mData[17]; mData[17] = mData[18]; mData[18] = mData[10]; mData[10] = aHold;
+}
+
+void M88::Quad_RotA_4x4_B() {
+    std::uint8_t aHold = 0;
+    aHold = mData[4]; mData[4] = mData[28]; mData[28] = mData[31]; mData[31] = mData[7]; mData[7] = aHold;
+    aHold = mData[5]; mData[5] = mData[20]; mData[20] = mData[30]; mData[30] = mData[15]; mData[15] = aHold;
+    aHold = mData[6]; mData[6] = mData[12]; mData[12] = mData[29]; mData[29] = mData[23]; mData[23] = aHold;
+    aHold = mData[13]; mData[13] = mData[21]; mData[21] = mData[22]; mData[22] = mData[14]; mData[14] = aHold;
+}
+
+void M88::Quad_RotA_4x4_C() {
+    std::uint8_t aHold = 0;
+    aHold = mData[32]; mData[32] = mData[56]; mData[56] = mData[59]; mData[59] = mData[35]; mData[35] = aHold;
+    aHold = mData[33]; mData[33] = mData[48]; mData[48] = mData[58]; mData[58] = mData[43]; mData[43] = aHold;
+    aHold = mData[34]; mData[34] = mData[40]; mData[40] = mData[57]; mData[57] = mData[51]; mData[51] = aHold;
+    aHold = mData[41]; mData[41] = mData[49]; mData[49] = mData[50]; mData[50] = mData[42]; mData[42] = aHold;
+}
+
+void M88::Quad_RotA_4x4_D() {
+    std::uint8_t aHold = 0;
+    aHold = mData[36]; mData[36] = mData[60]; mData[60] = mData[63]; mData[63] = mData[39]; mData[39] = aHold;
+    aHold = mData[37]; mData[37] = mData[52]; mData[52] = mData[62]; mData[62] = mData[47]; mData[47] = aHold;
+    aHold = mData[38]; mData[38] = mData[44]; mData[44] = mData[61]; mData[61] = mData[55]; mData[55] = aHold;
+    aHold = mData[45]; mData[45] = mData[53]; mData[53] = mData[54]; mData[54] = mData[46]; mData[46] = aHold;
+}
+
+
+
+void M88::Full_RotA_8x8() {
+    std::uint8_t aHold = 0;
+    aHold = mData[0]; mData[0] = mData[56]; mData[56] = mData[63]; mData[63] = mData[7]; mData[7] = aHold;
+    aHold = mData[1]; mData[1] = mData[48]; mData[48] = mData[62]; mData[62] = mData[15]; mData[15] = aHold;
+    aHold = mData[2]; mData[2] = mData[40]; mData[40] = mData[61]; mData[61] = mData[23]; mData[23] = aHold;
+    aHold = mData[3]; mData[3] = mData[32]; mData[32] = mData[60]; mData[60] = mData[31]; mData[31] = aHold;
+    aHold = mData[4]; mData[4] = mData[24]; mData[24] = mData[59]; mData[59] = mData[39]; mData[39] = aHold;
+    aHold = mData[5]; mData[5] = mData[16]; mData[16] = mData[58]; mData[58] = mData[47]; mData[47] = aHold;
+    aHold = mData[6]; mData[6] = mData[8]; mData[8] = mData[57]; mData[57] = mData[55]; mData[55] = aHold;
+    aHold = mData[9]; mData[9] = mData[49]; mData[49] = mData[54]; mData[54] = mData[14]; mData[14] = aHold;
+    aHold = mData[10]; mData[10] = mData[41]; mData[41] = mData[53]; mData[53] = mData[22]; mData[22] = aHold;
+    aHold = mData[11]; mData[11] = mData[33]; mData[33] = mData[52]; mData[52] = mData[30]; mData[30] = aHold;
+    aHold = mData[12]; mData[12] = mData[25]; mData[25] = mData[51]; mData[51] = mData[38]; mData[38] = aHold;
+    aHold = mData[13]; mData[13] = mData[17]; mData[17] = mData[50]; mData[50] = mData[46]; mData[46] = aHold;
+    aHold = mData[18]; mData[18] = mData[42]; mData[42] = mData[45]; mData[45] = mData[21]; mData[21] = aHold;
+    aHold = mData[19]; mData[19] = mData[34]; mData[34] = mData[44]; mData[44] = mData[29]; mData[29] = aHold;
+    aHold = mData[20]; mData[20] = mData[26]; mData[26] = mData[43]; mData[43] = mData[37]; mData[37] = aHold;
+    aHold = mData[27]; mData[27] = mData[35]; mData[35] = mData[36]; mData[36] = mData[28]; mData[28] = aHold;
+}
+
+void M88::Full_RotB_2x2() {
+    std::uint8_t aHold = 0;
+    aHold = mData[0]; mData[0] = mData[4]; mData[4] = mData[36]; mData[36] = mData[32]; mData[32] = aHold;
+    aHold = mData[1]; mData[1] = mData[5]; mData[5] = mData[37]; mData[37] = mData[33]; mData[33] = aHold;
+    aHold = mData[2]; mData[2] = mData[6]; mData[6] = mData[38]; mData[38] = mData[34]; mData[34] = aHold;
+    aHold = mData[3]; mData[3] = mData[7]; mData[7] = mData[39]; mData[39] = mData[35]; mData[35] = aHold;
+    aHold = mData[8]; mData[8] = mData[12]; mData[12] = mData[44]; mData[44] = mData[40]; mData[40] = aHold;
+    aHold = mData[9]; mData[9] = mData[13]; mData[13] = mData[45]; mData[45] = mData[41]; mData[41] = aHold;
+    aHold = mData[10]; mData[10] = mData[14]; mData[14] = mData[46]; mData[46] = mData[42]; mData[42] = aHold;
+    aHold = mData[11]; mData[11] = mData[15]; mData[15] = mData[47]; mData[47] = mData[43]; mData[43] = aHold;
+    aHold = mData[16]; mData[16] = mData[20]; mData[20] = mData[52]; mData[52] = mData[48]; mData[48] = aHold;
+    aHold = mData[17]; mData[17] = mData[21]; mData[21] = mData[53]; mData[53] = mData[49]; mData[49] = aHold;
+    aHold = mData[18]; mData[18] = mData[22]; mData[22] = mData[54]; mData[54] = mData[50]; mData[50] = aHold;
+    aHold = mData[19]; mData[19] = mData[23]; mData[23] = mData[55]; mData[55] = mData[51]; mData[51] = aHold;
+    aHold = mData[24]; mData[24] = mData[28]; mData[28] = mData[60]; mData[60] = mData[56]; mData[56] = aHold;
+    aHold = mData[25]; mData[25] = mData[29]; mData[29] = mData[61]; mData[61] = mData[57]; mData[57] = aHold;
+    aHold = mData[26]; mData[26] = mData[30]; mData[30] = mData[62]; mData[62] = mData[58]; mData[58] = aHold;
+    aHold = mData[27]; mData[27] = mData[31]; mData[31] = mData[63]; mData[63] = mData[59]; mData[59] = aHold;
+}
+
+void M88::Full_RotB_EachQuad_2x2() {
+    Quad_RotB_2x2_A();
+    Quad_RotB_2x2_B();
+    Quad_RotB_2x2_C();
+    Quad_RotB_2x2_D();
+}
+
+void M88::Full_RotB_EachMini_2x2() {
+    Mini_RotB_2x2_A();
+    Mini_RotB_2x2_B();
+    Mini_RotB_2x2_C();
+    Mini_RotB_2x2_D();
+    Mini_RotB_2x2_E();
+    Mini_RotB_2x2_F();
+    Mini_RotB_2x2_G();
+    Mini_RotB_2x2_H();
+    Mini_RotB_2x2_I();
+    Mini_RotB_2x2_J();
+    Mini_RotB_2x2_K();
+    Mini_RotB_2x2_L();
+    Mini_RotB_2x2_M();
+    Mini_RotB_2x2_N();
+    Mini_RotB_2x2_O();
+    Mini_RotB_2x2_P();
+}
+
+void M88::Quad_RotB_EachMini_2x2_A() {
+    Mini_RotB_2x2_A();
+    Mini_RotB_2x2_B();
+    Mini_RotB_2x2_E();
+    Mini_RotB_2x2_F();
+}
+
+void M88::Quad_RotB_EachMini_2x2_B() {
+    Mini_RotB_2x2_C();
+    Mini_RotB_2x2_D();
+    Mini_RotB_2x2_G();
+    Mini_RotB_2x2_H();
+}
+
+void M88::Quad_RotB_EachMini_2x2_C() {
+    Mini_RotB_2x2_I();
+    Mini_RotB_2x2_J();
+    Mini_RotB_2x2_M();
+    Mini_RotB_2x2_N();
+}
+
+void M88::Quad_RotB_EachMini_2x2_D() {
+    Mini_RotB_2x2_K();
+    Mini_RotB_2x2_L();
+    Mini_RotB_2x2_O();
+    Mini_RotB_2x2_P();
+}
+
+void M88::Quad_RotB_2x2_A() {
+    std::uint8_t aHold = 0;
+    aHold = mData[0]; mData[0] = mData[2]; mData[2] = mData[18]; mData[18] = mData[16]; mData[16] = aHold;
+    aHold = mData[1]; mData[1] = mData[3]; mData[3] = mData[19]; mData[19] = mData[17]; mData[17] = aHold;
+    aHold = mData[8]; mData[8] = mData[10]; mData[10] = mData[26]; mData[26] = mData[24]; mData[24] = aHold;
+    aHold = mData[9]; mData[9] = mData[11]; mData[11] = mData[27]; mData[27] = mData[25]; mData[25] = aHold;
+}
+
+void M88::Quad_RotB_2x2_B() {
+    std::uint8_t aHold = 0;
+    aHold = mData[4]; mData[4] = mData[6]; mData[6] = mData[22]; mData[22] = mData[20]; mData[20] = aHold;
+    aHold = mData[5]; mData[5] = mData[7]; mData[7] = mData[23]; mData[23] = mData[21]; mData[21] = aHold;
+    aHold = mData[12]; mData[12] = mData[14]; mData[14] = mData[30]; mData[30] = mData[28]; mData[28] = aHold;
+    aHold = mData[13]; mData[13] = mData[15]; mData[15] = mData[31]; mData[31] = mData[29]; mData[29] = aHold;
+}
+
+void M88::Quad_RotB_2x2_C() {
+    std::uint8_t aHold = 0;
+    aHold = mData[32]; mData[32] = mData[34]; mData[34] = mData[50]; mData[50] = mData[48]; mData[48] = aHold;
+    aHold = mData[33]; mData[33] = mData[35]; mData[35] = mData[51]; mData[51] = mData[49]; mData[49] = aHold;
+    aHold = mData[40]; mData[40] = mData[42]; mData[42] = mData[58]; mData[58] = mData[56]; mData[56] = aHold;
+    aHold = mData[41]; mData[41] = mData[43]; mData[43] = mData[59]; mData[59] = mData[57]; mData[57] = aHold;
+}
+
+void M88::Quad_RotB_2x2_D() {
+    std::uint8_t aHold = 0;
+    aHold = mData[36]; mData[36] = mData[38]; mData[38] = mData[54]; mData[54] = mData[52]; mData[52] = aHold;
+    aHold = mData[37]; mData[37] = mData[39]; mData[39] = mData[55]; mData[55] = mData[53]; mData[53] = aHold;
+    aHold = mData[44]; mData[44] = mData[46]; mData[46] = mData[62]; mData[62] = mData[60]; mData[60] = aHold;
+    aHold = mData[45]; mData[45] = mData[47]; mData[47] = mData[63]; mData[63] = mData[61]; mData[61] = aHold;
+}
+
+void M88::Mini_RotB_2x2_A() {
+    std::uint8_t aHold = 0;
+    aHold = mData[0]; mData[0] = mData[1]; mData[1] = mData[9]; mData[9] = mData[8]; mData[8] = aHold;
+}
+
+void M88::Mini_RotB_2x2_B() {
+    std::uint8_t aHold = 0;
+    aHold = mData[2]; mData[2] = mData[3]; mData[3] = mData[11]; mData[11] = mData[10]; mData[10] = aHold;
+}
+
+void M88::Mini_RotB_2x2_C() {
+    std::uint8_t aHold = 0;
+    aHold = mData[4]; mData[4] = mData[5]; mData[5] = mData[13]; mData[13] = mData[12]; mData[12] = aHold;
+}
+
+void M88::Mini_RotB_2x2_D() {
+    std::uint8_t aHold = 0;
+    aHold = mData[6]; mData[6] = mData[7]; mData[7] = mData[15]; mData[15] = mData[14]; mData[14] = aHold;
+}
+
+void M88::Mini_RotB_2x2_E() {
+    std::uint8_t aHold = 0;
+    aHold = mData[16]; mData[16] = mData[17]; mData[17] = mData[25]; mData[25] = mData[24]; mData[24] = aHold;
+}
+
+void M88::Mini_RotB_2x2_F() {
+    std::uint8_t aHold = 0;
+    aHold = mData[18]; mData[18] = mData[19]; mData[19] = mData[27]; mData[27] = mData[26]; mData[26] = aHold;
+}
+
+void M88::Mini_RotB_2x2_G() {
+    std::uint8_t aHold = 0;
+    aHold = mData[20]; mData[20] = mData[21]; mData[21] = mData[29]; mData[29] = mData[28]; mData[28] = aHold;
+}
+
+void M88::Mini_RotB_2x2_H() {
+    std::uint8_t aHold = 0;
+    aHold = mData[22]; mData[22] = mData[23]; mData[23] = mData[31]; mData[31] = mData[30]; mData[30] = aHold;
+}
+
+void M88::Mini_RotB_2x2_I() {
+    std::uint8_t aHold = 0;
+    aHold = mData[32]; mData[32] = mData[33]; mData[33] = mData[41]; mData[41] = mData[40]; mData[40] = aHold;
+}
+
+void M88::Mini_RotB_2x2_J() {
+    std::uint8_t aHold = 0;
+    aHold = mData[34]; mData[34] = mData[35]; mData[35] = mData[43]; mData[43] = mData[42]; mData[42] = aHold;
+}
+
+void M88::Mini_RotB_2x2_K() {
+    std::uint8_t aHold = 0;
+    aHold = mData[36]; mData[36] = mData[37]; mData[37] = mData[45]; mData[45] = mData[44]; mData[44] = aHold;
+}
+
+void M88::Mini_RotB_2x2_L() {
+    std::uint8_t aHold = 0;
+    aHold = mData[38]; mData[38] = mData[39]; mData[39] = mData[47]; mData[47] = mData[46]; mData[46] = aHold;
+}
+
+void M88::Mini_RotB_2x2_M() {
+    std::uint8_t aHold = 0;
+    aHold = mData[48]; mData[48] = mData[49]; mData[49] = mData[57]; mData[57] = mData[56]; mData[56] = aHold;
+}
+
+void M88::Mini_RotB_2x2_N() {
+    std::uint8_t aHold = 0;
+    aHold = mData[50]; mData[50] = mData[51]; mData[51] = mData[59]; mData[59] = mData[58]; mData[58] = aHold;
+}
+
+void M88::Mini_RotB_2x2_O() {
+    std::uint8_t aHold = 0;
+    aHold = mData[52]; mData[52] = mData[53]; mData[53] = mData[61]; mData[61] = mData[60]; mData[60] = aHold;
+}
+
+void M88::Mini_RotB_2x2_P() {
+    std::uint8_t aHold = 0;
+    aHold = mData[54]; mData[54] = mData[55]; mData[55] = mData[63]; mData[63] = mData[62]; mData[62] = aHold;
+}
+
+
+
+void M88::Full_RotB_4x4() {
+    std::uint8_t aHold = 0;
+    aHold = mData[0]; mData[0] = mData[6]; mData[6] = mData[54]; mData[54] = mData[48]; mData[48] = aHold;
+    aHold = mData[1]; mData[1] = mData[7]; mData[7] = mData[55]; mData[55] = mData[49]; mData[49] = aHold;
+    aHold = mData[2]; mData[2] = mData[22]; mData[22] = mData[52]; mData[52] = mData[32]; mData[32] = aHold;
+    aHold = mData[3]; mData[3] = mData[23]; mData[23] = mData[53]; mData[53] = mData[33]; mData[33] = aHold;
+    aHold = mData[4]; mData[4] = mData[38]; mData[38] = mData[50]; mData[50] = mData[16]; mData[16] = aHold;
+    aHold = mData[5]; mData[5] = mData[39]; mData[39] = mData[51]; mData[51] = mData[17]; mData[17] = aHold;
+    aHold = mData[8]; mData[8] = mData[14]; mData[14] = mData[62]; mData[62] = mData[56]; mData[56] = aHold;
+    aHold = mData[9]; mData[9] = mData[15]; mData[15] = mData[63]; mData[63] = mData[57]; mData[57] = aHold;
+    aHold = mData[10]; mData[10] = mData[30]; mData[30] = mData[60]; mData[60] = mData[40]; mData[40] = aHold;
+    aHold = mData[11]; mData[11] = mData[31]; mData[31] = mData[61]; mData[61] = mData[41]; mData[41] = aHold;
+    aHold = mData[12]; mData[12] = mData[46]; mData[46] = mData[58]; mData[58] = mData[24]; mData[24] = aHold;
+    aHold = mData[13]; mData[13] = mData[47]; mData[47] = mData[59]; mData[59] = mData[25]; mData[25] = aHold;
+    aHold = mData[18]; mData[18] = mData[20]; mData[20] = mData[36]; mData[36] = mData[34]; mData[34] = aHold;
+    aHold = mData[19]; mData[19] = mData[21]; mData[21] = mData[37]; mData[37] = mData[35]; mData[35] = aHold;
+    aHold = mData[26]; mData[26] = mData[28]; mData[28] = mData[44]; mData[44] = mData[42]; mData[42] = aHold;
+    aHold = mData[27]; mData[27] = mData[29]; mData[29] = mData[45]; mData[45] = mData[43]; mData[43] = aHold;
+}
+
+void M88::Full_RotB_EachQuad_4x4() {
+    Quad_RotB_4x4_A();
+    Quad_RotB_4x4_B();
+    Quad_RotB_4x4_C();
+    Quad_RotB_4x4_D();
+}
+
+void M88::Quad_RotB_4x4_A() {
+    std::uint8_t aHold = 0;
+    aHold = mData[0]; mData[0] = mData[3]; mData[3] = mData[27]; mData[27] = mData[24]; mData[24] = aHold;
+    aHold = mData[1]; mData[1] = mData[11]; mData[11] = mData[26]; mData[26] = mData[16]; mData[16] = aHold;
+    aHold = mData[2]; mData[2] = mData[19]; mData[19] = mData[25]; mData[25] = mData[8]; mData[8] = aHold;
+    aHold = mData[9]; mData[9] = mData[10]; mData[10] = mData[18]; mData[18] = mData[17]; mData[17] = aHold;
+}
+
+void M88::Quad_RotB_4x4_B() {
+    std::uint8_t aHold = 0;
+    aHold = mData[4]; mData[4] = mData[7]; mData[7] = mData[31]; mData[31] = mData[28]; mData[28] = aHold;
+    aHold = mData[5]; mData[5] = mData[15]; mData[15] = mData[30]; mData[30] = mData[20]; mData[20] = aHold;
+    aHold = mData[6]; mData[6] = mData[23]; mData[23] = mData[29]; mData[29] = mData[12]; mData[12] = aHold;
+    aHold = mData[13]; mData[13] = mData[14]; mData[14] = mData[22]; mData[22] = mData[21]; mData[21] = aHold;
+}
+
+void M88::Quad_RotB_4x4_C() {
+    std::uint8_t aHold = 0;
+    aHold = mData[32]; mData[32] = mData[35]; mData[35] = mData[59]; mData[59] = mData[56]; mData[56] = aHold;
+    aHold = mData[33]; mData[33] = mData[43]; mData[43] = mData[58]; mData[58] = mData[48]; mData[48] = aHold;
+    aHold = mData[34]; mData[34] = mData[51]; mData[51] = mData[57]; mData[57] = mData[40]; mData[40] = aHold;
+    aHold = mData[41]; mData[41] = mData[42]; mData[42] = mData[50]; mData[50] = mData[49]; mData[49] = aHold;
+}
+
+void M88::Quad_RotB_4x4_D() {
+    std::uint8_t aHold = 0;
+    aHold = mData[36]; mData[36] = mData[39]; mData[39] = mData[63]; mData[63] = mData[60]; mData[60] = aHold;
+    aHold = mData[37]; mData[37] = mData[47]; mData[47] = mData[62]; mData[62] = mData[52]; mData[52] = aHold;
+    aHold = mData[38]; mData[38] = mData[55]; mData[55] = mData[61]; mData[61] = mData[44]; mData[44] = aHold;
+    aHold = mData[45]; mData[45] = mData[46]; mData[46] = mData[54]; mData[54] = mData[53]; mData[53] = aHold;
+}
+
+
+void M88::Full_RotB_8x8() {
+    std::uint8_t aHold = 0;
+    aHold = mData[0]; mData[0] = mData[7]; mData[7] = mData[63]; mData[63] = mData[56]; mData[56] = aHold;
+    aHold = mData[1]; mData[1] = mData[15]; mData[15] = mData[62]; mData[62] = mData[48]; mData[48] = aHold;
+    aHold = mData[2]; mData[2] = mData[23]; mData[23] = mData[61]; mData[61] = mData[40]; mData[40] = aHold;
+    aHold = mData[3]; mData[3] = mData[31]; mData[31] = mData[60]; mData[60] = mData[32]; mData[32] = aHold;
+    aHold = mData[4]; mData[4] = mData[39]; mData[39] = mData[59]; mData[59] = mData[24]; mData[24] = aHold;
+    aHold = mData[5]; mData[5] = mData[47]; mData[47] = mData[58]; mData[58] = mData[16]; mData[16] = aHold;
+    aHold = mData[6]; mData[6] = mData[55]; mData[55] = mData[57]; mData[57] = mData[8]; mData[8] = aHold;
+    aHold = mData[9]; mData[9] = mData[14]; mData[14] = mData[54]; mData[54] = mData[49]; mData[49] = aHold;
+    aHold = mData[10]; mData[10] = mData[22]; mData[22] = mData[53]; mData[53] = mData[41]; mData[41] = aHold;
+    aHold = mData[11]; mData[11] = mData[30]; mData[30] = mData[52]; mData[52] = mData[33]; mData[33] = aHold;
+    aHold = mData[12]; mData[12] = mData[38]; mData[38] = mData[51]; mData[51] = mData[25]; mData[25] = aHold;
+    aHold = mData[13]; mData[13] = mData[46]; mData[46] = mData[50]; mData[50] = mData[17]; mData[17] = aHold;
+    aHold = mData[18]; mData[18] = mData[21]; mData[21] = mData[45]; mData[45] = mData[42]; mData[42] = aHold;
+    aHold = mData[19]; mData[19] = mData[29]; mData[29] = mData[44]; mData[44] = mData[34]; mData[34] = aHold;
+    aHold = mData[20]; mData[20] = mData[37]; mData[37] = mData[43]; mData[43] = mData[26]; mData[26] = aHold;
+    aHold = mData[27]; mData[27] = mData[28]; mData[28] = mData[36]; mData[36] = mData[35]; mData[35] = aHold;
+}
+
+
+void M88::Full_RotC_2x2() {
+    std::uint8_t aHold = 0;
     aHold = mData[0]; mData[0] = mData[36]; mData[36] = aHold;
-    
-    // cycle 1
     aHold = mData[1]; mData[1] = mData[37]; mData[37] = aHold;
-    
-    // cycle 2
     aHold = mData[2]; mData[2] = mData[38]; mData[38] = aHold;
-    
-    // cycle 3
     aHold = mData[3]; mData[3] = mData[39]; mData[39] = aHold;
-    
-    // cycle 4
     aHold = mData[4]; mData[4] = mData[32]; mData[32] = aHold;
-    
-    // cycle 5
     aHold = mData[5]; mData[5] = mData[33]; mData[33] = aHold;
-    
-    // cycle 6
     aHold = mData[6]; mData[6] = mData[34]; mData[34] = aHold;
-    
-    // cycle 7
     aHold = mData[7]; mData[7] = mData[35]; mData[35] = aHold;
-    
-    // cycle 8
     aHold = mData[8]; mData[8] = mData[44]; mData[44] = aHold;
-    
-    // cycle 9
     aHold = mData[9]; mData[9] = mData[45]; mData[45] = aHold;
-    
-    // cycle 10
     aHold = mData[10]; mData[10] = mData[46]; mData[46] = aHold;
-    
-    // cycle 11
     aHold = mData[11]; mData[11] = mData[47]; mData[47] = aHold;
-    
-    // cycle 12
     aHold = mData[12]; mData[12] = mData[40]; mData[40] = aHold;
-    
-    // cycle 13
     aHold = mData[13]; mData[13] = mData[41]; mData[41] = aHold;
-    
-    // cycle 14
     aHold = mData[14]; mData[14] = mData[42]; mData[42] = aHold;
-    
-    // cycle 15
     aHold = mData[15]; mData[15] = mData[43]; mData[43] = aHold;
-    
-    // cycle 16
     aHold = mData[16]; mData[16] = mData[52]; mData[52] = aHold;
-    
-    // cycle 17
     aHold = mData[17]; mData[17] = mData[53]; mData[53] = aHold;
-    
-    // cycle 18
     aHold = mData[18]; mData[18] = mData[54]; mData[54] = aHold;
-    
-    // cycle 19
     aHold = mData[19]; mData[19] = mData[55]; mData[55] = aHold;
-    
-    // cycle 20
     aHold = mData[20]; mData[20] = mData[48]; mData[48] = aHold;
-    
-    // cycle 21
     aHold = mData[21]; mData[21] = mData[49]; mData[49] = aHold;
-    
-    // cycle 22
     aHold = mData[22]; mData[22] = mData[50]; mData[50] = aHold;
-    
-    // cycle 23
     aHold = mData[23]; mData[23] = mData[51]; mData[51] = aHold;
-    
-    // cycle 24
     aHold = mData[24]; mData[24] = mData[60]; mData[60] = aHold;
-    
-    // cycle 25
     aHold = mData[25]; mData[25] = mData[61]; mData[61] = aHold;
-    
-    // cycle 26
     aHold = mData[26]; mData[26] = mData[62]; mData[62] = aHold;
-    
-    // cycle 27
     aHold = mData[27]; mData[27] = mData[63]; mData[63] = aHold;
-    
-    // cycle 28
     aHold = mData[28]; mData[28] = mData[56]; mData[56] = aHold;
-    
-    // cycle 29
     aHold = mData[29]; mData[29] = mData[57]; mData[57] = aHold;
-    
-    // cycle 30
     aHold = mData[30]; mData[30] = mData[58]; mData[58] = aHold;
-    
-    // cycle 31
     aHold = mData[31]; mData[31] = mData[59]; mData[59] = aHold;
-    
 }
 
-void M88::PylonRotA() {
-    std::uint8_t aHold = 0;
-    
-    // cycle 0
-    aHold = mData[0]; mData[0] = mData[48]; mData[48] = mData[54]; mData[54] = mData[6];
-    mData[6] = aHold;
-    
-    // cycle 1
-    aHold = mData[1]; mData[1] = mData[49]; mData[49] = mData[55]; mData[55] = mData[7];
-    mData[7] = aHold;
-    
-    // cycle 2
-    aHold = mData[2]; mData[2] = mData[32]; mData[32] = mData[52]; mData[52] = mData[22];
-    mData[22] = aHold;
-    
-    // cycle 3
-    aHold = mData[3]; mData[3] = mData[33]; mData[33] = mData[53]; mData[53] = mData[23];
-    mData[23] = aHold;
-    
-    // cycle 4
-    aHold = mData[4]; mData[4] = mData[16]; mData[16] = mData[50]; mData[50] = mData[38];
-    mData[38] = aHold;
-    
-    // cycle 5
-    aHold = mData[5]; mData[5] = mData[17]; mData[17] = mData[51]; mData[51] = mData[39];
-    mData[39] = aHold;
-    
-    // cycle 6
-    aHold = mData[8]; mData[8] = mData[56]; mData[56] = mData[62]; mData[62] = mData[14];
-    mData[14] = aHold;
-    
-    // cycle 7
-    aHold = mData[9]; mData[9] = mData[57]; mData[57] = mData[63]; mData[63] = mData[15];
-    mData[15] = aHold;
-    
-    // cycle 8
-    aHold = mData[10]; mData[10] = mData[40]; mData[40] = mData[60]; mData[60] = mData[30];
-    mData[30] = aHold;
-    
-    // cycle 9
-    aHold = mData[11]; mData[11] = mData[41]; mData[41] = mData[61]; mData[61] = mData[31];
-    mData[31] = aHold;
-    
-    // cycle 10
-    aHold = mData[12]; mData[12] = mData[24]; mData[24] = mData[58]; mData[58] = mData[46];
-    mData[46] = aHold;
-    
-    // cycle 11
-    aHold = mData[13]; mData[13] = mData[25]; mData[25] = mData[59]; mData[59] = mData[47];
-    mData[47] = aHold;
-    
-    // cycle 12
-    aHold = mData[18]; mData[18] = mData[34]; mData[34] = mData[36]; mData[36] = mData[20];
-    mData[20] = aHold;
-    
-    // cycle 13
-    aHold = mData[19]; mData[19] = mData[35]; mData[35] = mData[37]; mData[37] = mData[21];
-    mData[21] = aHold;
-    
-    // cycle 14
-    aHold = mData[26]; mData[26] = mData[42]; mData[42] = mData[44]; mData[44] = mData[28];
-    mData[28] = aHold;
-    
-    // cycle 15
-    aHold = mData[27]; mData[27] = mData[43]; mData[43] = mData[45]; mData[45] = mData[29];
-    mData[29] = aHold;
-    
+void M88::Full_RotC_EachQuad_2x2() {
+    Quad_RotC_2x2_A();
+    Quad_RotC_2x2_B();
+    Quad_RotC_2x2_C();
+    Quad_RotC_2x2_D();
 }
 
-void M88::PylonRotB() {
-    std::uint8_t aHold = 0;
-    
-    // cycle 0
-    aHold = mData[0]; mData[0] = mData[6]; mData[6] = mData[54]; mData[54] = mData[48];
-    mData[48] = aHold;
-    
-    // cycle 1
-    aHold = mData[1]; mData[1] = mData[7]; mData[7] = mData[55]; mData[55] = mData[49];
-    mData[49] = aHold;
-    
-    // cycle 2
-    aHold = mData[2]; mData[2] = mData[22]; mData[22] = mData[52]; mData[52] = mData[32];
-    mData[32] = aHold;
-    
-    // cycle 3
-    aHold = mData[3]; mData[3] = mData[23]; mData[23] = mData[53]; mData[53] = mData[33];
-    mData[33] = aHold;
-    
-    // cycle 4
-    aHold = mData[4]; mData[4] = mData[38]; mData[38] = mData[50]; mData[50] = mData[16];
-    mData[16] = aHold;
-    
-    // cycle 5
-    aHold = mData[5]; mData[5] = mData[39]; mData[39] = mData[51]; mData[51] = mData[17];
-    mData[17] = aHold;
-    
-    // cycle 6
-    aHold = mData[8]; mData[8] = mData[14]; mData[14] = mData[62]; mData[62] = mData[56];
-    mData[56] = aHold;
-    
-    // cycle 7
-    aHold = mData[9]; mData[9] = mData[15]; mData[15] = mData[63]; mData[63] = mData[57];
-    mData[57] = aHold;
-    
-    // cycle 8
-    aHold = mData[10]; mData[10] = mData[30]; mData[30] = mData[60]; mData[60] = mData[40];
-    mData[40] = aHold;
-    
-    // cycle 9
-    aHold = mData[11]; mData[11] = mData[31]; mData[31] = mData[61]; mData[61] = mData[41];
-    mData[41] = aHold;
-    
-    // cycle 10
-    aHold = mData[12]; mData[12] = mData[46]; mData[46] = mData[58]; mData[58] = mData[24];
-    mData[24] = aHold;
-    
-    // cycle 11
-    aHold = mData[13]; mData[13] = mData[47]; mData[47] = mData[59]; mData[59] = mData[25];
-    mData[25] = aHold;
-    
-    // cycle 12
-    aHold = mData[18]; mData[18] = mData[20]; mData[20] = mData[36]; mData[36] = mData[34];
-    mData[34] = aHold;
-    
-    // cycle 13
-    aHold = mData[19]; mData[19] = mData[21]; mData[21] = mData[37]; mData[37] = mData[35];
-    mData[35] = aHold;
-    
-    // cycle 14
-    aHold = mData[26]; mData[26] = mData[28]; mData[28] = mData[44]; mData[44] = mData[42];
-    mData[42] = aHold;
-    
-    // cycle 15
-    aHold = mData[27]; mData[27] = mData[29]; mData[29] = mData[45]; mData[45] = mData[43];
-    mData[43] = aHold;
-    
+void M88::Full_RotC_EachMini_2x2() {
+    Mini_RotC_2x2_A();
+    Mini_RotC_2x2_B();
+    Mini_RotC_2x2_C();
+    Mini_RotC_2x2_D();
+    Mini_RotC_2x2_E();
+    Mini_RotC_2x2_F();
+    Mini_RotC_2x2_G();
+    Mini_RotC_2x2_H();
+    Mini_RotC_2x2_I();
+    Mini_RotC_2x2_J();
+    Mini_RotC_2x2_K();
+    Mini_RotC_2x2_L();
+    Mini_RotC_2x2_M();
+    Mini_RotC_2x2_N();
+    Mini_RotC_2x2_O();
+    Mini_RotC_2x2_P();
 }
 
-void M88::PylonRotC() {
+void M88::Quad_RotC_EachMini_2x2_A() {
+    Mini_RotC_2x2_A();
+    Mini_RotC_2x2_B();
+    Mini_RotC_2x2_E();
+    Mini_RotC_2x2_F();
+}
+
+void M88::Quad_RotC_EachMini_2x2_B() {
+    Mini_RotC_2x2_C();
+    Mini_RotC_2x2_D();
+    Mini_RotC_2x2_G();
+    Mini_RotC_2x2_H();
+}
+
+void M88::Quad_RotC_EachMini_2x2_C() {
+    Mini_RotC_2x2_I();
+    Mini_RotC_2x2_J();
+    Mini_RotC_2x2_M();
+    Mini_RotC_2x2_N();
+}
+
+void M88::Quad_RotC_EachMini_2x2_D() {
+    Mini_RotC_2x2_K();
+    Mini_RotC_2x2_L();
+    Mini_RotC_2x2_O();
+    Mini_RotC_2x2_P();
+}
+
+void M88::Quad_RotC_2x2_A() {
     std::uint8_t aHold = 0;
-    
-    // cycle 0
+    aHold = mData[0]; mData[0] = mData[18]; mData[18] = aHold;
+    aHold = mData[1]; mData[1] = mData[19]; mData[19] = aHold;
+    aHold = mData[2]; mData[2] = mData[16]; mData[16] = aHold;
+    aHold = mData[3]; mData[3] = mData[17]; mData[17] = aHold;
+    aHold = mData[8]; mData[8] = mData[26]; mData[26] = aHold;
+    aHold = mData[9]; mData[9] = mData[27]; mData[27] = aHold;
+    aHold = mData[10]; mData[10] = mData[24]; mData[24] = aHold;
+    aHold = mData[11]; mData[11] = mData[25]; mData[25] = aHold;
+}
+
+void M88::Quad_RotC_2x2_B() {
+    std::uint8_t aHold = 0;
+    aHold = mData[4]; mData[4] = mData[22]; mData[22] = aHold;
+    aHold = mData[5]; mData[5] = mData[23]; mData[23] = aHold;
+    aHold = mData[6]; mData[6] = mData[20]; mData[20] = aHold;
+    aHold = mData[7]; mData[7] = mData[21]; mData[21] = aHold;
+    aHold = mData[12]; mData[12] = mData[30]; mData[30] = aHold;
+    aHold = mData[13]; mData[13] = mData[31]; mData[31] = aHold;
+    aHold = mData[14]; mData[14] = mData[28]; mData[28] = aHold;
+    aHold = mData[15]; mData[15] = mData[29]; mData[29] = aHold;
+}
+
+void M88::Quad_RotC_2x2_C() {
+    std::uint8_t aHold = 0;
+    aHold = mData[32]; mData[32] = mData[50]; mData[50] = aHold;
+    aHold = mData[33]; mData[33] = mData[51]; mData[51] = aHold;
+    aHold = mData[34]; mData[34] = mData[48]; mData[48] = aHold;
+    aHold = mData[35]; mData[35] = mData[49]; mData[49] = aHold;
+    aHold = mData[40]; mData[40] = mData[58]; mData[58] = aHold;
+    aHold = mData[41]; mData[41] = mData[59]; mData[59] = aHold;
+    aHold = mData[42]; mData[42] = mData[56]; mData[56] = aHold;
+    aHold = mData[43]; mData[43] = mData[57]; mData[57] = aHold;
+}
+
+void M88::Quad_RotC_2x2_D() {
+    std::uint8_t aHold = 0;
+    aHold = mData[36]; mData[36] = mData[54]; mData[54] = aHold;
+    aHold = mData[37]; mData[37] = mData[55]; mData[55] = aHold;
+    aHold = mData[38]; mData[38] = mData[52]; mData[52] = aHold;
+    aHold = mData[39]; mData[39] = mData[53]; mData[53] = aHold;
+    aHold = mData[44]; mData[44] = mData[62]; mData[62] = aHold;
+    aHold = mData[45]; mData[45] = mData[63]; mData[63] = aHold;
+    aHold = mData[46]; mData[46] = mData[60]; mData[60] = aHold;
+    aHold = mData[47]; mData[47] = mData[61]; mData[61] = aHold;
+}
+
+void M88::Mini_RotC_2x2_A() {
+    std::uint8_t aHold = 0;
+    aHold = mData[0]; mData[0] = mData[9]; mData[9] = aHold;
+    aHold = mData[1]; mData[1] = mData[8]; mData[8] = aHold;
+}
+
+void M88::Mini_RotC_2x2_B() {
+    std::uint8_t aHold = 0;
+    aHold = mData[2]; mData[2] = mData[11]; mData[11] = aHold;
+    aHold = mData[3]; mData[3] = mData[10]; mData[10] = aHold;
+}
+
+void M88::Mini_RotC_2x2_C() {
+    std::uint8_t aHold = 0;
+    aHold = mData[4]; mData[4] = mData[13]; mData[13] = aHold;
+    aHold = mData[5]; mData[5] = mData[12]; mData[12] = aHold;
+}
+
+void M88::Mini_RotC_2x2_D() {
+    std::uint8_t aHold = 0;
+    aHold = mData[6]; mData[6] = mData[15]; mData[15] = aHold;
+    aHold = mData[7]; mData[7] = mData[14]; mData[14] = aHold;
+}
+
+void M88::Mini_RotC_2x2_E() {
+    std::uint8_t aHold = 0;
+    aHold = mData[16]; mData[16] = mData[25]; mData[25] = aHold;
+    aHold = mData[17]; mData[17] = mData[24]; mData[24] = aHold;
+}
+
+void M88::Mini_RotC_2x2_F() {
+    std::uint8_t aHold = 0;
+    aHold = mData[18]; mData[18] = mData[27]; mData[27] = aHold;
+    aHold = mData[19]; mData[19] = mData[26]; mData[26] = aHold;
+}
+
+void M88::Mini_RotC_2x2_G() {
+    std::uint8_t aHold = 0;
+    aHold = mData[20]; mData[20] = mData[29]; mData[29] = aHold;
+    aHold = mData[21]; mData[21] = mData[28]; mData[28] = aHold;
+}
+
+void M88::Mini_RotC_2x2_H() {
+    std::uint8_t aHold = 0;
+    aHold = mData[22]; mData[22] = mData[31]; mData[31] = aHold;
+    aHold = mData[23]; mData[23] = mData[30]; mData[30] = aHold;
+}
+
+void M88::Mini_RotC_2x2_I() {
+    std::uint8_t aHold = 0;
+    aHold = mData[32]; mData[32] = mData[41]; mData[41] = aHold;
+    aHold = mData[33]; mData[33] = mData[40]; mData[40] = aHold;
+}
+
+void M88::Mini_RotC_2x2_J() {
+    std::uint8_t aHold = 0;
+    aHold = mData[34]; mData[34] = mData[43]; mData[43] = aHold;
+    aHold = mData[35]; mData[35] = mData[42]; mData[42] = aHold;
+}
+
+void M88::Mini_RotC_2x2_K() {
+    std::uint8_t aHold = 0;
+    aHold = mData[36]; mData[36] = mData[45]; mData[45] = aHold;
+    aHold = mData[37]; mData[37] = mData[44]; mData[44] = aHold;
+}
+
+void M88::Mini_RotC_2x2_L() {
+    std::uint8_t aHold = 0;
+    aHold = mData[38]; mData[38] = mData[47]; mData[47] = aHold;
+    aHold = mData[39]; mData[39] = mData[46]; mData[46] = aHold;
+}
+
+void M88::Mini_RotC_2x2_M() {
+    std::uint8_t aHold = 0;
+    aHold = mData[48]; mData[48] = mData[57]; mData[57] = aHold;
+    aHold = mData[49]; mData[49] = mData[56]; mData[56] = aHold;
+}
+
+void M88::Mini_RotC_2x2_N() {
+    std::uint8_t aHold = 0;
+    aHold = mData[50]; mData[50] = mData[59]; mData[59] = aHold;
+    aHold = mData[51]; mData[51] = mData[58]; mData[58] = aHold;
+}
+
+void M88::Mini_RotC_2x2_O() {
+    std::uint8_t aHold = 0;
+    aHold = mData[52]; mData[52] = mData[61]; mData[61] = aHold;
+    aHold = mData[53]; mData[53] = mData[60]; mData[60] = aHold;
+}
+
+void M88::Mini_RotC_2x2_P() {
+    std::uint8_t aHold = 0;
+    aHold = mData[54]; mData[54] = mData[63]; mData[63] = aHold;
+    aHold = mData[55]; mData[55] = mData[62]; mData[62] = aHold;
+}
+
+void M88::Full_RotC_4x4() {
+    std::uint8_t aHold = 0;
     aHold = mData[0]; mData[0] = mData[54]; mData[54] = aHold;
-    
-    // cycle 1
     aHold = mData[1]; mData[1] = mData[55]; mData[55] = aHold;
-    
-    // cycle 2
     aHold = mData[2]; mData[2] = mData[52]; mData[52] = aHold;
-    
-    // cycle 3
     aHold = mData[3]; mData[3] = mData[53]; mData[53] = aHold;
-    
-    // cycle 4
     aHold = mData[4]; mData[4] = mData[50]; mData[50] = aHold;
-    
-    // cycle 5
     aHold = mData[5]; mData[5] = mData[51]; mData[51] = aHold;
-    
-    // cycle 6
     aHold = mData[6]; mData[6] = mData[48]; mData[48] = aHold;
-    
-    // cycle 7
     aHold = mData[7]; mData[7] = mData[49]; mData[49] = aHold;
-    
-    // cycle 8
     aHold = mData[8]; mData[8] = mData[62]; mData[62] = aHold;
-    
-    // cycle 9
     aHold = mData[9]; mData[9] = mData[63]; mData[63] = aHold;
-    
-    // cycle 10
     aHold = mData[10]; mData[10] = mData[60]; mData[60] = aHold;
-    
-    // cycle 11
     aHold = mData[11]; mData[11] = mData[61]; mData[61] = aHold;
-    
-    // cycle 12
     aHold = mData[12]; mData[12] = mData[58]; mData[58] = aHold;
-    
-    // cycle 13
     aHold = mData[13]; mData[13] = mData[59]; mData[59] = aHold;
-    
-    // cycle 14
     aHold = mData[14]; mData[14] = mData[56]; mData[56] = aHold;
-    
-    // cycle 15
     aHold = mData[15]; mData[15] = mData[57]; mData[57] = aHold;
-    
-    // cycle 16
     aHold = mData[16]; mData[16] = mData[38]; mData[38] = aHold;
-    
-    // cycle 17
     aHold = mData[17]; mData[17] = mData[39]; mData[39] = aHold;
-    
-    // cycle 18
     aHold = mData[18]; mData[18] = mData[36]; mData[36] = aHold;
-    
-    // cycle 19
     aHold = mData[19]; mData[19] = mData[37]; mData[37] = aHold;
-    
-    // cycle 20
     aHold = mData[20]; mData[20] = mData[34]; mData[34] = aHold;
-    
-    // cycle 21
     aHold = mData[21]; mData[21] = mData[35]; mData[35] = aHold;
-    
-    // cycle 22
     aHold = mData[22]; mData[22] = mData[32]; mData[32] = aHold;
-    
-    // cycle 23
     aHold = mData[23]; mData[23] = mData[33]; mData[33] = aHold;
-    
-    // cycle 24
     aHold = mData[24]; mData[24] = mData[46]; mData[46] = aHold;
-    
-    // cycle 25
     aHold = mData[25]; mData[25] = mData[47]; mData[47] = aHold;
-    
-    // cycle 26
     aHold = mData[26]; mData[26] = mData[44]; mData[44] = aHold;
-    
-    // cycle 27
     aHold = mData[27]; mData[27] = mData[45]; mData[45] = aHold;
-    
-    // cycle 28
     aHold = mData[28]; mData[28] = mData[42]; mData[42] = aHold;
-    
-    // cycle 29
     aHold = mData[29]; mData[29] = mData[43]; mData[43] = aHold;
-    
-    // cycle 30
     aHold = mData[30]; mData[30] = mData[40]; mData[40] = aHold;
-    
-    // cycle 31
     aHold = mData[31]; mData[31] = mData[41]; mData[41] = aHold;
 }
 
-
-void M88::RotASixA() {
-    std::uint8_t aHold = 0;
-
-    // cycle 0
-    aHold = mData[0]; mData[0] = mData[8]; mData[8] = mData[9]; mData[9] = mData[1];
-    mData[1] = aHold;
-
+void M88::Full_RotC_EachQuad_4x4() {
+    Quad_RotC_4x4_A();
+    Quad_RotC_4x4_B();
+    Quad_RotC_4x4_C();
+    Quad_RotC_4x4_D();
 }
 
-
-    
-void M88::RotASixB() {
+void M88::Quad_RotC_4x4_A() {
     std::uint8_t aHold = 0;
-
-    // cycle 0
-    aHold = mData[2]; mData[2] = mData[10]; mData[10] = mData[11]; mData[11] = mData[3];
-    mData[3] = aHold;
-
+    aHold = mData[0]; mData[0] = mData[27]; mData[27] = aHold;
+    aHold = mData[1]; mData[1] = mData[26]; mData[26] = aHold;
+    aHold = mData[2]; mData[2] = mData[25]; mData[25] = aHold;
+    aHold = mData[3]; mData[3] = mData[24]; mData[24] = aHold;
+    aHold = mData[8]; mData[8] = mData[19]; mData[19] = aHold;
+    aHold = mData[9]; mData[9] = mData[18]; mData[18] = aHold;
+    aHold = mData[10]; mData[10] = mData[17]; mData[17] = aHold;
+    aHold = mData[11]; mData[11] = mData[16]; mData[16] = aHold;
 }
 
-void M88::RotASixC() {
+void M88::Quad_RotC_4x4_B() {
     std::uint8_t aHold = 0;
-
-    // cycle 0
-    aHold = mData[4]; mData[4] = mData[12]; mData[12] = mData[13]; mData[13] = mData[5];
-    mData[5] = aHold;
-
+    aHold = mData[4]; mData[4] = mData[31]; mData[31] = aHold;
+    aHold = mData[5]; mData[5] = mData[30]; mData[30] = aHold;
+    aHold = mData[6]; mData[6] = mData[29]; mData[29] = aHold;
+    aHold = mData[7]; mData[7] = mData[28]; mData[28] = aHold;
+    aHold = mData[12]; mData[12] = mData[23]; mData[23] = aHold;
+    aHold = mData[13]; mData[13] = mData[22]; mData[22] = aHold;
+    aHold = mData[14]; mData[14] = mData[21]; mData[21] = aHold;
+    aHold = mData[15]; mData[15] = mData[20]; mData[20] = aHold;
 }
 
-void M88::RotASixD() {
+void M88::Quad_RotC_4x4_C() {
     std::uint8_t aHold = 0;
-
-    // cycle 0
-    aHold = mData[6]; mData[6] = mData[14]; mData[14] = mData[15]; mData[15] = mData[7];
-    mData[7] = aHold;
-
+    aHold = mData[32]; mData[32] = mData[59]; mData[59] = aHold;
+    aHold = mData[33]; mData[33] = mData[58]; mData[58] = aHold;
+    aHold = mData[34]; mData[34] = mData[57]; mData[57] = aHold;
+    aHold = mData[35]; mData[35] = mData[56]; mData[56] = aHold;
+    aHold = mData[40]; mData[40] = mData[51]; mData[51] = aHold;
+    aHold = mData[41]; mData[41] = mData[50]; mData[50] = aHold;
+    aHold = mData[42]; mData[42] = mData[49]; mData[49] = aHold;
+    aHold = mData[43]; mData[43] = mData[48]; mData[48] = aHold;
 }
 
-void M88::RotASixE() {
+void M88::Quad_RotC_4x4_D() {
     std::uint8_t aHold = 0;
-
-    // cycle 0
-    aHold = mData[16]; mData[16] = mData[24]; mData[24] = mData[25]; mData[25] = mData[17];
-    mData[17] = aHold;
-
+    aHold = mData[36]; mData[36] = mData[63]; mData[63] = aHold;
+    aHold = mData[37]; mData[37] = mData[62]; mData[62] = aHold;
+    aHold = mData[38]; mData[38] = mData[61]; mData[61] = aHold;
+    aHold = mData[39]; mData[39] = mData[60]; mData[60] = aHold;
+    aHold = mData[44]; mData[44] = mData[55]; mData[55] = aHold;
+    aHold = mData[45]; mData[45] = mData[54]; mData[54] = aHold;
+    aHold = mData[46]; mData[46] = mData[53]; mData[53] = aHold;
+    aHold = mData[47]; mData[47] = mData[52]; mData[52] = aHold;
 }
 
-void M88::RotASixF() {
+void M88::Full_RotC_8x8() {
     std::uint8_t aHold = 0;
-
-    // cycle 0
-    aHold = mData[18]; mData[18] = mData[26]; mData[26] = mData[27]; mData[27] = mData[19];
-    mData[19] = aHold;
-
-}
-
-void M88::RotASixG() {
-    std::uint8_t aHold = 0;
-
-    // cycle 0
-    aHold = mData[20]; mData[20] = mData[28]; mData[28] = mData[29]; mData[29] = mData[21];
-    mData[21] = aHold;
-
-}
-
-void M88::RotASixH() {
-    std::uint8_t aHold = 0;
-
-    // cycle 0
-    aHold = mData[22]; mData[22] = mData[30]; mData[30] = mData[31]; mData[31] = mData[23];
-    mData[23] = aHold;
-
-}
-
-void M88::RotASixI() {
-    std::uint8_t aHold = 0;
-
-    // cycle 0
-    aHold = mData[32]; mData[32] = mData[40]; mData[40] = mData[41]; mData[41] = mData[33];
-    mData[33] = aHold;
-
-}
-
-void M88::RotASixJ() {
-    std::uint8_t aHold = 0;
-
-    // cycle 0
-    aHold = mData[34]; mData[34] = mData[42]; mData[42] = mData[43]; mData[43] = mData[35];
-    mData[35] = aHold;
-
-}
-
-void M88::RotASixK() {
-    std::uint8_t aHold = 0;
-
-    // cycle 0
-    aHold = mData[36]; mData[36] = mData[44]; mData[44] = mData[45]; mData[45] = mData[37];
-    mData[37] = aHold;
-
-}
-
-void M88::RotASixL() {
-    std::uint8_t aHold = 0;
-
-    // cycle 0
-    aHold = mData[38]; mData[38] = mData[46]; mData[46] = mData[47]; mData[47] = mData[39];
-    mData[39] = aHold;
-
-}
-
-void M88::RotASixM() {
-    std::uint8_t aHold = 0;
-
-    // cycle 0
-    aHold = mData[48]; mData[48] = mData[56]; mData[56] = mData[57]; mData[57] = mData[49];
-    mData[49] = aHold;
-
-}
-
-void M88::RotASixN() {
-    std::uint8_t aHold = 0;
-
-    // cycle 0
-    aHold = mData[50]; mData[50] = mData[58]; mData[58] = mData[59]; mData[59] = mData[51];
-    mData[51] = aHold;
-
-}
-
-void M88::RotASixO() {
-    std::uint8_t aHold = 0;
-
-    // cycle 0
-    aHold = mData[52]; mData[52] = mData[60]; mData[60] = mData[61]; mData[61] = mData[53];
-    mData[53] = aHold;
-
-}
-
-void M88::RotASixP() {
-    std::uint8_t aHold = 0;
-    
-    // cycle 0
-    aHold = mData[54]; mData[54] = mData[62]; mData[62] = mData[63]; mData[63] = mData[55];
-    mData[55] = aHold;
-    
+    aHold = mData[0]; mData[0] = mData[63]; mData[63] = aHold;
+    aHold = mData[1]; mData[1] = mData[62]; mData[62] = aHold;
+    aHold = mData[2]; mData[2] = mData[61]; mData[61] = aHold;
+    aHold = mData[3]; mData[3] = mData[60]; mData[60] = aHold;
+    aHold = mData[4]; mData[4] = mData[59]; mData[59] = aHold;
+    aHold = mData[5]; mData[5] = mData[58]; mData[58] = aHold;
+    aHold = mData[6]; mData[6] = mData[57]; mData[57] = aHold;
+    aHold = mData[7]; mData[7] = mData[56]; mData[56] = aHold;
+    aHold = mData[8]; mData[8] = mData[55]; mData[55] = aHold;
+    aHold = mData[9]; mData[9] = mData[54]; mData[54] = aHold;
+    aHold = mData[10]; mData[10] = mData[53]; mData[53] = aHold;
+    aHold = mData[11]; mData[11] = mData[52]; mData[52] = aHold;
+    aHold = mData[12]; mData[12] = mData[51]; mData[51] = aHold;
+    aHold = mData[13]; mData[13] = mData[50]; mData[50] = aHold;
+    aHold = mData[14]; mData[14] = mData[49]; mData[49] = aHold;
+    aHold = mData[15]; mData[15] = mData[48]; mData[48] = aHold;
+    aHold = mData[16]; mData[16] = mData[47]; mData[47] = aHold;
+    aHold = mData[17]; mData[17] = mData[46]; mData[46] = aHold;
+    aHold = mData[18]; mData[18] = mData[45]; mData[45] = aHold;
+    aHold = mData[19]; mData[19] = mData[44]; mData[44] = aHold;
+    aHold = mData[20]; mData[20] = mData[43]; mData[43] = aHold;
+    aHold = mData[21]; mData[21] = mData[42]; mData[42] = aHold;
+    aHold = mData[22]; mData[22] = mData[41]; mData[41] = aHold;
+    aHold = mData[23]; mData[23] = mData[40]; mData[40] = aHold;
+    aHold = mData[24]; mData[24] = mData[39]; mData[39] = aHold;
+    aHold = mData[25]; mData[25] = mData[38]; mData[38] = aHold;
+    aHold = mData[26]; mData[26] = mData[37]; mData[37] = aHold;
+    aHold = mData[27]; mData[27] = mData[36]; mData[36] = aHold;
+    aHold = mData[28]; mData[28] = mData[35]; mData[35] = aHold;
+    aHold = mData[29]; mData[29] = mData[34]; mData[34] = aHold;
+    aHold = mData[30]; mData[30] = mData[33]; mData[33] = aHold;
+    aHold = mData[31]; mData[31] = mData[32]; mData[32] = aHold;
 }
 
 
 
-void M88::RotBSixA() {
+
+// ---------- CPP ----------
+void M88::Full_FlipA_2x2() {
     std::uint8_t aHold = 0;
-
-    // cycle 0
-    aHold = mData[0]; mData[0] = mData[1]; mData[1] = mData[9]; mData[9] = mData[8];
-    mData[8] = aHold;
-
+    aHold = mData[0]; mData[0] = mData[4]; mData[4] = aHold;
+    aHold = mData[1]; mData[1] = mData[5]; mData[5] = aHold;
+    aHold = mData[2]; mData[2] = mData[6]; mData[6] = aHold;
+    aHold = mData[3]; mData[3] = mData[7]; mData[7] = aHold;
+    aHold = mData[8]; mData[8] = mData[12]; mData[12] = aHold;
+    aHold = mData[9]; mData[9] = mData[13]; mData[13] = aHold;
+    aHold = mData[10]; mData[10] = mData[14]; mData[14] = aHold;
+    aHold = mData[11]; mData[11] = mData[15]; mData[15] = aHold;
+    aHold = mData[16]; mData[16] = mData[20]; mData[20] = aHold;
+    aHold = mData[17]; mData[17] = mData[21]; mData[21] = aHold;
+    aHold = mData[18]; mData[18] = mData[22]; mData[22] = aHold;
+    aHold = mData[19]; mData[19] = mData[23]; mData[23] = aHold;
+    aHold = mData[24]; mData[24] = mData[28]; mData[28] = aHold;
+    aHold = mData[25]; mData[25] = mData[29]; mData[29] = aHold;
+    aHold = mData[26]; mData[26] = mData[30]; mData[30] = aHold;
+    aHold = mData[27]; mData[27] = mData[31]; mData[31] = aHold;
+    aHold = mData[32]; mData[32] = mData[36]; mData[36] = aHold;
+    aHold = mData[33]; mData[33] = mData[37]; mData[37] = aHold;
+    aHold = mData[34]; mData[34] = mData[38]; mData[38] = aHold;
+    aHold = mData[35]; mData[35] = mData[39]; mData[39] = aHold;
+    aHold = mData[40]; mData[40] = mData[44]; mData[44] = aHold;
+    aHold = mData[41]; mData[41] = mData[45]; mData[45] = aHold;
+    aHold = mData[42]; mData[42] = mData[46]; mData[46] = aHold;
+    aHold = mData[43]; mData[43] = mData[47]; mData[47] = aHold;
+    aHold = mData[48]; mData[48] = mData[52]; mData[52] = aHold;
+    aHold = mData[49]; mData[49] = mData[53]; mData[53] = aHold;
+    aHold = mData[50]; mData[50] = mData[54]; mData[54] = aHold;
+    aHold = mData[51]; mData[51] = mData[55]; mData[55] = aHold;
+    aHold = mData[56]; mData[56] = mData[60]; mData[60] = aHold;
+    aHold = mData[57]; mData[57] = mData[61]; mData[61] = aHold;
+    aHold = mData[58]; mData[58] = mData[62]; mData[62] = aHold;
+    aHold = mData[59]; mData[59] = mData[63]; mData[63] = aHold;
 }
 
-void M88::RotBSixB() {
-    std::uint8_t aHold = 0;
-
-    // cycle 0
-    aHold = mData[2]; mData[2] = mData[3]; mData[3] = mData[11]; mData[11] = mData[10];
-    mData[10] = aHold;
-
+void M88::Full_FlipA_EachQuad_2x2() {
+    Quad_FlipA_2x2_A();
+    Quad_FlipA_2x2_B();
+    Quad_FlipA_2x2_C();
+    Quad_FlipA_2x2_D();
 }
 
-void M88::RotBSixC() {
-    std::uint8_t aHold = 0;
-
-    // cycle 0
-    aHold = mData[4]; mData[4] = mData[5]; mData[5] = mData[13]; mData[13] = mData[12];
-    mData[12] = aHold;
-
+void M88::Full_FlipA_EachMini_2x2() {
+    Mini_FlipA_2x2_A();
+    Mini_FlipA_2x2_B();
+    Mini_FlipA_2x2_C();
+    Mini_FlipA_2x2_D();
+    Mini_FlipA_2x2_E();
+    Mini_FlipA_2x2_F();
+    Mini_FlipA_2x2_G();
+    Mini_FlipA_2x2_H();
+    Mini_FlipA_2x2_I();
+    Mini_FlipA_2x2_J();
+    Mini_FlipA_2x2_K();
+    Mini_FlipA_2x2_L();
+    Mini_FlipA_2x2_M();
+    Mini_FlipA_2x2_N();
+    Mini_FlipA_2x2_O();
+    Mini_FlipA_2x2_P();
 }
 
-void M88::RotBSixD() {
-    std::uint8_t aHold = 0;
-
-    // cycle 0
-    aHold = mData[6]; mData[6] = mData[7]; mData[7] = mData[15]; mData[15] = mData[14];
-    mData[14] = aHold;
-
+void M88::Quad_FlipA_EachMini_2x2_A() {
+    Mini_FlipA_2x2_A();
+    Mini_FlipA_2x2_B();
+    Mini_FlipA_2x2_E();
+    Mini_FlipA_2x2_F();
 }
 
-void M88::RotBSixE() {
-    std::uint8_t aHold = 0;
-
-    // cycle 0
-    aHold = mData[16]; mData[16] = mData[17]; mData[17] = mData[25]; mData[25] = mData[24];
-    mData[24] = aHold;
-
+void M88::Quad_FlipA_EachMini_2x2_B() {
+    Mini_FlipA_2x2_C();
+    Mini_FlipA_2x2_D();
+    Mini_FlipA_2x2_G();
+    Mini_FlipA_2x2_H();
 }
 
-void M88::RotBSixF() {
-    std::uint8_t aHold = 0;
-
-    // cycle 0
-    aHold = mData[18]; mData[18] = mData[19]; mData[19] = mData[27]; mData[27] = mData[26];
-    mData[26] = aHold;
-
+void M88::Quad_FlipA_EachMini_2x2_C() {
+    Mini_FlipA_2x2_I();
+    Mini_FlipA_2x2_J();
+    Mini_FlipA_2x2_M();
+    Mini_FlipA_2x2_N();
 }
 
-void M88::RotBSixG() {
-    std::uint8_t aHold = 0;
-
-    // cycle 0
-    aHold = mData[20]; mData[20] = mData[21]; mData[21] = mData[29]; mData[29] = mData[28];
-    mData[28] = aHold;
-
+void M88::Quad_FlipA_EachMini_2x2_D() {
+    Mini_FlipA_2x2_K();
+    Mini_FlipA_2x2_L();
+    Mini_FlipA_2x2_O();
+    Mini_FlipA_2x2_P();
 }
 
-void M88::RotBSixH() {
+void M88::Quad_FlipA_2x2_A() {
     std::uint8_t aHold = 0;
-
-    // cycle 0
-    aHold = mData[22]; mData[22] = mData[23]; mData[23] = mData[31]; mData[31] = mData[30];
-    mData[30] = aHold;
-
+    aHold = mData[0]; mData[0] = mData[2]; mData[2] = aHold;
+    aHold = mData[1]; mData[1] = mData[3]; mData[3] = aHold;
+    aHold = mData[8]; mData[8] = mData[10]; mData[10] = aHold;
+    aHold = mData[9]; mData[9] = mData[11]; mData[11] = aHold;
+    aHold = mData[16]; mData[16] = mData[18]; mData[18] = aHold;
+    aHold = mData[17]; mData[17] = mData[19]; mData[19] = aHold;
+    aHold = mData[24]; mData[24] = mData[26]; mData[26] = aHold;
+    aHold = mData[25]; mData[25] = mData[27]; mData[27] = aHold;
 }
 
-void M88::RotBSixI() {
+void M88::Quad_FlipA_2x2_B() {
     std::uint8_t aHold = 0;
-
-    // cycle 0
-    aHold = mData[32]; mData[32] = mData[33]; mData[33] = mData[41]; mData[41] = mData[40];
-    mData[40] = aHold;
-
+    aHold = mData[4]; mData[4] = mData[6]; mData[6] = aHold;
+    aHold = mData[5]; mData[5] = mData[7]; mData[7] = aHold;
+    aHold = mData[12]; mData[12] = mData[14]; mData[14] = aHold;
+    aHold = mData[13]; mData[13] = mData[15]; mData[15] = aHold;
+    aHold = mData[20]; mData[20] = mData[22]; mData[22] = aHold;
+    aHold = mData[21]; mData[21] = mData[23]; mData[23] = aHold;
+    aHold = mData[28]; mData[28] = mData[30]; mData[30] = aHold;
+    aHold = mData[29]; mData[29] = mData[31]; mData[31] = aHold;
 }
 
-void M88::RotBSixJ() {
+void M88::Quad_FlipA_2x2_C() {
     std::uint8_t aHold = 0;
-
-    // cycle 0
-    aHold = mData[34]; mData[34] = mData[35]; mData[35] = mData[43]; mData[43] = mData[42];
-    mData[42] = aHold;
-
+    aHold = mData[32]; mData[32] = mData[34]; mData[34] = aHold;
+    aHold = mData[33]; mData[33] = mData[35]; mData[35] = aHold;
+    aHold = mData[40]; mData[40] = mData[42]; mData[42] = aHold;
+    aHold = mData[41]; mData[41] = mData[43]; mData[43] = aHold;
+    aHold = mData[48]; mData[48] = mData[50]; mData[50] = aHold;
+    aHold = mData[49]; mData[49] = mData[51]; mData[51] = aHold;
+    aHold = mData[56]; mData[56] = mData[58]; mData[58] = aHold;
+    aHold = mData[57]; mData[57] = mData[59]; mData[59] = aHold;
 }
 
-void M88::RotBSixK() {
+void M88::Quad_FlipA_2x2_D() {
     std::uint8_t aHold = 0;
-
-    // cycle 0
-    aHold = mData[36]; mData[36] = mData[37]; mData[37] = mData[45]; mData[45] = mData[44];
-    mData[44] = aHold;
-
+    aHold = mData[36]; mData[36] = mData[38]; mData[38] = aHold;
+    aHold = mData[37]; mData[37] = mData[39]; mData[39] = aHold;
+    aHold = mData[44]; mData[44] = mData[46]; mData[46] = aHold;
+    aHold = mData[45]; mData[45] = mData[47]; mData[47] = aHold;
+    aHold = mData[52]; mData[52] = mData[54]; mData[54] = aHold;
+    aHold = mData[53]; mData[53] = mData[55]; mData[55] = aHold;
+    aHold = mData[60]; mData[60] = mData[62]; mData[62] = aHold;
+    aHold = mData[61]; mData[61] = mData[63]; mData[63] = aHold;
 }
 
-void M88::RotBSixL() {
+void M88::Mini_FlipA_2x2_A() {
     std::uint8_t aHold = 0;
-
-    // cycle 0
-    aHold = mData[38]; mData[38] = mData[39]; mData[39] = mData[47]; mData[47] = mData[46];
-    mData[46] = aHold;
-
-}
-
-void M88::RotBSixM() {
-    std::uint8_t aHold = 0;
-
-    // cycle 0
-    aHold = mData[48]; mData[48] = mData[49]; mData[49] = mData[57]; mData[57] = mData[56];
-    mData[56] = aHold;
-
-}
-
-void M88::RotBSixN() {
-    std::uint8_t aHold = 0;
-
-    // cycle 0
-    aHold = mData[50]; mData[50] = mData[51]; mData[51] = mData[59]; mData[59] = mData[58];
-    mData[58] = aHold;
-
-}
-
-void M88::RotBSixO() {
-    std::uint8_t aHold = 0;
-
-    // cycle 0
-    aHold = mData[52]; mData[52] = mData[53]; mData[53] = mData[61]; mData[61] = mData[60];
-    mData[60] = aHold;
-
-}
-
-void M88::RotBSixP() {
-    std::uint8_t aHold = 0;
-
-    // cycle 0
-    aHold = mData[54]; mData[54] = mData[55]; mData[55] = mData[63]; mData[63] = mData[62];
-    mData[62] = aHold;
-
-}
-
-void M88::FlipASixA() {
-    std::uint8_t aHold = 0;
-
-    // cycle 0
     aHold = mData[0]; mData[0] = mData[1]; mData[1] = aHold;
-
-    // cycle 1
     aHold = mData[8]; mData[8] = mData[9]; mData[9] = aHold;
-
 }
 
-void M88::FlipASixB() {
+void M88::Mini_FlipA_2x2_B() {
     std::uint8_t aHold = 0;
-
-    // cycle 0
     aHold = mData[2]; mData[2] = mData[3]; mData[3] = aHold;
-
-    // cycle 1
     aHold = mData[10]; mData[10] = mData[11]; mData[11] = aHold;
-
 }
 
-void M88::FlipASixC() {
+void M88::Mini_FlipA_2x2_C() {
     std::uint8_t aHold = 0;
-
-    // cycle 0
     aHold = mData[4]; mData[4] = mData[5]; mData[5] = aHold;
-
-    // cycle 1
     aHold = mData[12]; mData[12] = mData[13]; mData[13] = aHold;
-
 }
 
-void M88::FlipASixD() {
+void M88::Mini_FlipA_2x2_D() {
     std::uint8_t aHold = 0;
-
-    // cycle 0
     aHold = mData[6]; mData[6] = mData[7]; mData[7] = aHold;
-
-    // cycle 1
     aHold = mData[14]; mData[14] = mData[15]; mData[15] = aHold;
-
 }
 
-void M88::FlipASixE() {
+void M88::Mini_FlipA_2x2_E() {
     std::uint8_t aHold = 0;
-
-    // cycle 0
     aHold = mData[16]; mData[16] = mData[17]; mData[17] = aHold;
-
-    // cycle 1
     aHold = mData[24]; mData[24] = mData[25]; mData[25] = aHold;
-
 }
 
-void M88::FlipASixF() {
+void M88::Mini_FlipA_2x2_F() {
     std::uint8_t aHold = 0;
-
-    // cycle 0
     aHold = mData[18]; mData[18] = mData[19]; mData[19] = aHold;
-
-    // cycle 1
     aHold = mData[26]; mData[26] = mData[27]; mData[27] = aHold;
-
 }
 
-void M88::FlipASixG() {
+void M88::Mini_FlipA_2x2_G() {
     std::uint8_t aHold = 0;
-
-    // cycle 0
     aHold = mData[20]; mData[20] = mData[21]; mData[21] = aHold;
-
-    // cycle 1
     aHold = mData[28]; mData[28] = mData[29]; mData[29] = aHold;
-
 }
 
-void M88::FlipASixH() {
+void M88::Mini_FlipA_2x2_H() {
     std::uint8_t aHold = 0;
-
-    // cycle 0
     aHold = mData[22]; mData[22] = mData[23]; mData[23] = aHold;
-
-    // cycle 1
     aHold = mData[30]; mData[30] = mData[31]; mData[31] = aHold;
-
 }
 
-void M88::FlipASixI() {
+void M88::Mini_FlipA_2x2_I() {
     std::uint8_t aHold = 0;
-
-    // cycle 0
     aHold = mData[32]; mData[32] = mData[33]; mData[33] = aHold;
-
-    // cycle 1
     aHold = mData[40]; mData[40] = mData[41]; mData[41] = aHold;
-
 }
 
-void M88::FlipASixJ() {
+void M88::Mini_FlipA_2x2_J() {
     std::uint8_t aHold = 0;
-
-    // cycle 0
     aHold = mData[34]; mData[34] = mData[35]; mData[35] = aHold;
-
-    // cycle 1
     aHold = mData[42]; mData[42] = mData[43]; mData[43] = aHold;
-
 }
 
-void M88::FlipASixK() {
+void M88::Mini_FlipA_2x2_K() {
     std::uint8_t aHold = 0;
-
-    // cycle 0
     aHold = mData[36]; mData[36] = mData[37]; mData[37] = aHold;
-
-    // cycle 1
     aHold = mData[44]; mData[44] = mData[45]; mData[45] = aHold;
-
 }
 
-void M88::FlipASixL() {
+void M88::Mini_FlipA_2x2_L() {
     std::uint8_t aHold = 0;
-
-    // cycle 0
     aHold = mData[38]; mData[38] = mData[39]; mData[39] = aHold;
-
-    // cycle 1
     aHold = mData[46]; mData[46] = mData[47]; mData[47] = aHold;
-
 }
 
-void M88::FlipASixM() {
+void M88::Mini_FlipA_2x2_M() {
     std::uint8_t aHold = 0;
-
-    // cycle 0
     aHold = mData[48]; mData[48] = mData[49]; mData[49] = aHold;
-
-    // cycle 1
     aHold = mData[56]; mData[56] = mData[57]; mData[57] = aHold;
-
 }
 
-void M88::FlipASixN() {
+void M88::Mini_FlipA_2x2_N() {
     std::uint8_t aHold = 0;
-
-    // cycle 0
     aHold = mData[50]; mData[50] = mData[51]; mData[51] = aHold;
-
-    // cycle 1
     aHold = mData[58]; mData[58] = mData[59]; mData[59] = aHold;
-
 }
 
-void M88::FlipASixO() {
+void M88::Mini_FlipA_2x2_O() {
     std::uint8_t aHold = 0;
-
-    // cycle 0
     aHold = mData[52]; mData[52] = mData[53]; mData[53] = aHold;
-
-    // cycle 1
     aHold = mData[60]; mData[60] = mData[61]; mData[61] = aHold;
-
 }
 
-void M88::FlipASixP() {
+void M88::Mini_FlipA_2x2_P() {
     std::uint8_t aHold = 0;
-
-    // cycle 0
     aHold = mData[54]; mData[54] = mData[55]; mData[55] = aHold;
-
-    // cycle 1
     aHold = mData[62]; mData[62] = mData[63]; mData[63] = aHold;
-
 }
 
-void M88::FlipBSixA() {
-    std::uint8_t aHold = 0;
 
-    // cycle 0
+
+void M88::Full_FlipA_4x4() {
+    std::uint8_t aHold = 0;
+    aHold = mData[0]; mData[0] = mData[6]; mData[6] = aHold;
+    aHold = mData[1]; mData[1] = mData[7]; mData[7] = aHold;
+    aHold = mData[2]; mData[2] = mData[4]; mData[4] = aHold;
+    aHold = mData[3]; mData[3] = mData[5]; mData[5] = aHold;
+    aHold = mData[8]; mData[8] = mData[14]; mData[14] = aHold;
+    aHold = mData[9]; mData[9] = mData[15]; mData[15] = aHold;
+    aHold = mData[10]; mData[10] = mData[12]; mData[12] = aHold;
+    aHold = mData[11]; mData[11] = mData[13]; mData[13] = aHold;
+    aHold = mData[16]; mData[16] = mData[22]; mData[22] = aHold;
+    aHold = mData[17]; mData[17] = mData[23]; mData[23] = aHold;
+    aHold = mData[18]; mData[18] = mData[20]; mData[20] = aHold;
+    aHold = mData[19]; mData[19] = mData[21]; mData[21] = aHold;
+    aHold = mData[24]; mData[24] = mData[30]; mData[30] = aHold;
+    aHold = mData[25]; mData[25] = mData[31]; mData[31] = aHold;
+    aHold = mData[26]; mData[26] = mData[28]; mData[28] = aHold;
+    aHold = mData[27]; mData[27] = mData[29]; mData[29] = aHold;
+    aHold = mData[32]; mData[32] = mData[38]; mData[38] = aHold;
+    aHold = mData[33]; mData[33] = mData[39]; mData[39] = aHold;
+    aHold = mData[34]; mData[34] = mData[36]; mData[36] = aHold;
+    aHold = mData[35]; mData[35] = mData[37]; mData[37] = aHold;
+    aHold = mData[40]; mData[40] = mData[46]; mData[46] = aHold;
+    aHold = mData[41]; mData[41] = mData[47]; mData[47] = aHold;
+    aHold = mData[42]; mData[42] = mData[44]; mData[44] = aHold;
+    aHold = mData[43]; mData[43] = mData[45]; mData[45] = aHold;
+    aHold = mData[48]; mData[48] = mData[54]; mData[54] = aHold;
+    aHold = mData[49]; mData[49] = mData[55]; mData[55] = aHold;
+    aHold = mData[50]; mData[50] = mData[52]; mData[52] = aHold;
+    aHold = mData[51]; mData[51] = mData[53]; mData[53] = aHold;
+    aHold = mData[56]; mData[56] = mData[62]; mData[62] = aHold;
+    aHold = mData[57]; mData[57] = mData[63]; mData[63] = aHold;
+    aHold = mData[58]; mData[58] = mData[60]; mData[60] = aHold;
+    aHold = mData[59]; mData[59] = mData[61]; mData[61] = aHold;
+}
+
+void M88::Full_FlipA_EachQuad_4x4() {
+    Quad_FlipA_4x4_A();
+    Quad_FlipA_4x4_B();
+    Quad_FlipA_4x4_C();
+    Quad_FlipA_4x4_D();
+}
+
+void M88::Quad_FlipA_4x4_A() {
+    std::uint8_t aHold = 0;
+    aHold = mData[0]; mData[0] = mData[3]; mData[3] = aHold;
+    aHold = mData[1]; mData[1] = mData[2]; mData[2] = aHold;
+    aHold = mData[8]; mData[8] = mData[11]; mData[11] = aHold;
+    aHold = mData[9]; mData[9] = mData[10]; mData[10] = aHold;
+    aHold = mData[16]; mData[16] = mData[19]; mData[19] = aHold;
+    aHold = mData[17]; mData[17] = mData[18]; mData[18] = aHold;
+    aHold = mData[24]; mData[24] = mData[27]; mData[27] = aHold;
+    aHold = mData[25]; mData[25] = mData[26]; mData[26] = aHold;
+}
+
+void M88::Quad_FlipA_4x4_B() {
+    std::uint8_t aHold = 0;
+    aHold = mData[4]; mData[4] = mData[7]; mData[7] = aHold;
+    aHold = mData[5]; mData[5] = mData[6]; mData[6] = aHold;
+    aHold = mData[12]; mData[12] = mData[15]; mData[15] = aHold;
+    aHold = mData[13]; mData[13] = mData[14]; mData[14] = aHold;
+    aHold = mData[20]; mData[20] = mData[23]; mData[23] = aHold;
+    aHold = mData[21]; mData[21] = mData[22]; mData[22] = aHold;
+    aHold = mData[28]; mData[28] = mData[31]; mData[31] = aHold;
+    aHold = mData[29]; mData[29] = mData[30]; mData[30] = aHold;
+}
+
+void M88::Quad_FlipA_4x4_C() {
+    std::uint8_t aHold = 0;
+    aHold = mData[32]; mData[32] = mData[35]; mData[35] = aHold;
+    aHold = mData[33]; mData[33] = mData[34]; mData[34] = aHold;
+    aHold = mData[40]; mData[40] = mData[43]; mData[43] = aHold;
+    aHold = mData[41]; mData[41] = mData[42]; mData[42] = aHold;
+    aHold = mData[48]; mData[48] = mData[51]; mData[51] = aHold;
+    aHold = mData[49]; mData[49] = mData[50]; mData[50] = aHold;
+    aHold = mData[56]; mData[56] = mData[59]; mData[59] = aHold;
+    aHold = mData[57]; mData[57] = mData[58]; mData[58] = aHold;
+}
+
+void M88::Quad_FlipA_4x4_D() {
+    std::uint8_t aHold = 0;
+    aHold = mData[36]; mData[36] = mData[39]; mData[39] = aHold;
+    aHold = mData[37]; mData[37] = mData[38]; mData[38] = aHold;
+    aHold = mData[44]; mData[44] = mData[47]; mData[47] = aHold;
+    aHold = mData[45]; mData[45] = mData[46]; mData[46] = aHold;
+    aHold = mData[52]; mData[52] = mData[55]; mData[55] = aHold;
+    aHold = mData[53]; mData[53] = mData[54]; mData[54] = aHold;
+    aHold = mData[60]; mData[60] = mData[63]; mData[63] = aHold;
+    aHold = mData[61]; mData[61] = mData[62]; mData[62] = aHold;
+}
+
+
+void M88::Full_FlipA_8x8() {
+    std::uint8_t aHold = 0;
+    aHold = mData[0]; mData[0] = mData[7]; mData[7] = aHold;
+    aHold = mData[1]; mData[1] = mData[6]; mData[6] = aHold;
+    aHold = mData[2]; mData[2] = mData[5]; mData[5] = aHold;
+    aHold = mData[3]; mData[3] = mData[4]; mData[4] = aHold;
+    aHold = mData[8]; mData[8] = mData[15]; mData[15] = aHold;
+    aHold = mData[9]; mData[9] = mData[14]; mData[14] = aHold;
+    aHold = mData[10]; mData[10] = mData[13]; mData[13] = aHold;
+    aHold = mData[11]; mData[11] = mData[12]; mData[12] = aHold;
+    aHold = mData[16]; mData[16] = mData[23]; mData[23] = aHold;
+    aHold = mData[17]; mData[17] = mData[22]; mData[22] = aHold;
+    aHold = mData[18]; mData[18] = mData[21]; mData[21] = aHold;
+    aHold = mData[19]; mData[19] = mData[20]; mData[20] = aHold;
+    aHold = mData[24]; mData[24] = mData[31]; mData[31] = aHold;
+    aHold = mData[25]; mData[25] = mData[30]; mData[30] = aHold;
+    aHold = mData[26]; mData[26] = mData[29]; mData[29] = aHold;
+    aHold = mData[27]; mData[27] = mData[28]; mData[28] = aHold;
+    aHold = mData[32]; mData[32] = mData[39]; mData[39] = aHold;
+    aHold = mData[33]; mData[33] = mData[38]; mData[38] = aHold;
+    aHold = mData[34]; mData[34] = mData[37]; mData[37] = aHold;
+    aHold = mData[35]; mData[35] = mData[36]; mData[36] = aHold;
+    aHold = mData[40]; mData[40] = mData[47]; mData[47] = aHold;
+    aHold = mData[41]; mData[41] = mData[46]; mData[46] = aHold;
+    aHold = mData[42]; mData[42] = mData[45]; mData[45] = aHold;
+    aHold = mData[43]; mData[43] = mData[44]; mData[44] = aHold;
+    aHold = mData[48]; mData[48] = mData[55]; mData[55] = aHold;
+    aHold = mData[49]; mData[49] = mData[54]; mData[54] = aHold;
+    aHold = mData[50]; mData[50] = mData[53]; mData[53] = aHold;
+    aHold = mData[51]; mData[51] = mData[52]; mData[52] = aHold;
+    aHold = mData[56]; mData[56] = mData[63]; mData[63] = aHold;
+    aHold = mData[57]; mData[57] = mData[62]; mData[62] = aHold;
+    aHold = mData[58]; mData[58] = mData[61]; mData[61] = aHold;
+    aHold = mData[59]; mData[59] = mData[60]; mData[60] = aHold;
+}
+
+
+void M88::Full_FlipB_2x2() {
+    std::uint8_t aHold = 0;
+    aHold = mData[0]; mData[0] = mData[32]; mData[32] = aHold;
+    aHold = mData[1]; mData[1] = mData[33]; mData[33] = aHold;
+    aHold = mData[2]; mData[2] = mData[34]; mData[34] = aHold;
+    aHold = mData[3]; mData[3] = mData[35]; mData[35] = aHold;
+    aHold = mData[4]; mData[4] = mData[36]; mData[36] = aHold;
+    aHold = mData[5]; mData[5] = mData[37]; mData[37] = aHold;
+    aHold = mData[6]; mData[6] = mData[38]; mData[38] = aHold;
+    aHold = mData[7]; mData[7] = mData[39]; mData[39] = aHold;
+    aHold = mData[8]; mData[8] = mData[40]; mData[40] = aHold;
+    aHold = mData[9]; mData[9] = mData[41]; mData[41] = aHold;
+    aHold = mData[10]; mData[10] = mData[42]; mData[42] = aHold;
+    aHold = mData[11]; mData[11] = mData[43]; mData[43] = aHold;
+    aHold = mData[12]; mData[12] = mData[44]; mData[44] = aHold;
+    aHold = mData[13]; mData[13] = mData[45]; mData[45] = aHold;
+    aHold = mData[14]; mData[14] = mData[46]; mData[46] = aHold;
+    aHold = mData[15]; mData[15] = mData[47]; mData[47] = aHold;
+    aHold = mData[16]; mData[16] = mData[48]; mData[48] = aHold;
+    aHold = mData[17]; mData[17] = mData[49]; mData[49] = aHold;
+    aHold = mData[18]; mData[18] = mData[50]; mData[50] = aHold;
+    aHold = mData[19]; mData[19] = mData[51]; mData[51] = aHold;
+    aHold = mData[20]; mData[20] = mData[52]; mData[52] = aHold;
+    aHold = mData[21]; mData[21] = mData[53]; mData[53] = aHold;
+    aHold = mData[22]; mData[22] = mData[54]; mData[54] = aHold;
+    aHold = mData[23]; mData[23] = mData[55]; mData[55] = aHold;
+    aHold = mData[24]; mData[24] = mData[56]; mData[56] = aHold;
+    aHold = mData[25]; mData[25] = mData[57]; mData[57] = aHold;
+    aHold = mData[26]; mData[26] = mData[58]; mData[58] = aHold;
+    aHold = mData[27]; mData[27] = mData[59]; mData[59] = aHold;
+    aHold = mData[28]; mData[28] = mData[60]; mData[60] = aHold;
+    aHold = mData[29]; mData[29] = mData[61]; mData[61] = aHold;
+    aHold = mData[30]; mData[30] = mData[62]; mData[62] = aHold;
+    aHold = mData[31]; mData[31] = mData[63]; mData[63] = aHold;
+}
+
+void M88::Full_FlipB_EachQuad_2x2() {
+    Quad_FlipB_2x2_A();
+    Quad_FlipB_2x2_B();
+    Quad_FlipB_2x2_C();
+    Quad_FlipB_2x2_D();
+}
+
+void M88::Full_FlipB_EachMini_2x2() {
+    Mini_FlipB_2x2_A();
+    Mini_FlipB_2x2_B();
+    Mini_FlipB_2x2_C();
+    Mini_FlipB_2x2_D();
+    Mini_FlipB_2x2_E();
+    Mini_FlipB_2x2_F();
+    Mini_FlipB_2x2_G();
+    Mini_FlipB_2x2_H();
+    Mini_FlipB_2x2_I();
+    Mini_FlipB_2x2_J();
+    Mini_FlipB_2x2_K();
+    Mini_FlipB_2x2_L();
+    Mini_FlipB_2x2_M();
+    Mini_FlipB_2x2_N();
+    Mini_FlipB_2x2_O();
+    Mini_FlipB_2x2_P();
+}
+
+void M88::Quad_FlipB_EachMini_2x2_A() {
+    Mini_FlipB_2x2_A();
+    Mini_FlipB_2x2_B();
+    Mini_FlipB_2x2_E();
+    Mini_FlipB_2x2_F();
+}
+
+void M88::Quad_FlipB_EachMini_2x2_B() {
+    Mini_FlipB_2x2_C();
+    Mini_FlipB_2x2_D();
+    Mini_FlipB_2x2_G();
+    Mini_FlipB_2x2_H();
+}
+
+void M88::Quad_FlipB_EachMini_2x2_C() {
+    Mini_FlipB_2x2_I();
+    Mini_FlipB_2x2_J();
+    Mini_FlipB_2x2_M();
+    Mini_FlipB_2x2_N();
+}
+
+void M88::Quad_FlipB_EachMini_2x2_D() {
+    Mini_FlipB_2x2_K();
+    Mini_FlipB_2x2_L();
+    Mini_FlipB_2x2_O();
+    Mini_FlipB_2x2_P();
+}
+
+void M88::Quad_FlipB_2x2_A() {
+    std::uint8_t aHold = 0;
+    aHold = mData[0]; mData[0] = mData[16]; mData[16] = aHold;
+    aHold = mData[1]; mData[1] = mData[17]; mData[17] = aHold;
+    aHold = mData[2]; mData[2] = mData[18]; mData[18] = aHold;
+    aHold = mData[3]; mData[3] = mData[19]; mData[19] = aHold;
+    aHold = mData[8]; mData[8] = mData[24]; mData[24] = aHold;
+    aHold = mData[9]; mData[9] = mData[25]; mData[25] = aHold;
+    aHold = mData[10]; mData[10] = mData[26]; mData[26] = aHold;
+    aHold = mData[11]; mData[11] = mData[27]; mData[27] = aHold;
+}
+
+void M88::Quad_FlipB_2x2_B() {
+    std::uint8_t aHold = 0;
+    aHold = mData[4]; mData[4] = mData[20]; mData[20] = aHold;
+    aHold = mData[5]; mData[5] = mData[21]; mData[21] = aHold;
+    aHold = mData[6]; mData[6] = mData[22]; mData[22] = aHold;
+    aHold = mData[7]; mData[7] = mData[23]; mData[23] = aHold;
+    aHold = mData[12]; mData[12] = mData[28]; mData[28] = aHold;
+    aHold = mData[13]; mData[13] = mData[29]; mData[29] = aHold;
+    aHold = mData[14]; mData[14] = mData[30]; mData[30] = aHold;
+    aHold = mData[15]; mData[15] = mData[31]; mData[31] = aHold;
+}
+
+void M88::Quad_FlipB_2x2_C() {
+    std::uint8_t aHold = 0;
+    aHold = mData[32]; mData[32] = mData[48]; mData[48] = aHold;
+    aHold = mData[33]; mData[33] = mData[49]; mData[49] = aHold;
+    aHold = mData[34]; mData[34] = mData[50]; mData[50] = aHold;
+    aHold = mData[35]; mData[35] = mData[51]; mData[51] = aHold;
+    aHold = mData[40]; mData[40] = mData[56]; mData[56] = aHold;
+    aHold = mData[41]; mData[41] = mData[57]; mData[57] = aHold;
+    aHold = mData[42]; mData[42] = mData[58]; mData[58] = aHold;
+    aHold = mData[43]; mData[43] = mData[59]; mData[59] = aHold;
+}
+
+void M88::Quad_FlipB_2x2_D() {
+    std::uint8_t aHold = 0;
+    aHold = mData[36]; mData[36] = mData[52]; mData[52] = aHold;
+    aHold = mData[37]; mData[37] = mData[53]; mData[53] = aHold;
+    aHold = mData[38]; mData[38] = mData[54]; mData[54] = aHold;
+    aHold = mData[39]; mData[39] = mData[55]; mData[55] = aHold;
+    aHold = mData[44]; mData[44] = mData[60]; mData[60] = aHold;
+    aHold = mData[45]; mData[45] = mData[61]; mData[61] = aHold;
+    aHold = mData[46]; mData[46] = mData[62]; mData[62] = aHold;
+    aHold = mData[47]; mData[47] = mData[63]; mData[63] = aHold;
+}
+
+void M88::Mini_FlipB_2x2_A() {
+    std::uint8_t aHold = 0;
     aHold = mData[0]; mData[0] = mData[8]; mData[8] = aHold;
-
-    // cycle 1
     aHold = mData[1]; mData[1] = mData[9]; mData[9] = aHold;
-
 }
 
-void M88::FlipBSixB() {
+void M88::Mini_FlipB_2x2_B() {
     std::uint8_t aHold = 0;
-
-    // cycle 0
     aHold = mData[2]; mData[2] = mData[10]; mData[10] = aHold;
-
-    // cycle 1
     aHold = mData[3]; mData[3] = mData[11]; mData[11] = aHold;
-
 }
 
-void M88::FlipBSixC() {
+void M88::Mini_FlipB_2x2_C() {
     std::uint8_t aHold = 0;
-
-    // cycle 0
     aHold = mData[4]; mData[4] = mData[12]; mData[12] = aHold;
-
-    // cycle 1
     aHold = mData[5]; mData[5] = mData[13]; mData[13] = aHold;
-
 }
 
-void M88::FlipBSixD() {
+void M88::Mini_FlipB_2x2_D() {
     std::uint8_t aHold = 0;
-
-    // cycle 0
     aHold = mData[6]; mData[6] = mData[14]; mData[14] = aHold;
-
-    // cycle 1
     aHold = mData[7]; mData[7] = mData[15]; mData[15] = aHold;
-
 }
 
-void M88::FlipBSixE() {
+void M88::Mini_FlipB_2x2_E() {
     std::uint8_t aHold = 0;
-
-    // cycle 0
     aHold = mData[16]; mData[16] = mData[24]; mData[24] = aHold;
-
-    // cycle 1
     aHold = mData[17]; mData[17] = mData[25]; mData[25] = aHold;
-
 }
 
-void M88::FlipBSixF() {
+void M88::Mini_FlipB_2x2_F() {
     std::uint8_t aHold = 0;
-
-    // cycle 0
     aHold = mData[18]; mData[18] = mData[26]; mData[26] = aHold;
-
-    // cycle 1
     aHold = mData[19]; mData[19] = mData[27]; mData[27] = aHold;
-
 }
 
-void M88::FlipBSixG() {
+void M88::Mini_FlipB_2x2_G() {
     std::uint8_t aHold = 0;
-
-    // cycle 0
     aHold = mData[20]; mData[20] = mData[28]; mData[28] = aHold;
-
-    // cycle 1
     aHold = mData[21]; mData[21] = mData[29]; mData[29] = aHold;
-
 }
 
-void M88::FlipBSixH() {
+void M88::Mini_FlipB_2x2_H() {
     std::uint8_t aHold = 0;
-
-    // cycle 0
     aHold = mData[22]; mData[22] = mData[30]; mData[30] = aHold;
-
-    // cycle 1
     aHold = mData[23]; mData[23] = mData[31]; mData[31] = aHold;
-
 }
 
-void M88::FlipBSixI() {
+void M88::Mini_FlipB_2x2_I() {
     std::uint8_t aHold = 0;
-
-    // cycle 0
     aHold = mData[32]; mData[32] = mData[40]; mData[40] = aHold;
-
-    // cycle 1
     aHold = mData[33]; mData[33] = mData[41]; mData[41] = aHold;
-
 }
 
-void M88::FlipBSixJ() {
+void M88::Mini_FlipB_2x2_J() {
     std::uint8_t aHold = 0;
-
-    // cycle 0
     aHold = mData[34]; mData[34] = mData[42]; mData[42] = aHold;
-
-    // cycle 1
     aHold = mData[35]; mData[35] = mData[43]; mData[43] = aHold;
-
 }
 
-void M88::FlipBSixK() {
+void M88::Mini_FlipB_2x2_K() {
     std::uint8_t aHold = 0;
-
-    // cycle 0
     aHold = mData[36]; mData[36] = mData[44]; mData[44] = aHold;
-
-    // cycle 1
     aHold = mData[37]; mData[37] = mData[45]; mData[45] = aHold;
-
 }
 
-void M88::FlipBSixL() {
+void M88::Mini_FlipB_2x2_L() {
     std::uint8_t aHold = 0;
-
-    // cycle 0
     aHold = mData[38]; mData[38] = mData[46]; mData[46] = aHold;
-
-    // cycle 1
     aHold = mData[39]; mData[39] = mData[47]; mData[47] = aHold;
-
 }
 
-void M88::FlipBSixM() {
+void M88::Mini_FlipB_2x2_M() {
     std::uint8_t aHold = 0;
-
-    // cycle 0
     aHold = mData[48]; mData[48] = mData[56]; mData[56] = aHold;
-
-    // cycle 1
     aHold = mData[49]; mData[49] = mData[57]; mData[57] = aHold;
-
 }
 
-void M88::FlipBSixN() {
+void M88::Mini_FlipB_2x2_N() {
     std::uint8_t aHold = 0;
-
-    // cycle 0
     aHold = mData[50]; mData[50] = mData[58]; mData[58] = aHold;
-
-    // cycle 1
     aHold = mData[51]; mData[51] = mData[59]; mData[59] = aHold;
-
 }
 
-void M88::FlipBSixO() {
+void M88::Mini_FlipB_2x2_O() {
     std::uint8_t aHold = 0;
-
-    // cycle 0
     aHold = mData[52]; mData[52] = mData[60]; mData[60] = aHold;
-
-    // cycle 1
     aHold = mData[53]; mData[53] = mData[61]; mData[61] = aHold;
-
 }
 
-void M88::FlipBSixP() {
+void M88::Mini_FlipB_2x2_P() {
     std::uint8_t aHold = 0;
-
-    // cycle 0
     aHold = mData[54]; mData[54] = mData[62]; mData[62] = aHold;
-
-    // cycle 1
     aHold = mData[55]; mData[55] = mData[63]; mData[63] = aHold;
-
 }
 
-void M88::TriadAASixA() {
-    std::uint8_t aHold = 0;
 
-    // cycle 0
+void M88::Full_FlipB_4x4() {
+    std::uint8_t aHold = 0;
+    aHold = mData[0]; mData[0] = mData[48]; mData[48] = aHold;
+    aHold = mData[1]; mData[1] = mData[49]; mData[49] = aHold;
+    aHold = mData[2]; mData[2] = mData[50]; mData[50] = aHold;
+    aHold = mData[3]; mData[3] = mData[51]; mData[51] = aHold;
+    aHold = mData[4]; mData[4] = mData[52]; mData[52] = aHold;
+    aHold = mData[5]; mData[5] = mData[53]; mData[53] = aHold;
+    aHold = mData[6]; mData[6] = mData[54]; mData[54] = aHold;
+    aHold = mData[7]; mData[7] = mData[55]; mData[55] = aHold;
+    aHold = mData[8]; mData[8] = mData[56]; mData[56] = aHold;
+    aHold = mData[9]; mData[9] = mData[57]; mData[57] = aHold;
+    aHold = mData[10]; mData[10] = mData[58]; mData[58] = aHold;
+    aHold = mData[11]; mData[11] = mData[59]; mData[59] = aHold;
+    aHold = mData[12]; mData[12] = mData[60]; mData[60] = aHold;
+    aHold = mData[13]; mData[13] = mData[61]; mData[61] = aHold;
+    aHold = mData[14]; mData[14] = mData[62]; mData[62] = aHold;
+    aHold = mData[15]; mData[15] = mData[63]; mData[63] = aHold;
+    aHold = mData[16]; mData[16] = mData[32]; mData[32] = aHold;
+    aHold = mData[17]; mData[17] = mData[33]; mData[33] = aHold;
+    aHold = mData[18]; mData[18] = mData[34]; mData[34] = aHold;
+    aHold = mData[19]; mData[19] = mData[35]; mData[35] = aHold;
+    aHold = mData[20]; mData[20] = mData[36]; mData[36] = aHold;
+    aHold = mData[21]; mData[21] = mData[37]; mData[37] = aHold;
+    aHold = mData[22]; mData[22] = mData[38]; mData[38] = aHold;
+    aHold = mData[23]; mData[23] = mData[39]; mData[39] = aHold;
+    aHold = mData[24]; mData[24] = mData[40]; mData[40] = aHold;
+    aHold = mData[25]; mData[25] = mData[41]; mData[41] = aHold;
+    aHold = mData[26]; mData[26] = mData[42]; mData[42] = aHold;
+    aHold = mData[27]; mData[27] = mData[43]; mData[43] = aHold;
+    aHold = mData[28]; mData[28] = mData[44]; mData[44] = aHold;
+    aHold = mData[29]; mData[29] = mData[45]; mData[45] = aHold;
+    aHold = mData[30]; mData[30] = mData[46]; mData[46] = aHold;
+    aHold = mData[31]; mData[31] = mData[47]; mData[47] = aHold;
+}
+
+void M88::Full_FlipB_EachQuad_4x4() {
+    Quad_FlipB_4x4_A();
+    Quad_FlipB_4x4_B();
+    Quad_FlipB_4x4_C();
+    Quad_FlipB_4x4_D();
+}
+
+void M88::Quad_FlipB_4x4_A() {
+    std::uint8_t aHold = 0;
+    aHold = mData[0]; mData[0] = mData[24]; mData[24] = aHold;
+    aHold = mData[1]; mData[1] = mData[25]; mData[25] = aHold;
+    aHold = mData[2]; mData[2] = mData[26]; mData[26] = aHold;
+    aHold = mData[3]; mData[3] = mData[27]; mData[27] = aHold;
+    aHold = mData[8]; mData[8] = mData[16]; mData[16] = aHold;
+    aHold = mData[9]; mData[9] = mData[17]; mData[17] = aHold;
+    aHold = mData[10]; mData[10] = mData[18]; mData[18] = aHold;
+    aHold = mData[11]; mData[11] = mData[19]; mData[19] = aHold;
+}
+
+void M88::Quad_FlipB_4x4_B() {
+    std::uint8_t aHold = 0;
+    aHold = mData[4]; mData[4] = mData[28]; mData[28] = aHold;
+    aHold = mData[5]; mData[5] = mData[29]; mData[29] = aHold;
+    aHold = mData[6]; mData[6] = mData[30]; mData[30] = aHold;
+    aHold = mData[7]; mData[7] = mData[31]; mData[31] = aHold;
+    aHold = mData[12]; mData[12] = mData[20]; mData[20] = aHold;
+    aHold = mData[13]; mData[13] = mData[21]; mData[21] = aHold;
+    aHold = mData[14]; mData[14] = mData[22]; mData[22] = aHold;
+    aHold = mData[15]; mData[15] = mData[23]; mData[23] = aHold;
+}
+
+void M88::Quad_FlipB_4x4_C() {
+    std::uint8_t aHold = 0;
+    aHold = mData[32]; mData[32] = mData[56]; mData[56] = aHold;
+    aHold = mData[33]; mData[33] = mData[57]; mData[57] = aHold;
+    aHold = mData[34]; mData[34] = mData[58]; mData[58] = aHold;
+    aHold = mData[35]; mData[35] = mData[59]; mData[59] = aHold;
+    aHold = mData[40]; mData[40] = mData[48]; mData[48] = aHold;
+    aHold = mData[41]; mData[41] = mData[49]; mData[49] = aHold;
+    aHold = mData[42]; mData[42] = mData[50]; mData[50] = aHold;
+    aHold = mData[43]; mData[43] = mData[51]; mData[51] = aHold;
+}
+
+void M88::Quad_FlipB_4x4_D() {
+    std::uint8_t aHold = 0;
+    aHold = mData[36]; mData[36] = mData[60]; mData[60] = aHold;
+    aHold = mData[37]; mData[37] = mData[61]; mData[61] = aHold;
+    aHold = mData[38]; mData[38] = mData[62]; mData[62] = aHold;
+    aHold = mData[39]; mData[39] = mData[63]; mData[63] = aHold;
+    aHold = mData[44]; mData[44] = mData[52]; mData[52] = aHold;
+    aHold = mData[45]; mData[45] = mData[53]; mData[53] = aHold;
+    aHold = mData[46]; mData[46] = mData[54]; mData[54] = aHold;
+    aHold = mData[47]; mData[47] = mData[55]; mData[55] = aHold;
+}
+
+void M88::Full_FlipB_8x8() {
+    std::uint8_t aHold = 0;
+    aHold = mData[0]; mData[0] = mData[56]; mData[56] = aHold;
+    aHold = mData[1]; mData[1] = mData[57]; mData[57] = aHold;
+    aHold = mData[2]; mData[2] = mData[58]; mData[58] = aHold;
+    aHold = mData[3]; mData[3] = mData[59]; mData[59] = aHold;
+    aHold = mData[4]; mData[4] = mData[60]; mData[60] = aHold;
+    aHold = mData[5]; mData[5] = mData[61]; mData[61] = aHold;
+    aHold = mData[6]; mData[6] = mData[62]; mData[62] = aHold;
+    aHold = mData[7]; mData[7] = mData[63]; mData[63] = aHold;
+    aHold = mData[8]; mData[8] = mData[48]; mData[48] = aHold;
+    aHold = mData[9]; mData[9] = mData[49]; mData[49] = aHold;
+    aHold = mData[10]; mData[10] = mData[50]; mData[50] = aHold;
+    aHold = mData[11]; mData[11] = mData[51]; mData[51] = aHold;
+    aHold = mData[12]; mData[12] = mData[52]; mData[52] = aHold;
+    aHold = mData[13]; mData[13] = mData[53]; mData[53] = aHold;
+    aHold = mData[14]; mData[14] = mData[54]; mData[54] = aHold;
+    aHold = mData[15]; mData[15] = mData[55]; mData[55] = aHold;
+    aHold = mData[16]; mData[16] = mData[40]; mData[40] = aHold;
+    aHold = mData[17]; mData[17] = mData[41]; mData[41] = aHold;
+    aHold = mData[18]; mData[18] = mData[42]; mData[42] = aHold;
+    aHold = mData[19]; mData[19] = mData[43]; mData[43] = aHold;
+    aHold = mData[20]; mData[20] = mData[44]; mData[44] = aHold;
+    aHold = mData[21]; mData[21] = mData[45]; mData[45] = aHold;
+    aHold = mData[22]; mData[22] = mData[46]; mData[46] = aHold;
+    aHold = mData[23]; mData[23] = mData[47]; mData[47] = aHold;
+    aHold = mData[24]; mData[24] = mData[32]; mData[32] = aHold;
+    aHold = mData[25]; mData[25] = mData[33]; mData[33] = aHold;
+    aHold = mData[26]; mData[26] = mData[34]; mData[34] = aHold;
+    aHold = mData[27]; mData[27] = mData[35]; mData[35] = aHold;
+    aHold = mData[28]; mData[28] = mData[36]; mData[36] = aHold;
+    aHold = mData[29]; mData[29] = mData[37]; mData[37] = aHold;
+    aHold = mData[30]; mData[30] = mData[38]; mData[38] = aHold;
+    aHold = mData[31]; mData[31] = mData[39]; mData[39] = aHold;
+}
+
+
+void M88::Full_FlipC_2x2() {
+    std::uint8_t aHold = 0;
+    aHold = mData[4]; mData[4] = mData[32]; mData[32] = aHold;
+    aHold = mData[5]; mData[5] = mData[33]; mData[33] = aHold;
+    aHold = mData[6]; mData[6] = mData[34]; mData[34] = aHold;
+    aHold = mData[7]; mData[7] = mData[35]; mData[35] = aHold;
+    aHold = mData[12]; mData[12] = mData[40]; mData[40] = aHold;
+    aHold = mData[13]; mData[13] = mData[41]; mData[41] = aHold;
+    aHold = mData[14]; mData[14] = mData[42]; mData[42] = aHold;
+    aHold = mData[15]; mData[15] = mData[43]; mData[43] = aHold;
+    aHold = mData[20]; mData[20] = mData[48]; mData[48] = aHold;
+    aHold = mData[21]; mData[21] = mData[49]; mData[49] = aHold;
+    aHold = mData[22]; mData[22] = mData[50]; mData[50] = aHold;
+    aHold = mData[23]; mData[23] = mData[51]; mData[51] = aHold;
+    aHold = mData[28]; mData[28] = mData[56]; mData[56] = aHold;
+    aHold = mData[29]; mData[29] = mData[57]; mData[57] = aHold;
+    aHold = mData[30]; mData[30] = mData[58]; mData[58] = aHold;
+    aHold = mData[31]; mData[31] = mData[59]; mData[59] = aHold;
+}
+
+void M88::Full_FlipC_EachQuad_2x2() {
+    Quad_FlipC_2x2_A();
+    Quad_FlipC_2x2_B();
+    Quad_FlipC_2x2_C();
+    Quad_FlipC_2x2_D();
+}
+
+void M88::Full_FlipC_EachMini_2x2() {
+    Mini_FlipC_2x2_A();
+    Mini_FlipC_2x2_B();
+    Mini_FlipC_2x2_C();
+    Mini_FlipC_2x2_D();
+    Mini_FlipC_2x2_E();
+    Mini_FlipC_2x2_F();
+    Mini_FlipC_2x2_G();
+    Mini_FlipC_2x2_H();
+    Mini_FlipC_2x2_I();
+    Mini_FlipC_2x2_J();
+    Mini_FlipC_2x2_K();
+    Mini_FlipC_2x2_L();
+    Mini_FlipC_2x2_M();
+    Mini_FlipC_2x2_N();
+    Mini_FlipC_2x2_O();
+    Mini_FlipC_2x2_P();
+}
+
+void M88::Quad_FlipC_EachMini_2x2_A() {
+    Mini_FlipC_2x2_A();
+    Mini_FlipC_2x2_B();
+    Mini_FlipC_2x2_E();
+    Mini_FlipC_2x2_F();
+}
+
+void M88::Quad_FlipC_EachMini_2x2_B() {
+    Mini_FlipC_2x2_C();
+    Mini_FlipC_2x2_D();
+    Mini_FlipC_2x2_G();
+    Mini_FlipC_2x2_H();
+}
+
+void M88::Quad_FlipC_EachMini_2x2_C() {
+    Mini_FlipC_2x2_I();
+    Mini_FlipC_2x2_J();
+    Mini_FlipC_2x2_M();
+    Mini_FlipC_2x2_N();
+}
+
+void M88::Quad_FlipC_EachMini_2x2_D() {
+    Mini_FlipC_2x2_K();
+    Mini_FlipC_2x2_L();
+    Mini_FlipC_2x2_O();
+    Mini_FlipC_2x2_P();
+}
+
+void M88::Quad_FlipC_2x2_A() {
+    std::uint8_t aHold = 0;
+    aHold = mData[2]; mData[2] = mData[16]; mData[16] = aHold;
+    aHold = mData[3]; mData[3] = mData[17]; mData[17] = aHold;
+    aHold = mData[10]; mData[10] = mData[24]; mData[24] = aHold;
+    aHold = mData[11]; mData[11] = mData[25]; mData[25] = aHold;
+}
+
+void M88::Quad_FlipC_2x2_B() {
+    std::uint8_t aHold = 0;
+    aHold = mData[6]; mData[6] = mData[20]; mData[20] = aHold;
+    aHold = mData[7]; mData[7] = mData[21]; mData[21] = aHold;
+    aHold = mData[14]; mData[14] = mData[28]; mData[28] = aHold;
+    aHold = mData[15]; mData[15] = mData[29]; mData[29] = aHold;
+}
+
+void M88::Quad_FlipC_2x2_C() {
+    std::uint8_t aHold = 0;
+    aHold = mData[34]; mData[34] = mData[48]; mData[48] = aHold;
+    aHold = mData[35]; mData[35] = mData[49]; mData[49] = aHold;
+    aHold = mData[42]; mData[42] = mData[56]; mData[56] = aHold;
+    aHold = mData[43]; mData[43] = mData[57]; mData[57] = aHold;
+}
+
+void M88::Quad_FlipC_2x2_D() {
+    std::uint8_t aHold = 0;
+    aHold = mData[38]; mData[38] = mData[52]; mData[52] = aHold;
+    aHold = mData[39]; mData[39] = mData[53]; mData[53] = aHold;
+    aHold = mData[46]; mData[46] = mData[60]; mData[60] = aHold;
+    aHold = mData[47]; mData[47] = mData[61]; mData[61] = aHold;
+}
+
+void M88::Mini_FlipC_2x2_A() {
+    std::uint8_t aHold = 0;
+    aHold = mData[1]; mData[1] = mData[8]; mData[8] = aHold;
+}
+
+void M88::Mini_FlipC_2x2_B() {
+    std::uint8_t aHold = 0;
+    aHold = mData[3]; mData[3] = mData[10]; mData[10] = aHold;
+}
+
+void M88::Mini_FlipC_2x2_C() {
+    std::uint8_t aHold = 0;
+    aHold = mData[5]; mData[5] = mData[12]; mData[12] = aHold;
+}
+
+void M88::Mini_FlipC_2x2_D() {
+    std::uint8_t aHold = 0;
+    aHold = mData[7]; mData[7] = mData[14]; mData[14] = aHold;
+}
+
+void M88::Mini_FlipC_2x2_E() {
+    std::uint8_t aHold = 0;
+    aHold = mData[17]; mData[17] = mData[24]; mData[24] = aHold;
+}
+
+void M88::Mini_FlipC_2x2_F() {
+    std::uint8_t aHold = 0;
+    aHold = mData[19]; mData[19] = mData[26]; mData[26] = aHold;
+}
+
+void M88::Mini_FlipC_2x2_G() {
+    std::uint8_t aHold = 0;
+    aHold = mData[21]; mData[21] = mData[28]; mData[28] = aHold;
+}
+
+void M88::Mini_FlipC_2x2_H() {
+    std::uint8_t aHold = 0;
+    aHold = mData[23]; mData[23] = mData[30]; mData[30] = aHold;
+}
+
+void M88::Mini_FlipC_2x2_I() {
+    std::uint8_t aHold = 0;
+    aHold = mData[33]; mData[33] = mData[40]; mData[40] = aHold;
+}
+
+void M88::Mini_FlipC_2x2_J() {
+    std::uint8_t aHold = 0;
+    aHold = mData[35]; mData[35] = mData[42]; mData[42] = aHold;
+}
+
+void M88::Mini_FlipC_2x2_K() {
+    std::uint8_t aHold = 0;
+    aHold = mData[37]; mData[37] = mData[44]; mData[44] = aHold;
+}
+
+void M88::Mini_FlipC_2x2_L() {
+    std::uint8_t aHold = 0;
+    aHold = mData[39]; mData[39] = mData[46]; mData[46] = aHold;
+}
+
+void M88::Mini_FlipC_2x2_M() {
+    std::uint8_t aHold = 0;
+    aHold = mData[49]; mData[49] = mData[56]; mData[56] = aHold;
+}
+
+void M88::Mini_FlipC_2x2_N() {
+    std::uint8_t aHold = 0;
+    aHold = mData[51]; mData[51] = mData[58]; mData[58] = aHold;
+}
+
+void M88::Mini_FlipC_2x2_O() {
+    std::uint8_t aHold = 0;
+    aHold = mData[53]; mData[53] = mData[60]; mData[60] = aHold;
+}
+
+void M88::Mini_FlipC_2x2_P() {
+    std::uint8_t aHold = 0;
+    aHold = mData[55]; mData[55] = mData[62]; mData[62] = aHold;
+}
+
+
+void M88::Full_FlipC_4x4() {
+    std::uint8_t aHold = 0;
+    aHold = mData[2]; mData[2] = mData[16]; mData[16] = aHold;
+    aHold = mData[3]; mData[3] = mData[17]; mData[17] = aHold;
+    aHold = mData[4]; mData[4] = mData[32]; mData[32] = aHold;
+    aHold = mData[5]; mData[5] = mData[33]; mData[33] = aHold;
+    aHold = mData[6]; mData[6] = mData[48]; mData[48] = aHold;
+    aHold = mData[7]; mData[7] = mData[49]; mData[49] = aHold;
+    aHold = mData[10]; mData[10] = mData[24]; mData[24] = aHold;
+    aHold = mData[11]; mData[11] = mData[25]; mData[25] = aHold;
+    aHold = mData[12]; mData[12] = mData[40]; mData[40] = aHold;
+    aHold = mData[13]; mData[13] = mData[41]; mData[41] = aHold;
+    aHold = mData[14]; mData[14] = mData[56]; mData[56] = aHold;
+    aHold = mData[15]; mData[15] = mData[57]; mData[57] = aHold;
+    aHold = mData[20]; mData[20] = mData[34]; mData[34] = aHold;
+    aHold = mData[21]; mData[21] = mData[35]; mData[35] = aHold;
+    aHold = mData[22]; mData[22] = mData[50]; mData[50] = aHold;
+    aHold = mData[23]; mData[23] = mData[51]; mData[51] = aHold;
+    aHold = mData[28]; mData[28] = mData[42]; mData[42] = aHold;
+    aHold = mData[29]; mData[29] = mData[43]; mData[43] = aHold;
+    aHold = mData[30]; mData[30] = mData[58]; mData[58] = aHold;
+    aHold = mData[31]; mData[31] = mData[59]; mData[59] = aHold;
+    aHold = mData[38]; mData[38] = mData[52]; mData[52] = aHold;
+    aHold = mData[39]; mData[39] = mData[53]; mData[53] = aHold;
+    aHold = mData[46]; mData[46] = mData[60]; mData[60] = aHold;
+    aHold = mData[47]; mData[47] = mData[61]; mData[61] = aHold;
+}
+
+void M88::Full_FlipC_EachQuad_4x4() {
+    Quad_FlipC_4x4_A();
+    Quad_FlipC_4x4_B();
+    Quad_FlipC_4x4_C();
+    Quad_FlipC_4x4_D();
+}
+
+void M88::Quad_FlipC_4x4_A() {
+    std::uint8_t aHold = 0;
+    aHold = mData[1]; mData[1] = mData[8]; mData[8] = aHold;
+    aHold = mData[2]; mData[2] = mData[16]; mData[16] = aHold;
+    aHold = mData[3]; mData[3] = mData[24]; mData[24] = aHold;
+    aHold = mData[10]; mData[10] = mData[17]; mData[17] = aHold;
+    aHold = mData[11]; mData[11] = mData[25]; mData[25] = aHold;
+    aHold = mData[19]; mData[19] = mData[26]; mData[26] = aHold;
+}
+
+void M88::Quad_FlipC_4x4_B() {
+    std::uint8_t aHold = 0;
+    aHold = mData[5]; mData[5] = mData[12]; mData[12] = aHold;
+    aHold = mData[6]; mData[6] = mData[20]; mData[20] = aHold;
+    aHold = mData[7]; mData[7] = mData[28]; mData[28] = aHold;
+    aHold = mData[14]; mData[14] = mData[21]; mData[21] = aHold;
+    aHold = mData[15]; mData[15] = mData[29]; mData[29] = aHold;
+    aHold = mData[23]; mData[23] = mData[30]; mData[30] = aHold;
+}
+
+void M88::Quad_FlipC_4x4_C() {
+    std::uint8_t aHold = 0;
+    aHold = mData[33]; mData[33] = mData[40]; mData[40] = aHold;
+    aHold = mData[34]; mData[34] = mData[48]; mData[48] = aHold;
+    aHold = mData[35]; mData[35] = mData[56]; mData[56] = aHold;
+    aHold = mData[42]; mData[42] = mData[49]; mData[49] = aHold;
+    aHold = mData[43]; mData[43] = mData[57]; mData[57] = aHold;
+    aHold = mData[51]; mData[51] = mData[58]; mData[58] = aHold;
+}
+
+void M88::Quad_FlipC_4x4_D() {
+    std::uint8_t aHold = 0;
+    aHold = mData[37]; mData[37] = mData[44]; mData[44] = aHold;
+    aHold = mData[38]; mData[38] = mData[52]; mData[52] = aHold;
+    aHold = mData[39]; mData[39] = mData[60]; mData[60] = aHold;
+    aHold = mData[46]; mData[46] = mData[53]; mData[53] = aHold;
+    aHold = mData[47]; mData[47] = mData[61]; mData[61] = aHold;
+    aHold = mData[55]; mData[55] = mData[62]; mData[62] = aHold;
+}
+
+
+void M88::Full_FlipC_8x8() {
+    std::uint8_t aHold = 0;
+    aHold = mData[1]; mData[1] = mData[8]; mData[8] = aHold;
+    aHold = mData[2]; mData[2] = mData[16]; mData[16] = aHold;
+    aHold = mData[3]; mData[3] = mData[24]; mData[24] = aHold;
+    aHold = mData[4]; mData[4] = mData[32]; mData[32] = aHold;
+    aHold = mData[5]; mData[5] = mData[40]; mData[40] = aHold;
+    aHold = mData[6]; mData[6] = mData[48]; mData[48] = aHold;
+    aHold = mData[7]; mData[7] = mData[56]; mData[56] = aHold;
+    aHold = mData[10]; mData[10] = mData[17]; mData[17] = aHold;
+    aHold = mData[11]; mData[11] = mData[25]; mData[25] = aHold;
+    aHold = mData[12]; mData[12] = mData[33]; mData[33] = aHold;
+    aHold = mData[13]; mData[13] = mData[41]; mData[41] = aHold;
+    aHold = mData[14]; mData[14] = mData[49]; mData[49] = aHold;
+    aHold = mData[15]; mData[15] = mData[57]; mData[57] = aHold;
+    aHold = mData[19]; mData[19] = mData[26]; mData[26] = aHold;
+    aHold = mData[20]; mData[20] = mData[34]; mData[34] = aHold;
+    aHold = mData[21]; mData[21] = mData[42]; mData[42] = aHold;
+    aHold = mData[22]; mData[22] = mData[50]; mData[50] = aHold;
+    aHold = mData[23]; mData[23] = mData[58]; mData[58] = aHold;
+    aHold = mData[28]; mData[28] = mData[35]; mData[35] = aHold;
+    aHold = mData[29]; mData[29] = mData[43]; mData[43] = aHold;
+    aHold = mData[30]; mData[30] = mData[51]; mData[51] = aHold;
+    aHold = mData[31]; mData[31] = mData[59]; mData[59] = aHold;
+    aHold = mData[37]; mData[37] = mData[44]; mData[44] = aHold;
+    aHold = mData[38]; mData[38] = mData[52]; mData[52] = aHold;
+    aHold = mData[39]; mData[39] = mData[60]; mData[60] = aHold;
+    aHold = mData[46]; mData[46] = mData[53]; mData[53] = aHold;
+    aHold = mData[47]; mData[47] = mData[61]; mData[61] = aHold;
+    aHold = mData[55]; mData[55] = mData[62]; mData[62] = aHold;
+}
+
+
+void M88::Full_FlipD_2x2() {
+    std::uint8_t aHold = 0;
+    aHold = mData[0]; mData[0] = mData[36]; mData[36] = aHold;
+    aHold = mData[1]; mData[1] = mData[37]; mData[37] = aHold;
+    aHold = mData[2]; mData[2] = mData[38]; mData[38] = aHold;
+    aHold = mData[3]; mData[3] = mData[39]; mData[39] = aHold;
+    aHold = mData[8]; mData[8] = mData[44]; mData[44] = aHold;
+    aHold = mData[9]; mData[9] = mData[45]; mData[45] = aHold;
+    aHold = mData[10]; mData[10] = mData[46]; mData[46] = aHold;
+    aHold = mData[11]; mData[11] = mData[47]; mData[47] = aHold;
+    aHold = mData[16]; mData[16] = mData[52]; mData[52] = aHold;
+    aHold = mData[17]; mData[17] = mData[53]; mData[53] = aHold;
+    aHold = mData[18]; mData[18] = mData[54]; mData[54] = aHold;
+    aHold = mData[19]; mData[19] = mData[55]; mData[55] = aHold;
+    aHold = mData[24]; mData[24] = mData[60]; mData[60] = aHold;
+    aHold = mData[25]; mData[25] = mData[61]; mData[61] = aHold;
+    aHold = mData[26]; mData[26] = mData[62]; mData[62] = aHold;
+    aHold = mData[27]; mData[27] = mData[63]; mData[63] = aHold;
+}
+
+void M88::Full_FlipD_EachQuad_2x2() {
+    Quad_FlipD_2x2_A();
+    Quad_FlipD_2x2_B();
+    Quad_FlipD_2x2_C();
+    Quad_FlipD_2x2_D();
+}
+
+void M88::Full_FlipD_EachMini_2x2() {
+    Mini_FlipD_2x2_A();
+    Mini_FlipD_2x2_B();
+    Mini_FlipD_2x2_C();
+    Mini_FlipD_2x2_D();
+    Mini_FlipD_2x2_E();
+    Mini_FlipD_2x2_F();
+    Mini_FlipD_2x2_G();
+    Mini_FlipD_2x2_H();
+    Mini_FlipD_2x2_I();
+    Mini_FlipD_2x2_J();
+    Mini_FlipD_2x2_K();
+    Mini_FlipD_2x2_L();
+    Mini_FlipD_2x2_M();
+    Mini_FlipD_2x2_N();
+    Mini_FlipD_2x2_O();
+    Mini_FlipD_2x2_P();
+}
+
+void M88::Quad_FlipD_EachMini_2x2_A() {
+    Mini_FlipD_2x2_A();
+    Mini_FlipD_2x2_B();
+    Mini_FlipD_2x2_E();
+    Mini_FlipD_2x2_F();
+}
+
+void M88::Quad_FlipD_EachMini_2x2_B() {
+    Mini_FlipD_2x2_C();
+    Mini_FlipD_2x2_D();
+    Mini_FlipD_2x2_G();
+    Mini_FlipD_2x2_H();
+}
+
+void M88::Quad_FlipD_EachMini_2x2_C() {
+    Mini_FlipD_2x2_I();
+    Mini_FlipD_2x2_J();
+    Mini_FlipD_2x2_M();
+    Mini_FlipD_2x2_N();
+}
+
+void M88::Quad_FlipD_EachMini_2x2_D() {
+    Mini_FlipD_2x2_K();
+    Mini_FlipD_2x2_L();
+    Mini_FlipD_2x2_O();
+    Mini_FlipD_2x2_P();
+}
+
+void M88::Quad_FlipD_2x2_A() {
+    std::uint8_t aHold = 0;
+    aHold = mData[0]; mData[0] = mData[18]; mData[18] = aHold;
+    aHold = mData[1]; mData[1] = mData[19]; mData[19] = aHold;
+    aHold = mData[8]; mData[8] = mData[26]; mData[26] = aHold;
+    aHold = mData[9]; mData[9] = mData[27]; mData[27] = aHold;
+}
+
+void M88::Quad_FlipD_2x2_B() {
+    std::uint8_t aHold = 0;
+    aHold = mData[4]; mData[4] = mData[22]; mData[22] = aHold;
+    aHold = mData[5]; mData[5] = mData[23]; mData[23] = aHold;
+    aHold = mData[12]; mData[12] = mData[30]; mData[30] = aHold;
+    aHold = mData[13]; mData[13] = mData[31]; mData[31] = aHold;
+}
+
+void M88::Quad_FlipD_2x2_C() {
+    std::uint8_t aHold = 0;
+    aHold = mData[32]; mData[32] = mData[50]; mData[50] = aHold;
+    aHold = mData[33]; mData[33] = mData[51]; mData[51] = aHold;
+    aHold = mData[40]; mData[40] = mData[58]; mData[58] = aHold;
+    aHold = mData[41]; mData[41] = mData[59]; mData[59] = aHold;
+}
+
+void M88::Quad_FlipD_2x2_D() {
+    std::uint8_t aHold = 0;
+    aHold = mData[36]; mData[36] = mData[54]; mData[54] = aHold;
+    aHold = mData[37]; mData[37] = mData[55]; mData[55] = aHold;
+    aHold = mData[44]; mData[44] = mData[62]; mData[62] = aHold;
+    aHold = mData[45]; mData[45] = mData[63]; mData[63] = aHold;
+}
+
+void M88::Mini_FlipD_2x2_A() {
+    std::uint8_t aHold = 0;
+    aHold = mData[0]; mData[0] = mData[9]; mData[9] = aHold;
+}
+
+void M88::Mini_FlipD_2x2_B() {
+    std::uint8_t aHold = 0;
+    aHold = mData[2]; mData[2] = mData[11]; mData[11] = aHold;
+}
+
+void M88::Mini_FlipD_2x2_C() {
+    std::uint8_t aHold = 0;
+    aHold = mData[4]; mData[4] = mData[13]; mData[13] = aHold;
+}
+
+void M88::Mini_FlipD_2x2_D() {
+    std::uint8_t aHold = 0;
+    aHold = mData[6]; mData[6] = mData[15]; mData[15] = aHold;
+}
+
+void M88::Mini_FlipD_2x2_E() {
+    std::uint8_t aHold = 0;
+    aHold = mData[16]; mData[16] = mData[25]; mData[25] = aHold;
+}
+
+void M88::Mini_FlipD_2x2_F() {
+    std::uint8_t aHold = 0;
+    aHold = mData[18]; mData[18] = mData[27]; mData[27] = aHold;
+}
+
+void M88::Mini_FlipD_2x2_G() {
+    std::uint8_t aHold = 0;
+    aHold = mData[20]; mData[20] = mData[29]; mData[29] = aHold;
+}
+
+void M88::Mini_FlipD_2x2_H() {
+    std::uint8_t aHold = 0;
+    aHold = mData[22]; mData[22] = mData[31]; mData[31] = aHold;
+}
+
+void M88::Mini_FlipD_2x2_I() {
+    std::uint8_t aHold = 0;
+    aHold = mData[32]; mData[32] = mData[41]; mData[41] = aHold;
+}
+
+void M88::Mini_FlipD_2x2_J() {
+    std::uint8_t aHold = 0;
+    aHold = mData[34]; mData[34] = mData[43]; mData[43] = aHold;
+}
+
+void M88::Mini_FlipD_2x2_K() {
+    std::uint8_t aHold = 0;
+    aHold = mData[36]; mData[36] = mData[45]; mData[45] = aHold;
+}
+
+void M88::Mini_FlipD_2x2_L() {
+    std::uint8_t aHold = 0;
+    aHold = mData[38]; mData[38] = mData[47]; mData[47] = aHold;
+}
+
+void M88::Mini_FlipD_2x2_M() {
+    std::uint8_t aHold = 0;
+    aHold = mData[48]; mData[48] = mData[57]; mData[57] = aHold;
+}
+
+void M88::Mini_FlipD_2x2_N() {
+    std::uint8_t aHold = 0;
+    aHold = mData[50]; mData[50] = mData[59]; mData[59] = aHold;
+}
+
+void M88::Mini_FlipD_2x2_O() {
+    std::uint8_t aHold = 0;
+    aHold = mData[52]; mData[52] = mData[61]; mData[61] = aHold;
+}
+
+void M88::Mini_FlipD_2x2_P() {
+    std::uint8_t aHold = 0;
+    aHold = mData[54]; mData[54] = mData[63]; mData[63] = aHold;
+}
+
+
+void M88::Full_FlipD_4x4() {
+    std::uint8_t aHold = 0;
+    aHold = mData[0]; mData[0] = mData[54]; mData[54] = aHold;
+    aHold = mData[1]; mData[1] = mData[55]; mData[55] = aHold;
+    aHold = mData[2]; mData[2] = mData[38]; mData[38] = aHold;
+    aHold = mData[3]; mData[3] = mData[39]; mData[39] = aHold;
+    aHold = mData[4]; mData[4] = mData[22]; mData[22] = aHold;
+    aHold = mData[5]; mData[5] = mData[23]; mData[23] = aHold;
+    aHold = mData[8]; mData[8] = mData[62]; mData[62] = aHold;
+    aHold = mData[9]; mData[9] = mData[63]; mData[63] = aHold;
+    aHold = mData[10]; mData[10] = mData[46]; mData[46] = aHold;
+    aHold = mData[11]; mData[11] = mData[47]; mData[47] = aHold;
+    aHold = mData[12]; mData[12] = mData[30]; mData[30] = aHold;
+    aHold = mData[13]; mData[13] = mData[31]; mData[31] = aHold;
+    aHold = mData[16]; mData[16] = mData[52]; mData[52] = aHold;
+    aHold = mData[17]; mData[17] = mData[53]; mData[53] = aHold;
+    aHold = mData[18]; mData[18] = mData[36]; mData[36] = aHold;
+    aHold = mData[19]; mData[19] = mData[37]; mData[37] = aHold;
+    aHold = mData[24]; mData[24] = mData[60]; mData[60] = aHold;
+    aHold = mData[25]; mData[25] = mData[61]; mData[61] = aHold;
+    aHold = mData[26]; mData[26] = mData[44]; mData[44] = aHold;
+    aHold = mData[27]; mData[27] = mData[45]; mData[45] = aHold;
+    aHold = mData[32]; mData[32] = mData[50]; mData[50] = aHold;
+    aHold = mData[33]; mData[33] = mData[51]; mData[51] = aHold;
+    aHold = mData[40]; mData[40] = mData[58]; mData[58] = aHold;
+    aHold = mData[41]; mData[41] = mData[59]; mData[59] = aHold;
+}
+
+void M88::Full_FlipD_EachQuad_4x4() {
+    Quad_FlipD_4x4_A();
+    Quad_FlipD_4x4_B();
+    Quad_FlipD_4x4_C();
+    Quad_FlipD_4x4_D();
+}
+
+void M88::Quad_FlipD_4x4_A() {
+    std::uint8_t aHold = 0;
+    aHold = mData[0]; mData[0] = mData[27]; mData[27] = aHold;
+    aHold = mData[1]; mData[1] = mData[19]; mData[19] = aHold;
+    aHold = mData[2]; mData[2] = mData[11]; mData[11] = aHold;
+    aHold = mData[8]; mData[8] = mData[26]; mData[26] = aHold;
+    aHold = mData[9]; mData[9] = mData[18]; mData[18] = aHold;
+    aHold = mData[16]; mData[16] = mData[25]; mData[25] = aHold;
+}
+
+void M88::Quad_FlipD_4x4_B() {
+    std::uint8_t aHold = 0;
+    aHold = mData[4]; mData[4] = mData[31]; mData[31] = aHold;
+    aHold = mData[5]; mData[5] = mData[23]; mData[23] = aHold;
+    aHold = mData[6]; mData[6] = mData[15]; mData[15] = aHold;
+    aHold = mData[12]; mData[12] = mData[30]; mData[30] = aHold;
+    aHold = mData[13]; mData[13] = mData[22]; mData[22] = aHold;
+    aHold = mData[20]; mData[20] = mData[29]; mData[29] = aHold;
+}
+
+void M88::Quad_FlipD_4x4_C() {
+    std::uint8_t aHold = 0;
+    aHold = mData[32]; mData[32] = mData[59]; mData[59] = aHold;
+    aHold = mData[33]; mData[33] = mData[51]; mData[51] = aHold;
+    aHold = mData[34]; mData[34] = mData[43]; mData[43] = aHold;
+    aHold = mData[40]; mData[40] = mData[58]; mData[58] = aHold;
+    aHold = mData[41]; mData[41] = mData[50]; mData[50] = aHold;
+    aHold = mData[48]; mData[48] = mData[57]; mData[57] = aHold;
+}
+
+void M88::Quad_FlipD_4x4_D() {
+    std::uint8_t aHold = 0;
+    aHold = mData[36]; mData[36] = mData[63]; mData[63] = aHold;
+    aHold = mData[37]; mData[37] = mData[55]; mData[55] = aHold;
+    aHold = mData[38]; mData[38] = mData[47]; mData[47] = aHold;
+    aHold = mData[44]; mData[44] = mData[62]; mData[62] = aHold;
+    aHold = mData[45]; mData[45] = mData[54]; mData[54] = aHold;
+    aHold = mData[52]; mData[52] = mData[61]; mData[61] = aHold;
+}
+
+
+void M88::Full_FlipD_8x8() {
+    std::uint8_t aHold = 0;
+    aHold = mData[0]; mData[0] = mData[63]; mData[63] = aHold;
+    aHold = mData[1]; mData[1] = mData[55]; mData[55] = aHold;
+    aHold = mData[2]; mData[2] = mData[47]; mData[47] = aHold;
+    aHold = mData[3]; mData[3] = mData[39]; mData[39] = aHold;
+    aHold = mData[4]; mData[4] = mData[31]; mData[31] = aHold;
+    aHold = mData[5]; mData[5] = mData[23]; mData[23] = aHold;
+    aHold = mData[6]; mData[6] = mData[15]; mData[15] = aHold;
+    aHold = mData[8]; mData[8] = mData[62]; mData[62] = aHold;
+    aHold = mData[9]; mData[9] = mData[54]; mData[54] = aHold;
+    aHold = mData[10]; mData[10] = mData[46]; mData[46] = aHold;
+    aHold = mData[11]; mData[11] = mData[38]; mData[38] = aHold;
+    aHold = mData[12]; mData[12] = mData[30]; mData[30] = aHold;
+    aHold = mData[13]; mData[13] = mData[22]; mData[22] = aHold;
+    aHold = mData[16]; mData[16] = mData[61]; mData[61] = aHold;
+    aHold = mData[17]; mData[17] = mData[53]; mData[53] = aHold;
+    aHold = mData[18]; mData[18] = mData[45]; mData[45] = aHold;
+    aHold = mData[19]; mData[19] = mData[37]; mData[37] = aHold;
+    aHold = mData[20]; mData[20] = mData[29]; mData[29] = aHold;
+    aHold = mData[24]; mData[24] = mData[60]; mData[60] = aHold;
+    aHold = mData[25]; mData[25] = mData[52]; mData[52] = aHold;
+    aHold = mData[26]; mData[26] = mData[44]; mData[44] = aHold;
+    aHold = mData[27]; mData[27] = mData[36]; mData[36] = aHold;
+    aHold = mData[32]; mData[32] = mData[59]; mData[59] = aHold;
+    aHold = mData[33]; mData[33] = mData[51]; mData[51] = aHold;
+    aHold = mData[34]; mData[34] = mData[43]; mData[43] = aHold;
+    aHold = mData[40]; mData[40] = mData[58]; mData[58] = aHold;
+    aHold = mData[41]; mData[41] = mData[50]; mData[50] = aHold;
+    aHold = mData[48]; mData[48] = mData[57]; mData[57] = aHold;
+}
+
+
+
+
+void M88::Full_SnakeA_2x2() {
+    std::uint8_t aHold = 0;
+    aHold = mData[0]; mData[0] = mData[4]; mData[4] = mData[32]; mData[32] = mData[36]; mData[36] = aHold;
+    aHold = mData[1]; mData[1] = mData[5]; mData[5] = mData[33]; mData[33] = mData[37]; mData[37] = aHold;
+    aHold = mData[2]; mData[2] = mData[6]; mData[6] = mData[34]; mData[34] = mData[38]; mData[38] = aHold;
+    aHold = mData[3]; mData[3] = mData[7]; mData[7] = mData[35]; mData[35] = mData[39]; mData[39] = aHold;
+    aHold = mData[8]; mData[8] = mData[12]; mData[12] = mData[40]; mData[40] = mData[44]; mData[44] = aHold;
+    aHold = mData[9]; mData[9] = mData[13]; mData[13] = mData[41]; mData[41] = mData[45]; mData[45] = aHold;
+    aHold = mData[10]; mData[10] = mData[14]; mData[14] = mData[42]; mData[42] = mData[46]; mData[46] = aHold;
+    aHold = mData[11]; mData[11] = mData[15]; mData[15] = mData[43]; mData[43] = mData[47]; mData[47] = aHold;
+    aHold = mData[16]; mData[16] = mData[20]; mData[20] = mData[48]; mData[48] = mData[52]; mData[52] = aHold;
+    aHold = mData[17]; mData[17] = mData[21]; mData[21] = mData[49]; mData[49] = mData[53]; mData[53] = aHold;
+    aHold = mData[18]; mData[18] = mData[22]; mData[22] = mData[50]; mData[50] = mData[54]; mData[54] = aHold;
+    aHold = mData[19]; mData[19] = mData[23]; mData[23] = mData[51]; mData[51] = mData[55]; mData[55] = aHold;
+    aHold = mData[24]; mData[24] = mData[28]; mData[28] = mData[56]; mData[56] = mData[60]; mData[60] = aHold;
+    aHold = mData[25]; mData[25] = mData[29]; mData[29] = mData[57]; mData[57] = mData[61]; mData[61] = aHold;
+    aHold = mData[26]; mData[26] = mData[30]; mData[30] = mData[58]; mData[58] = mData[62]; mData[62] = aHold;
+    aHold = mData[27]; mData[27] = mData[31]; mData[31] = mData[59]; mData[59] = mData[63]; mData[63] = aHold;
+}
+
+void M88::Full_SnakeA_EachQuad_2x2() {
+    Quad_SnakeA_2x2_A();
+    Quad_SnakeA_2x2_B();
+    Quad_SnakeA_2x2_C();
+    Quad_SnakeA_2x2_D();
+}
+
+void M88::Full_SnakeA_EachMini_2x2() {
+    Mini_SnakeA_2x2_A();
+    Mini_SnakeA_2x2_B();
+    Mini_SnakeA_2x2_C();
+    Mini_SnakeA_2x2_D();
+    Mini_SnakeA_2x2_E();
+    Mini_SnakeA_2x2_F();
+    Mini_SnakeA_2x2_G();
+    Mini_SnakeA_2x2_H();
+    Mini_SnakeA_2x2_I();
+    Mini_SnakeA_2x2_J();
+    Mini_SnakeA_2x2_K();
+    Mini_SnakeA_2x2_L();
+    Mini_SnakeA_2x2_M();
+    Mini_SnakeA_2x2_N();
+    Mini_SnakeA_2x2_O();
+    Mini_SnakeA_2x2_P();
+}
+
+void M88::Quad_SnakeA_EachMini_2x2_A() {
+    Mini_SnakeA_2x2_A();
+    Mini_SnakeA_2x2_B();
+    Mini_SnakeA_2x2_E();
+    Mini_SnakeA_2x2_F();
+}
+
+void M88::Quad_SnakeA_EachMini_2x2_B() {
+    Mini_SnakeA_2x2_C();
+    Mini_SnakeA_2x2_D();
+    Mini_SnakeA_2x2_G();
+    Mini_SnakeA_2x2_H();
+}
+
+void M88::Quad_SnakeA_EachMini_2x2_C() {
+    Mini_SnakeA_2x2_I();
+    Mini_SnakeA_2x2_J();
+    Mini_SnakeA_2x2_M();
+    Mini_SnakeA_2x2_N();
+}
+
+void M88::Quad_SnakeA_EachMini_2x2_D() {
+    Mini_SnakeA_2x2_K();
+    Mini_SnakeA_2x2_L();
+    Mini_SnakeA_2x2_O();
+    Mini_SnakeA_2x2_P();
+}
+
+void M88::Quad_SnakeA_2x2_A() {
+    std::uint8_t aHold = 0;
+    aHold = mData[0]; mData[0] = mData[2]; mData[2] = mData[16]; mData[16] = mData[18]; mData[18] = aHold;
+    aHold = mData[1]; mData[1] = mData[3]; mData[3] = mData[17]; mData[17] = mData[19]; mData[19] = aHold;
+    aHold = mData[8]; mData[8] = mData[10]; mData[10] = mData[24]; mData[24] = mData[26]; mData[26] = aHold;
+    aHold = mData[9]; mData[9] = mData[11]; mData[11] = mData[25]; mData[25] = mData[27]; mData[27] = aHold;
+}
+
+void M88::Quad_SnakeA_2x2_B() {
+    std::uint8_t aHold = 0;
+    aHold = mData[4]; mData[4] = mData[6]; mData[6] = mData[20]; mData[20] = mData[22]; mData[22] = aHold;
+    aHold = mData[5]; mData[5] = mData[7]; mData[7] = mData[21]; mData[21] = mData[23]; mData[23] = aHold;
+    aHold = mData[12]; mData[12] = mData[14]; mData[14] = mData[28]; mData[28] = mData[30]; mData[30] = aHold;
+    aHold = mData[13]; mData[13] = mData[15]; mData[15] = mData[29]; mData[29] = mData[31]; mData[31] = aHold;
+}
+
+void M88::Quad_SnakeA_2x2_C() {
+    std::uint8_t aHold = 0;
+    aHold = mData[32]; mData[32] = mData[34]; mData[34] = mData[48]; mData[48] = mData[50]; mData[50] = aHold;
+    aHold = mData[33]; mData[33] = mData[35]; mData[35] = mData[49]; mData[49] = mData[51]; mData[51] = aHold;
+    aHold = mData[40]; mData[40] = mData[42]; mData[42] = mData[56]; mData[56] = mData[58]; mData[58] = aHold;
+    aHold = mData[41]; mData[41] = mData[43]; mData[43] = mData[57]; mData[57] = mData[59]; mData[59] = aHold;
+}
+
+void M88::Quad_SnakeA_2x2_D() {
+    std::uint8_t aHold = 0;
+    aHold = mData[36]; mData[36] = mData[38]; mData[38] = mData[52]; mData[52] = mData[54]; mData[54] = aHold;
+    aHold = mData[37]; mData[37] = mData[39]; mData[39] = mData[53]; mData[53] = mData[55]; mData[55] = aHold;
+    aHold = mData[44]; mData[44] = mData[46]; mData[46] = mData[60]; mData[60] = mData[62]; mData[62] = aHold;
+    aHold = mData[45]; mData[45] = mData[47]; mData[47] = mData[61]; mData[61] = mData[63]; mData[63] = aHold;
+}
+
+void M88::Mini_SnakeA_2x2_A() {
+    std::uint8_t aHold = 0;
+    aHold = mData[0]; mData[0] = mData[1]; mData[1] = mData[8]; mData[8] = mData[9]; mData[9] = aHold;
+}
+
+void M88::Mini_SnakeA_2x2_B() {
+    std::uint8_t aHold = 0;
+    aHold = mData[2]; mData[2] = mData[3]; mData[3] = mData[10]; mData[10] = mData[11]; mData[11] = aHold;
+}
+
+void M88::Mini_SnakeA_2x2_C() {
+    std::uint8_t aHold = 0;
+    aHold = mData[4]; mData[4] = mData[5]; mData[5] = mData[12]; mData[12] = mData[13]; mData[13] = aHold;
+}
+
+void M88::Mini_SnakeA_2x2_D() {
+    std::uint8_t aHold = 0;
+    aHold = mData[6]; mData[6] = mData[7]; mData[7] = mData[14]; mData[14] = mData[15]; mData[15] = aHold;
+}
+
+void M88::Mini_SnakeA_2x2_E() {
+    std::uint8_t aHold = 0;
+    aHold = mData[16]; mData[16] = mData[17]; mData[17] = mData[24]; mData[24] = mData[25]; mData[25] = aHold;
+}
+
+void M88::Mini_SnakeA_2x2_F() {
+    std::uint8_t aHold = 0;
+    aHold = mData[18]; mData[18] = mData[19]; mData[19] = mData[26]; mData[26] = mData[27]; mData[27] = aHold;
+}
+
+void M88::Mini_SnakeA_2x2_G() {
+    std::uint8_t aHold = 0;
+    aHold = mData[20]; mData[20] = mData[21]; mData[21] = mData[28]; mData[28] = mData[29]; mData[29] = aHold;
+}
+
+void M88::Mini_SnakeA_2x2_H() {
+    std::uint8_t aHold = 0;
+    aHold = mData[22]; mData[22] = mData[23]; mData[23] = mData[30]; mData[30] = mData[31]; mData[31] = aHold;
+}
+
+void M88::Mini_SnakeA_2x2_I() {
+    std::uint8_t aHold = 0;
+    aHold = mData[32]; mData[32] = mData[33]; mData[33] = mData[40]; mData[40] = mData[41]; mData[41] = aHold;
+}
+
+void M88::Mini_SnakeA_2x2_J() {
+    std::uint8_t aHold = 0;
+    aHold = mData[34]; mData[34] = mData[35]; mData[35] = mData[42]; mData[42] = mData[43]; mData[43] = aHold;
+}
+
+void M88::Mini_SnakeA_2x2_K() {
+    std::uint8_t aHold = 0;
+    aHold = mData[36]; mData[36] = mData[37]; mData[37] = mData[44]; mData[44] = mData[45]; mData[45] = aHold;
+}
+
+void M88::Mini_SnakeA_2x2_L() {
+    std::uint8_t aHold = 0;
+    aHold = mData[38]; mData[38] = mData[39]; mData[39] = mData[46]; mData[46] = mData[47]; mData[47] = aHold;
+}
+
+void M88::Mini_SnakeA_2x2_M() {
+    std::uint8_t aHold = 0;
+    aHold = mData[48]; mData[48] = mData[49]; mData[49] = mData[56]; mData[56] = mData[57]; mData[57] = aHold;
+}
+
+void M88::Mini_SnakeA_2x2_N() {
+    std::uint8_t aHold = 0;
+    aHold = mData[50]; mData[50] = mData[51]; mData[51] = mData[58]; mData[58] = mData[59]; mData[59] = aHold;
+}
+
+void M88::Mini_SnakeA_2x2_O() {
+    std::uint8_t aHold = 0;
+    aHold = mData[52]; mData[52] = mData[53]; mData[53] = mData[60]; mData[60] = mData[61]; mData[61] = aHold;
+}
+
+void M88::Mini_SnakeA_2x2_P() {
+    std::uint8_t aHold = 0;
+    aHold = mData[54]; mData[54] = mData[55]; mData[55] = mData[62]; mData[62] = mData[63]; mData[63] = aHold;
+}
+
+
+
+
+
+
+void M88::Full_SnakeB_2x2() {
+    std::uint8_t aHold = 0;
+    aHold = mData[0]; mData[0] = mData[36]; mData[36] = mData[32]; mData[32] = mData[4]; mData[4] = aHold;
+    aHold = mData[1]; mData[1] = mData[37]; mData[37] = mData[33]; mData[33] = mData[5]; mData[5] = aHold;
+    aHold = mData[2]; mData[2] = mData[38]; mData[38] = mData[34]; mData[34] = mData[6]; mData[6] = aHold;
+    aHold = mData[3]; mData[3] = mData[39]; mData[39] = mData[35]; mData[35] = mData[7]; mData[7] = aHold;
+    aHold = mData[8]; mData[8] = mData[44]; mData[44] = mData[40]; mData[40] = mData[12]; mData[12] = aHold;
+    aHold = mData[9]; mData[9] = mData[45]; mData[45] = mData[41]; mData[41] = mData[13]; mData[13] = aHold;
+    aHold = mData[10]; mData[10] = mData[46]; mData[46] = mData[42]; mData[42] = mData[14]; mData[14] = aHold;
+    aHold = mData[11]; mData[11] = mData[47]; mData[47] = mData[43]; mData[43] = mData[15]; mData[15] = aHold;
+    aHold = mData[16]; mData[16] = mData[52]; mData[52] = mData[48]; mData[48] = mData[20]; mData[20] = aHold;
+    aHold = mData[17]; mData[17] = mData[53]; mData[53] = mData[49]; mData[49] = mData[21]; mData[21] = aHold;
+    aHold = mData[18]; mData[18] = mData[54]; mData[54] = mData[50]; mData[50] = mData[22]; mData[22] = aHold;
+    aHold = mData[19]; mData[19] = mData[55]; mData[55] = mData[51]; mData[51] = mData[23]; mData[23] = aHold;
+    aHold = mData[24]; mData[24] = mData[60]; mData[60] = mData[56]; mData[56] = mData[28]; mData[28] = aHold;
+    aHold = mData[25]; mData[25] = mData[61]; mData[61] = mData[57]; mData[57] = mData[29]; mData[29] = aHold;
+    aHold = mData[26]; mData[26] = mData[62]; mData[62] = mData[58]; mData[58] = mData[30]; mData[30] = aHold;
+    aHold = mData[27]; mData[27] = mData[63]; mData[63] = mData[59]; mData[59] = mData[31]; mData[31] = aHold;
+}
+
+void M88::Full_SnakeB_EachQuad_2x2() {
+    Quad_SnakeB_2x2_A();
+    Quad_SnakeB_2x2_B();
+    Quad_SnakeB_2x2_C();
+    Quad_SnakeB_2x2_D();
+}
+
+void M88::Full_SnakeB_EachMini_2x2() {
+    Mini_SnakeB_2x2_A();
+    Mini_SnakeB_2x2_B();
+    Mini_SnakeB_2x2_C();
+    Mini_SnakeB_2x2_D();
+    Mini_SnakeB_2x2_E();
+    Mini_SnakeB_2x2_F();
+    Mini_SnakeB_2x2_G();
+    Mini_SnakeB_2x2_H();
+    Mini_SnakeB_2x2_I();
+    Mini_SnakeB_2x2_J();
+    Mini_SnakeB_2x2_K();
+    Mini_SnakeB_2x2_L();
+    Mini_SnakeB_2x2_M();
+    Mini_SnakeB_2x2_N();
+    Mini_SnakeB_2x2_O();
+    Mini_SnakeB_2x2_P();
+}
+
+void M88::Quad_SnakeB_EachMini_2x2_A() {
+    Mini_SnakeB_2x2_A();
+    Mini_SnakeB_2x2_B();
+    Mini_SnakeB_2x2_E();
+    Mini_SnakeB_2x2_F();
+}
+
+void M88::Quad_SnakeB_EachMini_2x2_B() {
+    Mini_SnakeB_2x2_C();
+    Mini_SnakeB_2x2_D();
+    Mini_SnakeB_2x2_G();
+    Mini_SnakeB_2x2_H();
+}
+
+void M88::Quad_SnakeB_EachMini_2x2_C() {
+    Mini_SnakeB_2x2_I();
+    Mini_SnakeB_2x2_J();
+    Mini_SnakeB_2x2_M();
+    Mini_SnakeB_2x2_N();
+}
+
+void M88::Quad_SnakeB_EachMini_2x2_D() {
+    Mini_SnakeB_2x2_K();
+    Mini_SnakeB_2x2_L();
+    Mini_SnakeB_2x2_O();
+    Mini_SnakeB_2x2_P();
+}
+
+void M88::Quad_SnakeB_2x2_A() {
+    std::uint8_t aHold = 0;
+    aHold = mData[0]; mData[0] = mData[18]; mData[18] = mData[16]; mData[16] = mData[2]; mData[2] = aHold;
+    aHold = mData[1]; mData[1] = mData[19]; mData[19] = mData[17]; mData[17] = mData[3]; mData[3] = aHold;
+    aHold = mData[8]; mData[8] = mData[26]; mData[26] = mData[24]; mData[24] = mData[10]; mData[10] = aHold;
+    aHold = mData[9]; mData[9] = mData[27]; mData[27] = mData[25]; mData[25] = mData[11]; mData[11] = aHold;
+}
+
+void M88::Quad_SnakeB_2x2_B() {
+    std::uint8_t aHold = 0;
+    aHold = mData[4]; mData[4] = mData[22]; mData[22] = mData[20]; mData[20] = mData[6]; mData[6] = aHold;
+    aHold = mData[5]; mData[5] = mData[23]; mData[23] = mData[21]; mData[21] = mData[7]; mData[7] = aHold;
+    aHold = mData[12]; mData[12] = mData[30]; mData[30] = mData[28]; mData[28] = mData[14]; mData[14] = aHold;
+    aHold = mData[13]; mData[13] = mData[31]; mData[31] = mData[29]; mData[29] = mData[15]; mData[15] = aHold;
+}
+
+void M88::Quad_SnakeB_2x2_C() {
+    std::uint8_t aHold = 0;
+    aHold = mData[32]; mData[32] = mData[50]; mData[50] = mData[48]; mData[48] = mData[34]; mData[34] = aHold;
+    aHold = mData[33]; mData[33] = mData[51]; mData[51] = mData[49]; mData[49] = mData[35]; mData[35] = aHold;
+    aHold = mData[40]; mData[40] = mData[58]; mData[58] = mData[56]; mData[56] = mData[42]; mData[42] = aHold;
+    aHold = mData[41]; mData[41] = mData[59]; mData[59] = mData[57]; mData[57] = mData[43]; mData[43] = aHold;
+}
+
+void M88::Quad_SnakeB_2x2_D() {
+    std::uint8_t aHold = 0;
+    aHold = mData[36]; mData[36] = mData[54]; mData[54] = mData[52]; mData[52] = mData[38]; mData[38] = aHold;
+    aHold = mData[37]; mData[37] = mData[55]; mData[55] = mData[53]; mData[53] = mData[39]; mData[39] = aHold;
+    aHold = mData[44]; mData[44] = mData[62]; mData[62] = mData[60]; mData[60] = mData[46]; mData[46] = aHold;
+    aHold = mData[45]; mData[45] = mData[63]; mData[63] = mData[61]; mData[61] = mData[47]; mData[47] = aHold;
+}
+
+void M88::Mini_SnakeB_2x2_A() {
+    std::uint8_t aHold = 0;
+    aHold = mData[0]; mData[0] = mData[9]; mData[9] = mData[8]; mData[8] = mData[1]; mData[1] = aHold;
+}
+
+void M88::Mini_SnakeB_2x2_B() {
+    std::uint8_t aHold = 0;
+    aHold = mData[2]; mData[2] = mData[11]; mData[11] = mData[10]; mData[10] = mData[3]; mData[3] = aHold;
+}
+
+void M88::Mini_SnakeB_2x2_C() {
+    std::uint8_t aHold = 0;
+    aHold = mData[4]; mData[4] = mData[13]; mData[13] = mData[12]; mData[12] = mData[5]; mData[5] = aHold;
+}
+
+void M88::Mini_SnakeB_2x2_D() {
+    std::uint8_t aHold = 0;
+    aHold = mData[6]; mData[6] = mData[15]; mData[15] = mData[14]; mData[14] = mData[7]; mData[7] = aHold;
+}
+
+void M88::Mini_SnakeB_2x2_E() {
+    std::uint8_t aHold = 0;
+    aHold = mData[16]; mData[16] = mData[25]; mData[25] = mData[24]; mData[24] = mData[17]; mData[17] = aHold;
+}
+
+void M88::Mini_SnakeB_2x2_F() {
+    std::uint8_t aHold = 0;
+    aHold = mData[18]; mData[18] = mData[27]; mData[27] = mData[26]; mData[26] = mData[19]; mData[19] = aHold;
+}
+
+void M88::Mini_SnakeB_2x2_G() {
+    std::uint8_t aHold = 0;
+    aHold = mData[20]; mData[20] = mData[29]; mData[29] = mData[28]; mData[28] = mData[21]; mData[21] = aHold;
+}
+
+void M88::Mini_SnakeB_2x2_H() {
+    std::uint8_t aHold = 0;
+    aHold = mData[22]; mData[22] = mData[31]; mData[31] = mData[30]; mData[30] = mData[23]; mData[23] = aHold;
+}
+
+void M88::Mini_SnakeB_2x2_I() {
+    std::uint8_t aHold = 0;
+    aHold = mData[32]; mData[32] = mData[41]; mData[41] = mData[40]; mData[40] = mData[33]; mData[33] = aHold;
+}
+
+void M88::Mini_SnakeB_2x2_J() {
+    std::uint8_t aHold = 0;
+    aHold = mData[34]; mData[34] = mData[43]; mData[43] = mData[42]; mData[42] = mData[35]; mData[35] = aHold;
+}
+
+void M88::Mini_SnakeB_2x2_K() {
+    std::uint8_t aHold = 0;
+    aHold = mData[36]; mData[36] = mData[45]; mData[45] = mData[44]; mData[44] = mData[37]; mData[37] = aHold;
+}
+
+void M88::Mini_SnakeB_2x2_L() {
+    std::uint8_t aHold = 0;
+    aHold = mData[38]; mData[38] = mData[47]; mData[47] = mData[46]; mData[46] = mData[39]; mData[39] = aHold;
+}
+
+void M88::Mini_SnakeB_2x2_M() {
+    std::uint8_t aHold = 0;
+    aHold = mData[48]; mData[48] = mData[57]; mData[57] = mData[56]; mData[56] = mData[49]; mData[49] = aHold;
+}
+
+void M88::Mini_SnakeB_2x2_N() {
+    std::uint8_t aHold = 0;
+    aHold = mData[50]; mData[50] = mData[59]; mData[59] = mData[58]; mData[58] = mData[51]; mData[51] = aHold;
+}
+
+void M88::Mini_SnakeB_2x2_O() {
+    std::uint8_t aHold = 0;
+    aHold = mData[52]; mData[52] = mData[61]; mData[61] = mData[60]; mData[60] = mData[53]; mData[53] = aHold;
+}
+
+void M88::Mini_SnakeB_2x2_P() {
+    std::uint8_t aHold = 0;
+    aHold = mData[54]; mData[54] = mData[63]; mData[63] = mData[62]; mData[62] = mData[55]; mData[55] = aHold;
+}
+
+
+
+
+
+void M88::Full_SnakeC_2x2() {
+    std::uint8_t aHold = 0;
+    aHold = mData[0]; mData[0] = mData[32]; mData[32] = mData[4]; mData[4] = mData[36]; mData[36] = aHold;
+    aHold = mData[1]; mData[1] = mData[33]; mData[33] = mData[5]; mData[5] = mData[37]; mData[37] = aHold;
+    aHold = mData[2]; mData[2] = mData[34]; mData[34] = mData[6]; mData[6] = mData[38]; mData[38] = aHold;
+    aHold = mData[3]; mData[3] = mData[35]; mData[35] = mData[7]; mData[7] = mData[39]; mData[39] = aHold;
+    aHold = mData[8]; mData[8] = mData[40]; mData[40] = mData[12]; mData[12] = mData[44]; mData[44] = aHold;
+    aHold = mData[9]; mData[9] = mData[41]; mData[41] = mData[13]; mData[13] = mData[45]; mData[45] = aHold;
+    aHold = mData[10]; mData[10] = mData[42]; mData[42] = mData[14]; mData[14] = mData[46]; mData[46] = aHold;
+    aHold = mData[11]; mData[11] = mData[43]; mData[43] = mData[15]; mData[15] = mData[47]; mData[47] = aHold;
+    aHold = mData[16]; mData[16] = mData[48]; mData[48] = mData[20]; mData[20] = mData[52]; mData[52] = aHold;
+    aHold = mData[17]; mData[17] = mData[49]; mData[49] = mData[21]; mData[21] = mData[53]; mData[53] = aHold;
+    aHold = mData[18]; mData[18] = mData[50]; mData[50] = mData[22]; mData[22] = mData[54]; mData[54] = aHold;
+    aHold = mData[19]; mData[19] = mData[51]; mData[51] = mData[23]; mData[23] = mData[55]; mData[55] = aHold;
+    aHold = mData[24]; mData[24] = mData[56]; mData[56] = mData[28]; mData[28] = mData[60]; mData[60] = aHold;
+    aHold = mData[25]; mData[25] = mData[57]; mData[57] = mData[29]; mData[29] = mData[61]; mData[61] = aHold;
+    aHold = mData[26]; mData[26] = mData[58]; mData[58] = mData[30]; mData[30] = mData[62]; mData[62] = aHold;
+    aHold = mData[27]; mData[27] = mData[59]; mData[59] = mData[31]; mData[31] = mData[63]; mData[63] = aHold;
+}
+
+void M88::Full_SnakeC_EachQuad_2x2() {
+    Quad_SnakeC_2x2_A();
+    Quad_SnakeC_2x2_B();
+    Quad_SnakeC_2x2_C();
+    Quad_SnakeC_2x2_D();
+}
+
+void M88::Full_SnakeC_EachMini_2x2() {
+    Mini_SnakeC_2x2_A();
+    Mini_SnakeC_2x2_B();
+    Mini_SnakeC_2x2_C();
+    Mini_SnakeC_2x2_D();
+    Mini_SnakeC_2x2_E();
+    Mini_SnakeC_2x2_F();
+    Mini_SnakeC_2x2_G();
+    Mini_SnakeC_2x2_H();
+    Mini_SnakeC_2x2_I();
+    Mini_SnakeC_2x2_J();
+    Mini_SnakeC_2x2_K();
+    Mini_SnakeC_2x2_L();
+    Mini_SnakeC_2x2_M();
+    Mini_SnakeC_2x2_N();
+    Mini_SnakeC_2x2_O();
+    Mini_SnakeC_2x2_P();
+}
+
+void M88::Quad_SnakeC_EachMini_2x2_A() {
+    Mini_SnakeC_2x2_A();
+    Mini_SnakeC_2x2_B();
+    Mini_SnakeC_2x2_E();
+    Mini_SnakeC_2x2_F();
+}
+
+void M88::Quad_SnakeC_EachMini_2x2_B() {
+    Mini_SnakeC_2x2_C();
+    Mini_SnakeC_2x2_D();
+    Mini_SnakeC_2x2_G();
+    Mini_SnakeC_2x2_H();
+}
+
+void M88::Quad_SnakeC_EachMini_2x2_C() {
+    Mini_SnakeC_2x2_I();
+    Mini_SnakeC_2x2_J();
+    Mini_SnakeC_2x2_M();
+    Mini_SnakeC_2x2_N();
+}
+
+void M88::Quad_SnakeC_EachMini_2x2_D() {
+    Mini_SnakeC_2x2_K();
+    Mini_SnakeC_2x2_L();
+    Mini_SnakeC_2x2_O();
+    Mini_SnakeC_2x2_P();
+}
+
+void M88::Quad_SnakeC_2x2_A() {
+    std::uint8_t aHold = 0;
+    aHold = mData[0]; mData[0] = mData[16]; mData[16] = mData[2]; mData[2] = mData[18]; mData[18] = aHold;
+    aHold = mData[1]; mData[1] = mData[17]; mData[17] = mData[3]; mData[3] = mData[19]; mData[19] = aHold;
+    aHold = mData[8]; mData[8] = mData[24]; mData[24] = mData[10]; mData[10] = mData[26]; mData[26] = aHold;
+    aHold = mData[9]; mData[9] = mData[25]; mData[25] = mData[11]; mData[11] = mData[27]; mData[27] = aHold;
+}
+
+void M88::Quad_SnakeC_2x2_B() {
+    std::uint8_t aHold = 0;
+    aHold = mData[4]; mData[4] = mData[20]; mData[20] = mData[6]; mData[6] = mData[22]; mData[22] = aHold;
+    aHold = mData[5]; mData[5] = mData[21]; mData[21] = mData[7]; mData[7] = mData[23]; mData[23] = aHold;
+    aHold = mData[12]; mData[12] = mData[28]; mData[28] = mData[14]; mData[14] = mData[30]; mData[30] = aHold;
+    aHold = mData[13]; mData[13] = mData[29]; mData[29] = mData[15]; mData[15] = mData[31]; mData[31] = aHold;
+}
+
+void M88::Quad_SnakeC_2x2_C() {
+    std::uint8_t aHold = 0;
+    aHold = mData[32]; mData[32] = mData[48]; mData[48] = mData[34]; mData[34] = mData[50]; mData[50] = aHold;
+    aHold = mData[33]; mData[33] = mData[49]; mData[49] = mData[35]; mData[35] = mData[51]; mData[51] = aHold;
+    aHold = mData[40]; mData[40] = mData[56]; mData[56] = mData[42]; mData[42] = mData[58]; mData[58] = aHold;
+    aHold = mData[41]; mData[41] = mData[57]; mData[57] = mData[43]; mData[43] = mData[59]; mData[59] = aHold;
+}
+
+void M88::Quad_SnakeC_2x2_D() {
+    std::uint8_t aHold = 0;
+    aHold = mData[36]; mData[36] = mData[52]; mData[52] = mData[38]; mData[38] = mData[54]; mData[54] = aHold;
+    aHold = mData[37]; mData[37] = mData[53]; mData[53] = mData[39]; mData[39] = mData[55]; mData[55] = aHold;
+    aHold = mData[44]; mData[44] = mData[60]; mData[60] = mData[46]; mData[46] = mData[62]; mData[62] = aHold;
+    aHold = mData[45]; mData[45] = mData[61]; mData[61] = mData[47]; mData[47] = mData[63]; mData[63] = aHold;
+}
+
+void M88::Mini_SnakeC_2x2_A() {
+    std::uint8_t aHold = 0;
+    aHold = mData[0]; mData[0] = mData[8]; mData[8] = mData[1]; mData[1] = mData[9]; mData[9] = aHold;
+}
+
+void M88::Mini_SnakeC_2x2_B() {
+    std::uint8_t aHold = 0;
+    aHold = mData[2]; mData[2] = mData[10]; mData[10] = mData[3]; mData[3] = mData[11]; mData[11] = aHold;
+}
+
+void M88::Mini_SnakeC_2x2_C() {
+    std::uint8_t aHold = 0;
+    aHold = mData[4]; mData[4] = mData[12]; mData[12] = mData[5]; mData[5] = mData[13]; mData[13] = aHold;
+}
+
+void M88::Mini_SnakeC_2x2_D() {
+    std::uint8_t aHold = 0;
+    aHold = mData[6]; mData[6] = mData[14]; mData[14] = mData[7]; mData[7] = mData[15]; mData[15] = aHold;
+}
+
+void M88::Mini_SnakeC_2x2_E() {
+    std::uint8_t aHold = 0;
+    aHold = mData[16]; mData[16] = mData[24]; mData[24] = mData[17]; mData[17] = mData[25]; mData[25] = aHold;
+}
+
+void M88::Mini_SnakeC_2x2_F() {
+    std::uint8_t aHold = 0;
+    aHold = mData[18]; mData[18] = mData[26]; mData[26] = mData[19]; mData[19] = mData[27]; mData[27] = aHold;
+}
+
+void M88::Mini_SnakeC_2x2_G() {
+    std::uint8_t aHold = 0;
+    aHold = mData[20]; mData[20] = mData[28]; mData[28] = mData[21]; mData[21] = mData[29]; mData[29] = aHold;
+}
+
+void M88::Mini_SnakeC_2x2_H() {
+    std::uint8_t aHold = 0;
+    aHold = mData[22]; mData[22] = mData[30]; mData[30] = mData[23]; mData[23] = mData[31]; mData[31] = aHold;
+}
+
+void M88::Mini_SnakeC_2x2_I() {
+    std::uint8_t aHold = 0;
+    aHold = mData[32]; mData[32] = mData[40]; mData[40] = mData[33]; mData[33] = mData[41]; mData[41] = aHold;
+}
+
+void M88::Mini_SnakeC_2x2_J() {
+    std::uint8_t aHold = 0;
+    aHold = mData[34]; mData[34] = mData[42]; mData[42] = mData[35]; mData[35] = mData[43]; mData[43] = aHold;
+}
+
+void M88::Mini_SnakeC_2x2_K() {
+    std::uint8_t aHold = 0;
+    aHold = mData[36]; mData[36] = mData[44]; mData[44] = mData[37]; mData[37] = mData[45]; mData[45] = aHold;
+}
+
+void M88::Mini_SnakeC_2x2_L() {
+    std::uint8_t aHold = 0;
+    aHold = mData[38]; mData[38] = mData[46]; mData[46] = mData[39]; mData[39] = mData[47]; mData[47] = aHold;
+}
+
+void M88::Mini_SnakeC_2x2_M() {
+    std::uint8_t aHold = 0;
+    aHold = mData[48]; mData[48] = mData[56]; mData[56] = mData[49]; mData[49] = mData[57]; mData[57] = aHold;
+}
+
+void M88::Mini_SnakeC_2x2_N() {
+    std::uint8_t aHold = 0;
+    aHold = mData[50]; mData[50] = mData[58]; mData[58] = mData[51]; mData[51] = mData[59]; mData[59] = aHold;
+}
+
+void M88::Mini_SnakeC_2x2_O() {
+    std::uint8_t aHold = 0;
+    aHold = mData[52]; mData[52] = mData[60]; mData[60] = mData[53]; mData[53] = mData[61]; mData[61] = aHold;
+}
+
+void M88::Mini_SnakeC_2x2_P() {
+    std::uint8_t aHold = 0;
+    aHold = mData[54]; mData[54] = mData[62]; mData[62] = mData[55]; mData[55] = mData[63]; mData[63] = aHold;
+}
+
+
+
+
+
+void M88::Full_SnakeD_2x2() {
+    std::uint8_t aHold = 0;
+    aHold = mData[0]; mData[0] = mData[36]; mData[36] = mData[4]; mData[4] = mData[32]; mData[32] = aHold;
+    aHold = mData[1]; mData[1] = mData[37]; mData[37] = mData[5]; mData[5] = mData[33]; mData[33] = aHold;
+    aHold = mData[2]; mData[2] = mData[38]; mData[38] = mData[6]; mData[6] = mData[34]; mData[34] = aHold;
+    aHold = mData[3]; mData[3] = mData[39]; mData[39] = mData[7]; mData[7] = mData[35]; mData[35] = aHold;
+    aHold = mData[8]; mData[8] = mData[44]; mData[44] = mData[12]; mData[12] = mData[40]; mData[40] = aHold;
+    aHold = mData[9]; mData[9] = mData[45]; mData[45] = mData[13]; mData[13] = mData[41]; mData[41] = aHold;
+    aHold = mData[10]; mData[10] = mData[46]; mData[46] = mData[14]; mData[14] = mData[42]; mData[42] = aHold;
+    aHold = mData[11]; mData[11] = mData[47]; mData[47] = mData[15]; mData[15] = mData[43]; mData[43] = aHold;
+    aHold = mData[16]; mData[16] = mData[52]; mData[52] = mData[20]; mData[20] = mData[48]; mData[48] = aHold;
+    aHold = mData[17]; mData[17] = mData[53]; mData[53] = mData[21]; mData[21] = mData[49]; mData[49] = aHold;
+    aHold = mData[18]; mData[18] = mData[54]; mData[54] = mData[22]; mData[22] = mData[50]; mData[50] = aHold;
+    aHold = mData[19]; mData[19] = mData[55]; mData[55] = mData[23]; mData[23] = mData[51]; mData[51] = aHold;
+    aHold = mData[24]; mData[24] = mData[60]; mData[60] = mData[28]; mData[28] = mData[56]; mData[56] = aHold;
+    aHold = mData[25]; mData[25] = mData[61]; mData[61] = mData[29]; mData[29] = mData[57]; mData[57] = aHold;
+    aHold = mData[26]; mData[26] = mData[62]; mData[62] = mData[30]; mData[30] = mData[58]; mData[58] = aHold;
+    aHold = mData[27]; mData[27] = mData[63]; mData[63] = mData[31]; mData[31] = mData[59]; mData[59] = aHold;
+}
+
+void M88::Full_SnakeD_EachQuad_2x2() {
+    Quad_SnakeD_2x2_A();
+    Quad_SnakeD_2x2_B();
+    Quad_SnakeD_2x2_C();
+    Quad_SnakeD_2x2_D();
+}
+
+void M88::Full_SnakeD_EachMini_2x2() {
+    Mini_SnakeD_2x2_A();
+    Mini_SnakeD_2x2_B();
+    Mini_SnakeD_2x2_C();
+    Mini_SnakeD_2x2_D();
+    Mini_SnakeD_2x2_E();
+    Mini_SnakeD_2x2_F();
+    Mini_SnakeD_2x2_G();
+    Mini_SnakeD_2x2_H();
+    Mini_SnakeD_2x2_I();
+    Mini_SnakeD_2x2_J();
+    Mini_SnakeD_2x2_K();
+    Mini_SnakeD_2x2_L();
+    Mini_SnakeD_2x2_M();
+    Mini_SnakeD_2x2_N();
+    Mini_SnakeD_2x2_O();
+    Mini_SnakeD_2x2_P();
+}
+
+void M88::Quad_SnakeD_EachMini_2x2_A() {
+    Mini_SnakeD_2x2_A();
+    Mini_SnakeD_2x2_B();
+    Mini_SnakeD_2x2_E();
+    Mini_SnakeD_2x2_F();
+}
+
+void M88::Quad_SnakeD_EachMini_2x2_B() {
+    Mini_SnakeD_2x2_C();
+    Mini_SnakeD_2x2_D();
+    Mini_SnakeD_2x2_G();
+    Mini_SnakeD_2x2_H();
+}
+
+void M88::Quad_SnakeD_EachMini_2x2_C() {
+    Mini_SnakeD_2x2_I();
+    Mini_SnakeD_2x2_J();
+    Mini_SnakeD_2x2_M();
+    Mini_SnakeD_2x2_N();
+}
+
+void M88::Quad_SnakeD_EachMini_2x2_D() {
+    Mini_SnakeD_2x2_K();
+    Mini_SnakeD_2x2_L();
+    Mini_SnakeD_2x2_O();
+    Mini_SnakeD_2x2_P();
+}
+
+void M88::Quad_SnakeD_2x2_A() {
+    std::uint8_t aHold = 0;
+    aHold = mData[0]; mData[0] = mData[18]; mData[18] = mData[2]; mData[2] = mData[16]; mData[16] = aHold;
+    aHold = mData[1]; mData[1] = mData[19]; mData[19] = mData[3]; mData[3] = mData[17]; mData[17] = aHold;
+    aHold = mData[8]; mData[8] = mData[26]; mData[26] = mData[10]; mData[10] = mData[24]; mData[24] = aHold;
+    aHold = mData[9]; mData[9] = mData[27]; mData[27] = mData[11]; mData[11] = mData[25]; mData[25] = aHold;
+}
+
+void M88::Quad_SnakeD_2x2_B() {
+    std::uint8_t aHold = 0;
+    aHold = mData[4]; mData[4] = mData[22]; mData[22] = mData[6]; mData[6] = mData[20]; mData[20] = aHold;
+    aHold = mData[5]; mData[5] = mData[23]; mData[23] = mData[7]; mData[7] = mData[21]; mData[21] = aHold;
+    aHold = mData[12]; mData[12] = mData[30]; mData[30] = mData[14]; mData[14] = mData[28]; mData[28] = aHold;
+    aHold = mData[13]; mData[13] = mData[31]; mData[31] = mData[15]; mData[15] = mData[29]; mData[29] = aHold;
+}
+
+void M88::Quad_SnakeD_2x2_C() {
+    std::uint8_t aHold = 0;
+    aHold = mData[32]; mData[32] = mData[50]; mData[50] = mData[34]; mData[34] = mData[48]; mData[48] = aHold;
+    aHold = mData[33]; mData[33] = mData[51]; mData[51] = mData[35]; mData[35] = mData[49]; mData[49] = aHold;
+    aHold = mData[40]; mData[40] = mData[58]; mData[58] = mData[42]; mData[42] = mData[56]; mData[56] = aHold;
+    aHold = mData[41]; mData[41] = mData[59]; mData[59] = mData[43]; mData[43] = mData[57]; mData[57] = aHold;
+}
+
+void M88::Quad_SnakeD_2x2_D() {
+    std::uint8_t aHold = 0;
+    aHold = mData[36]; mData[36] = mData[54]; mData[54] = mData[38]; mData[38] = mData[52]; mData[52] = aHold;
+    aHold = mData[37]; mData[37] = mData[55]; mData[55] = mData[39]; mData[39] = mData[53]; mData[53] = aHold;
+    aHold = mData[44]; mData[44] = mData[62]; mData[62] = mData[46]; mData[46] = mData[60]; mData[60] = aHold;
+    aHold = mData[45]; mData[45] = mData[63]; mData[63] = mData[47]; mData[47] = mData[61]; mData[61] = aHold;
+}
+
+void M88::Mini_SnakeD_2x2_A() {
+    std::uint8_t aHold = 0;
+    aHold = mData[0]; mData[0] = mData[9]; mData[9] = mData[1]; mData[1] = mData[8]; mData[8] = aHold;
+}
+
+void M88::Mini_SnakeD_2x2_B() {
+    std::uint8_t aHold = 0;
+    aHold = mData[2]; mData[2] = mData[11]; mData[11] = mData[3]; mData[3] = mData[10]; mData[10] = aHold;
+}
+
+void M88::Mini_SnakeD_2x2_C() {
+    std::uint8_t aHold = 0;
+    aHold = mData[4]; mData[4] = mData[13]; mData[13] = mData[5]; mData[5] = mData[12]; mData[12] = aHold;
+}
+
+void M88::Mini_SnakeD_2x2_D() {
+    std::uint8_t aHold = 0;
+    aHold = mData[6]; mData[6] = mData[15]; mData[15] = mData[7]; mData[7] = mData[14]; mData[14] = aHold;
+}
+
+void M88::Mini_SnakeD_2x2_E() {
+    std::uint8_t aHold = 0;
+    aHold = mData[16]; mData[16] = mData[25]; mData[25] = mData[17]; mData[17] = mData[24]; mData[24] = aHold;
+}
+
+void M88::Mini_SnakeD_2x2_F() {
+    std::uint8_t aHold = 0;
+    aHold = mData[18]; mData[18] = mData[27]; mData[27] = mData[19]; mData[19] = mData[26]; mData[26] = aHold;
+}
+
+void M88::Mini_SnakeD_2x2_G() {
+    std::uint8_t aHold = 0;
+    aHold = mData[20]; mData[20] = mData[29]; mData[29] = mData[21]; mData[21] = mData[28]; mData[28] = aHold;
+}
+
+void M88::Mini_SnakeD_2x2_H() {
+    std::uint8_t aHold = 0;
+    aHold = mData[22]; mData[22] = mData[31]; mData[31] = mData[23]; mData[23] = mData[30]; mData[30] = aHold;
+}
+
+void M88::Mini_SnakeD_2x2_I() {
+    std::uint8_t aHold = 0;
+    aHold = mData[32]; mData[32] = mData[41]; mData[41] = mData[33]; mData[33] = mData[40]; mData[40] = aHold;
+}
+
+void M88::Mini_SnakeD_2x2_J() {
+    std::uint8_t aHold = 0;
+    aHold = mData[34]; mData[34] = mData[43]; mData[43] = mData[35]; mData[35] = mData[42]; mData[42] = aHold;
+}
+
+void M88::Mini_SnakeD_2x2_K() {
+    std::uint8_t aHold = 0;
+    aHold = mData[36]; mData[36] = mData[45]; mData[45] = mData[37]; mData[37] = mData[44]; mData[44] = aHold;
+}
+
+void M88::Mini_SnakeD_2x2_L() {
+    std::uint8_t aHold = 0;
+    aHold = mData[38]; mData[38] = mData[47]; mData[47] = mData[39]; mData[39] = mData[46]; mData[46] = aHold;
+}
+
+void M88::Mini_SnakeD_2x2_M() {
+    std::uint8_t aHold = 0;
+    aHold = mData[48]; mData[48] = mData[57]; mData[57] = mData[49]; mData[49] = mData[56]; mData[56] = aHold;
+}
+
+void M88::Mini_SnakeD_2x2_N() {
+    std::uint8_t aHold = 0;
+    aHold = mData[50]; mData[50] = mData[59]; mData[59] = mData[51]; mData[51] = mData[58]; mData[58] = aHold;
+}
+
+void M88::Mini_SnakeD_2x2_O() {
+    std::uint8_t aHold = 0;
+    aHold = mData[52]; mData[52] = mData[61]; mData[61] = mData[53]; mData[53] = mData[60]; mData[60] = aHold;
+}
+
+void M88::Mini_SnakeD_2x2_P() {
+    std::uint8_t aHold = 0;
+    aHold = mData[54]; mData[54] = mData[63]; mData[63] = mData[55]; mData[55] = mData[62]; mData[62] = aHold;
+}
+
+
+
+void M88::Full_TriadA_2x2() {
+    std::uint8_t aHold = 0;
+    aHold = mData[0]; mData[0] = mData[4]; mData[4] = mData[32]; mData[32] = aHold;
+    aHold = mData[1]; mData[1] = mData[5]; mData[5] = mData[33]; mData[33] = aHold;
+    aHold = mData[2]; mData[2] = mData[6]; mData[6] = mData[34]; mData[34] = aHold;
+    aHold = mData[3]; mData[3] = mData[7]; mData[7] = mData[35]; mData[35] = aHold;
+    aHold = mData[8]; mData[8] = mData[12]; mData[12] = mData[40]; mData[40] = aHold;
+    aHold = mData[9]; mData[9] = mData[13]; mData[13] = mData[41]; mData[41] = aHold;
+    aHold = mData[10]; mData[10] = mData[14]; mData[14] = mData[42]; mData[42] = aHold;
+    aHold = mData[11]; mData[11] = mData[15]; mData[15] = mData[43]; mData[43] = aHold;
+    aHold = mData[16]; mData[16] = mData[20]; mData[20] = mData[48]; mData[48] = aHold;
+    aHold = mData[17]; mData[17] = mData[21]; mData[21] = mData[49]; mData[49] = aHold;
+    aHold = mData[18]; mData[18] = mData[22]; mData[22] = mData[50]; mData[50] = aHold;
+    aHold = mData[19]; mData[19] = mData[23]; mData[23] = mData[51]; mData[51] = aHold;
+    aHold = mData[24]; mData[24] = mData[28]; mData[28] = mData[56]; mData[56] = aHold;
+    aHold = mData[25]; mData[25] = mData[29]; mData[29] = mData[57]; mData[57] = aHold;
+    aHold = mData[26]; mData[26] = mData[30]; mData[30] = mData[58]; mData[58] = aHold;
+    aHold = mData[27]; mData[27] = mData[31]; mData[31] = mData[59]; mData[59] = aHold;
+}
+
+void M88::Full_TriadA_EachQuad_2x2() {
+    Quad_TriadA_2x2_A();
+    Quad_TriadA_2x2_B();
+    Quad_TriadA_2x2_C();
+    Quad_TriadA_2x2_D();
+}
+
+void M88::Full_TriadA_EachMini_2x2() {
+    Mini_TriadA_2x2_A();
+    Mini_TriadA_2x2_B();
+    Mini_TriadA_2x2_C();
+    Mini_TriadA_2x2_D();
+    Mini_TriadA_2x2_E();
+    Mini_TriadA_2x2_F();
+    Mini_TriadA_2x2_G();
+    Mini_TriadA_2x2_H();
+    Mini_TriadA_2x2_I();
+    Mini_TriadA_2x2_J();
+    Mini_TriadA_2x2_K();
+    Mini_TriadA_2x2_L();
+    Mini_TriadA_2x2_M();
+    Mini_TriadA_2x2_N();
+    Mini_TriadA_2x2_O();
+    Mini_TriadA_2x2_P();
+}
+
+void M88::Quad_TriadA_EachMini_2x2_A() {
+    Mini_TriadA_2x2_A();
+    Mini_TriadA_2x2_B();
+    Mini_TriadA_2x2_E();
+    Mini_TriadA_2x2_F();
+}
+
+void M88::Quad_TriadA_EachMini_2x2_B() {
+    Mini_TriadA_2x2_C();
+    Mini_TriadA_2x2_D();
+    Mini_TriadA_2x2_G();
+    Mini_TriadA_2x2_H();
+}
+
+void M88::Quad_TriadA_EachMini_2x2_C() {
+    Mini_TriadA_2x2_I();
+    Mini_TriadA_2x2_J();
+    Mini_TriadA_2x2_M();
+    Mini_TriadA_2x2_N();
+}
+
+void M88::Quad_TriadA_EachMini_2x2_D() {
+    Mini_TriadA_2x2_K();
+    Mini_TriadA_2x2_L();
+    Mini_TriadA_2x2_O();
+    Mini_TriadA_2x2_P();
+}
+
+void M88::Quad_TriadA_2x2_A() {
+    std::uint8_t aHold = 0;
+    aHold = mData[0]; mData[0] = mData[2]; mData[2] = mData[16]; mData[16] = aHold;
+    aHold = mData[1]; mData[1] = mData[3]; mData[3] = mData[17]; mData[17] = aHold;
+    aHold = mData[8]; mData[8] = mData[10]; mData[10] = mData[24]; mData[24] = aHold;
+    aHold = mData[9]; mData[9] = mData[11]; mData[11] = mData[25]; mData[25] = aHold;
+}
+
+void M88::Quad_TriadA_2x2_B() {
+    std::uint8_t aHold = 0;
+    aHold = mData[4]; mData[4] = mData[6]; mData[6] = mData[20]; mData[20] = aHold;
+    aHold = mData[5]; mData[5] = mData[7]; mData[7] = mData[21]; mData[21] = aHold;
+    aHold = mData[12]; mData[12] = mData[14]; mData[14] = mData[28]; mData[28] = aHold;
+    aHold = mData[13]; mData[13] = mData[15]; mData[15] = mData[29]; mData[29] = aHold;
+}
+
+void M88::Quad_TriadA_2x2_C() {
+    std::uint8_t aHold = 0;
+    aHold = mData[32]; mData[32] = mData[34]; mData[34] = mData[48]; mData[48] = aHold;
+    aHold = mData[33]; mData[33] = mData[35]; mData[35] = mData[49]; mData[49] = aHold;
+    aHold = mData[40]; mData[40] = mData[42]; mData[42] = mData[56]; mData[56] = aHold;
+    aHold = mData[41]; mData[41] = mData[43]; mData[43] = mData[57]; mData[57] = aHold;
+}
+
+void M88::Quad_TriadA_2x2_D() {
+    std::uint8_t aHold = 0;
+    aHold = mData[36]; mData[36] = mData[38]; mData[38] = mData[52]; mData[52] = aHold;
+    aHold = mData[37]; mData[37] = mData[39]; mData[39] = mData[53]; mData[53] = aHold;
+    aHold = mData[44]; mData[44] = mData[46]; mData[46] = mData[60]; mData[60] = aHold;
+    aHold = mData[45]; mData[45] = mData[47]; mData[47] = mData[61]; mData[61] = aHold;
+}
+
+void M88::Mini_TriadA_2x2_A() {
+    std::uint8_t aHold = 0;
     aHold = mData[0]; mData[0] = mData[1]; mData[1] = mData[8]; mData[8] = aHold;
-
 }
 
-void M88::TriadAASixB() {
+void M88::Mini_TriadA_2x2_B() {
     std::uint8_t aHold = 0;
-
-    // cycle 0
     aHold = mData[2]; mData[2] = mData[3]; mData[3] = mData[10]; mData[10] = aHold;
-
 }
 
-void M88::TriadAASixC() {
+void M88::Mini_TriadA_2x2_C() {
     std::uint8_t aHold = 0;
-
-    // cycle 0
     aHold = mData[4]; mData[4] = mData[5]; mData[5] = mData[12]; mData[12] = aHold;
-
 }
 
-void M88::TriadAASixD() {
+void M88::Mini_TriadA_2x2_D() {
     std::uint8_t aHold = 0;
-
-    // cycle 0
     aHold = mData[6]; mData[6] = mData[7]; mData[7] = mData[14]; mData[14] = aHold;
-
 }
 
-void M88::TriadAASixE() {
+void M88::Mini_TriadA_2x2_E() {
     std::uint8_t aHold = 0;
-
-    // cycle 0
     aHold = mData[16]; mData[16] = mData[17]; mData[17] = mData[24]; mData[24] = aHold;
-
 }
 
-void M88::TriadAASixF() {
+void M88::Mini_TriadA_2x2_F() {
     std::uint8_t aHold = 0;
-
-    // cycle 0
     aHold = mData[18]; mData[18] = mData[19]; mData[19] = mData[26]; mData[26] = aHold;
-
 }
 
-void M88::TriadAASixG() {
+void M88::Mini_TriadA_2x2_G() {
     std::uint8_t aHold = 0;
-
-    // cycle 0
     aHold = mData[20]; mData[20] = mData[21]; mData[21] = mData[28]; mData[28] = aHold;
-
 }
 
-void M88::TriadAASixH() {
+void M88::Mini_TriadA_2x2_H() {
     std::uint8_t aHold = 0;
-
-    // cycle 0
     aHold = mData[22]; mData[22] = mData[23]; mData[23] = mData[30]; mData[30] = aHold;
-
 }
 
-void M88::TriadAASixI() {
+void M88::Mini_TriadA_2x2_I() {
     std::uint8_t aHold = 0;
-
-    // cycle 0
     aHold = mData[32]; mData[32] = mData[33]; mData[33] = mData[40]; mData[40] = aHold;
-
 }
 
-void M88::TriadAASixJ() {
+void M88::Mini_TriadA_2x2_J() {
     std::uint8_t aHold = 0;
-
-    // cycle 0
     aHold = mData[34]; mData[34] = mData[35]; mData[35] = mData[42]; mData[42] = aHold;
-
 }
 
-void M88::TriadAASixK() {
+void M88::Mini_TriadA_2x2_K() {
     std::uint8_t aHold = 0;
-
-    // cycle 0
     aHold = mData[36]; mData[36] = mData[37]; mData[37] = mData[44]; mData[44] = aHold;
-
 }
 
-void M88::TriadAASixL() {
+void M88::Mini_TriadA_2x2_L() {
     std::uint8_t aHold = 0;
-
-    // cycle 0
     aHold = mData[38]; mData[38] = mData[39]; mData[39] = mData[46]; mData[46] = aHold;
-
 }
 
-void M88::TriadAASixM() {
+void M88::Mini_TriadA_2x2_M() {
     std::uint8_t aHold = 0;
-
-    // cycle 0
     aHold = mData[48]; mData[48] = mData[49]; mData[49] = mData[56]; mData[56] = aHold;
-
 }
 
-void M88::TriadAASixN() {
+void M88::Mini_TriadA_2x2_N() {
     std::uint8_t aHold = 0;
-
-    // cycle 0
     aHold = mData[50]; mData[50] = mData[51]; mData[51] = mData[58]; mData[58] = aHold;
-
 }
 
-void M88::TriadAASixO() {
+void M88::Mini_TriadA_2x2_O() {
     std::uint8_t aHold = 0;
-
-    // cycle 0
     aHold = mData[52]; mData[52] = mData[53]; mData[53] = mData[60]; mData[60] = aHold;
-
 }
 
-void M88::TriadAASixP() {
+void M88::Mini_TriadA_2x2_P() {
     std::uint8_t aHold = 0;
-
-    // cycle 0
     aHold = mData[54]; mData[54] = mData[55]; mData[55] = mData[62]; mData[62] = aHold;
-
 }
 
-void M88::TriadABSixA() {
-    std::uint8_t aHold = 0;
 
-    // cycle 0
+
+void M88::Full_TriadB_2x2() {
+    std::uint8_t aHold = 0;
+    aHold = mData[0]; mData[0] = mData[32]; mData[32] = mData[4]; mData[4] = aHold;
+    aHold = mData[1]; mData[1] = mData[33]; mData[33] = mData[5]; mData[5] = aHold;
+    aHold = mData[2]; mData[2] = mData[34]; mData[34] = mData[6]; mData[6] = aHold;
+    aHold = mData[3]; mData[3] = mData[35]; mData[35] = mData[7]; mData[7] = aHold;
+    aHold = mData[8]; mData[8] = mData[40]; mData[40] = mData[12]; mData[12] = aHold;
+    aHold = mData[9]; mData[9] = mData[41]; mData[41] = mData[13]; mData[13] = aHold;
+    aHold = mData[10]; mData[10] = mData[42]; mData[42] = mData[14]; mData[14] = aHold;
+    aHold = mData[11]; mData[11] = mData[43]; mData[43] = mData[15]; mData[15] = aHold;
+    aHold = mData[16]; mData[16] = mData[48]; mData[48] = mData[20]; mData[20] = aHold;
+    aHold = mData[17]; mData[17] = mData[49]; mData[49] = mData[21]; mData[21] = aHold;
+    aHold = mData[18]; mData[18] = mData[50]; mData[50] = mData[22]; mData[22] = aHold;
+    aHold = mData[19]; mData[19] = mData[51]; mData[51] = mData[23]; mData[23] = aHold;
+    aHold = mData[24]; mData[24] = mData[56]; mData[56] = mData[28]; mData[28] = aHold;
+    aHold = mData[25]; mData[25] = mData[57]; mData[57] = mData[29]; mData[29] = aHold;
+    aHold = mData[26]; mData[26] = mData[58]; mData[58] = mData[30]; mData[30] = aHold;
+    aHold = mData[27]; mData[27] = mData[59]; mData[59] = mData[31]; mData[31] = aHold;
+}
+
+void M88::Full_TriadB_EachQuad_2x2() {
+    Quad_TriadB_2x2_A();
+    Quad_TriadB_2x2_B();
+    Quad_TriadB_2x2_C();
+    Quad_TriadB_2x2_D();
+}
+
+void M88::Full_TriadB_EachMini_2x2() {
+    Mini_TriadB_2x2_A();
+    Mini_TriadB_2x2_B();
+    Mini_TriadB_2x2_C();
+    Mini_TriadB_2x2_D();
+    Mini_TriadB_2x2_E();
+    Mini_TriadB_2x2_F();
+    Mini_TriadB_2x2_G();
+    Mini_TriadB_2x2_H();
+    Mini_TriadB_2x2_I();
+    Mini_TriadB_2x2_J();
+    Mini_TriadB_2x2_K();
+    Mini_TriadB_2x2_L();
+    Mini_TriadB_2x2_M();
+    Mini_TriadB_2x2_N();
+    Mini_TriadB_2x2_O();
+    Mini_TriadB_2x2_P();
+}
+
+void M88::Quad_TriadB_EachMini_2x2_A() {
+    Mini_TriadB_2x2_A();
+    Mini_TriadB_2x2_B();
+    Mini_TriadB_2x2_E();
+    Mini_TriadB_2x2_F();
+}
+
+void M88::Quad_TriadB_EachMini_2x2_B() {
+    Mini_TriadB_2x2_C();
+    Mini_TriadB_2x2_D();
+    Mini_TriadB_2x2_G();
+    Mini_TriadB_2x2_H();
+}
+
+void M88::Quad_TriadB_EachMini_2x2_C() {
+    Mini_TriadB_2x2_I();
+    Mini_TriadB_2x2_J();
+    Mini_TriadB_2x2_M();
+    Mini_TriadB_2x2_N();
+}
+
+void M88::Quad_TriadB_EachMini_2x2_D() {
+    Mini_TriadB_2x2_K();
+    Mini_TriadB_2x2_L();
+    Mini_TriadB_2x2_O();
+    Mini_TriadB_2x2_P();
+}
+
+void M88::Quad_TriadB_2x2_A() {
+    std::uint8_t aHold = 0;
+    aHold = mData[0]; mData[0] = mData[16]; mData[16] = mData[2]; mData[2] = aHold;
+    aHold = mData[1]; mData[1] = mData[17]; mData[17] = mData[3]; mData[3] = aHold;
+    aHold = mData[8]; mData[8] = mData[24]; mData[24] = mData[10]; mData[10] = aHold;
+    aHold = mData[9]; mData[9] = mData[25]; mData[25] = mData[11]; mData[11] = aHold;
+}
+
+void M88::Quad_TriadB_2x2_B() {
+    std::uint8_t aHold = 0;
+    aHold = mData[4]; mData[4] = mData[20]; mData[20] = mData[6]; mData[6] = aHold;
+    aHold = mData[5]; mData[5] = mData[21]; mData[21] = mData[7]; mData[7] = aHold;
+    aHold = mData[12]; mData[12] = mData[28]; mData[28] = mData[14]; mData[14] = aHold;
+    aHold = mData[13]; mData[13] = mData[29]; mData[29] = mData[15]; mData[15] = aHold;
+}
+
+void M88::Quad_TriadB_2x2_C() {
+    std::uint8_t aHold = 0;
+    aHold = mData[32]; mData[32] = mData[48]; mData[48] = mData[34]; mData[34] = aHold;
+    aHold = mData[33]; mData[33] = mData[49]; mData[49] = mData[35]; mData[35] = aHold;
+    aHold = mData[40]; mData[40] = mData[56]; mData[56] = mData[42]; mData[42] = aHold;
+    aHold = mData[41]; mData[41] = mData[57]; mData[57] = mData[43]; mData[43] = aHold;
+}
+
+void M88::Quad_TriadB_2x2_D() {
+    std::uint8_t aHold = 0;
+    aHold = mData[36]; mData[36] = mData[52]; mData[52] = mData[38]; mData[38] = aHold;
+    aHold = mData[37]; mData[37] = mData[53]; mData[53] = mData[39]; mData[39] = aHold;
+    aHold = mData[44]; mData[44] = mData[60]; mData[60] = mData[46]; mData[46] = aHold;
+    aHold = mData[45]; mData[45] = mData[61]; mData[61] = mData[47]; mData[47] = aHold;
+}
+
+void M88::Mini_TriadB_2x2_A() {
+    std::uint8_t aHold = 0;
     aHold = mData[0]; mData[0] = mData[8]; mData[8] = mData[1]; mData[1] = aHold;
-
 }
 
-void M88::TriadABSixB() {
+void M88::Mini_TriadB_2x2_B() {
     std::uint8_t aHold = 0;
-
-    // cycle 0
     aHold = mData[2]; mData[2] = mData[10]; mData[10] = mData[3]; mData[3] = aHold;
-
 }
 
-void M88::TriadABSixC() {
+void M88::Mini_TriadB_2x2_C() {
     std::uint8_t aHold = 0;
-
-    // cycle 0
     aHold = mData[4]; mData[4] = mData[12]; mData[12] = mData[5]; mData[5] = aHold;
-
 }
 
-void M88::TriadABSixD() {
+void M88::Mini_TriadB_2x2_D() {
     std::uint8_t aHold = 0;
-
-    // cycle 0
     aHold = mData[6]; mData[6] = mData[14]; mData[14] = mData[7]; mData[7] = aHold;
-
 }
 
-void M88::TriadABSixE() {
+void M88::Mini_TriadB_2x2_E() {
     std::uint8_t aHold = 0;
-
-    // cycle 0
     aHold = mData[16]; mData[16] = mData[24]; mData[24] = mData[17]; mData[17] = aHold;
-
 }
 
-void M88::TriadABSixF() {
+void M88::Mini_TriadB_2x2_F() {
     std::uint8_t aHold = 0;
-
-    // cycle 0
     aHold = mData[18]; mData[18] = mData[26]; mData[26] = mData[19]; mData[19] = aHold;
-
 }
 
-void M88::TriadABSixG() {
+void M88::Mini_TriadB_2x2_G() {
     std::uint8_t aHold = 0;
-
-    // cycle 0
     aHold = mData[20]; mData[20] = mData[28]; mData[28] = mData[21]; mData[21] = aHold;
-
 }
 
-void M88::TriadABSixH() {
+void M88::Mini_TriadB_2x2_H() {
     std::uint8_t aHold = 0;
-
-    // cycle 0
     aHold = mData[22]; mData[22] = mData[30]; mData[30] = mData[23]; mData[23] = aHold;
-
 }
 
-void M88::TriadABSixI() {
+void M88::Mini_TriadB_2x2_I() {
     std::uint8_t aHold = 0;
-
-    // cycle 0
     aHold = mData[32]; mData[32] = mData[40]; mData[40] = mData[33]; mData[33] = aHold;
-
 }
 
-void M88::TriadABSixJ() {
+void M88::Mini_TriadB_2x2_J() {
     std::uint8_t aHold = 0;
-
-    // cycle 0
     aHold = mData[34]; mData[34] = mData[42]; mData[42] = mData[35]; mData[35] = aHold;
-
 }
 
-void M88::TriadABSixK() {
+void M88::Mini_TriadB_2x2_K() {
     std::uint8_t aHold = 0;
-
-    // cycle 0
     aHold = mData[36]; mData[36] = mData[44]; mData[44] = mData[37]; mData[37] = aHold;
-
 }
 
-void M88::TriadABSixL() {
+void M88::Mini_TriadB_2x2_L() {
     std::uint8_t aHold = 0;
-
-    // cycle 0
     aHold = mData[38]; mData[38] = mData[46]; mData[46] = mData[39]; mData[39] = aHold;
-
 }
 
-void M88::TriadABSixM() {
+void M88::Mini_TriadB_2x2_M() {
     std::uint8_t aHold = 0;
-
-    // cycle 0
     aHold = mData[48]; mData[48] = mData[56]; mData[56] = mData[49]; mData[49] = aHold;
-
 }
 
-void M88::TriadABSixN() {
+void M88::Mini_TriadB_2x2_N() {
     std::uint8_t aHold = 0;
-
-    // cycle 0
     aHold = mData[50]; mData[50] = mData[58]; mData[58] = mData[51]; mData[51] = aHold;
-
 }
 
-void M88::TriadABSixO() {
+void M88::Mini_TriadB_2x2_O() {
     std::uint8_t aHold = 0;
-
-    // cycle 0
     aHold = mData[52]; mData[52] = mData[60]; mData[60] = mData[53]; mData[53] = aHold;
-
 }
 
-void M88::TriadABSixP() {
+void M88::Mini_TriadB_2x2_P() {
     std::uint8_t aHold = 0;
-
-    // cycle 0
     aHold = mData[54]; mData[54] = mData[62]; mData[62] = mData[55]; mData[55] = aHold;
-
 }
 
-void M88::TriadBASixA() {
-    std::uint8_t aHold = 0;
 
-    // cycle 0
+
+void M88::Full_TriadC_2x2() {
+    std::uint8_t aHold = 0;
+    aHold = mData[0]; mData[0] = mData[4]; mData[4] = mData[36]; mData[36] = aHold;
+    aHold = mData[1]; mData[1] = mData[5]; mData[5] = mData[37]; mData[37] = aHold;
+    aHold = mData[2]; mData[2] = mData[6]; mData[6] = mData[38]; mData[38] = aHold;
+    aHold = mData[3]; mData[3] = mData[7]; mData[7] = mData[39]; mData[39] = aHold;
+    aHold = mData[8]; mData[8] = mData[12]; mData[12] = mData[44]; mData[44] = aHold;
+    aHold = mData[9]; mData[9] = mData[13]; mData[13] = mData[45]; mData[45] = aHold;
+    aHold = mData[10]; mData[10] = mData[14]; mData[14] = mData[46]; mData[46] = aHold;
+    aHold = mData[11]; mData[11] = mData[15]; mData[15] = mData[47]; mData[47] = aHold;
+    aHold = mData[16]; mData[16] = mData[20]; mData[20] = mData[52]; mData[52] = aHold;
+    aHold = mData[17]; mData[17] = mData[21]; mData[21] = mData[53]; mData[53] = aHold;
+    aHold = mData[18]; mData[18] = mData[22]; mData[22] = mData[54]; mData[54] = aHold;
+    aHold = mData[19]; mData[19] = mData[23]; mData[23] = mData[55]; mData[55] = aHold;
+    aHold = mData[24]; mData[24] = mData[28]; mData[28] = mData[60]; mData[60] = aHold;
+    aHold = mData[25]; mData[25] = mData[29]; mData[29] = mData[61]; mData[61] = aHold;
+    aHold = mData[26]; mData[26] = mData[30]; mData[30] = mData[62]; mData[62] = aHold;
+    aHold = mData[27]; mData[27] = mData[31]; mData[31] = mData[63]; mData[63] = aHold;
+}
+
+void M88::Full_TriadC_EachQuad_2x2() {
+    Quad_TriadC_2x2_A();
+    Quad_TriadC_2x2_B();
+    Quad_TriadC_2x2_C();
+    Quad_TriadC_2x2_D();
+}
+
+void M88::Full_TriadC_EachMini_2x2() {
+    Mini_TriadC_2x2_A();
+    Mini_TriadC_2x2_B();
+    Mini_TriadC_2x2_C();
+    Mini_TriadC_2x2_D();
+    Mini_TriadC_2x2_E();
+    Mini_TriadC_2x2_F();
+    Mini_TriadC_2x2_G();
+    Mini_TriadC_2x2_H();
+    Mini_TriadC_2x2_I();
+    Mini_TriadC_2x2_J();
+    Mini_TriadC_2x2_K();
+    Mini_TriadC_2x2_L();
+    Mini_TriadC_2x2_M();
+    Mini_TriadC_2x2_N();
+    Mini_TriadC_2x2_O();
+    Mini_TriadC_2x2_P();
+}
+
+void M88::Quad_TriadC_EachMini_2x2_A() {
+    Mini_TriadC_2x2_A();
+    Mini_TriadC_2x2_B();
+    Mini_TriadC_2x2_E();
+    Mini_TriadC_2x2_F();
+}
+
+void M88::Quad_TriadC_EachMini_2x2_B() {
+    Mini_TriadC_2x2_C();
+    Mini_TriadC_2x2_D();
+    Mini_TriadC_2x2_G();
+    Mini_TriadC_2x2_H();
+}
+
+void M88::Quad_TriadC_EachMini_2x2_C() {
+    Mini_TriadC_2x2_I();
+    Mini_TriadC_2x2_J();
+    Mini_TriadC_2x2_M();
+    Mini_TriadC_2x2_N();
+}
+
+void M88::Quad_TriadC_EachMini_2x2_D() {
+    Mini_TriadC_2x2_K();
+    Mini_TriadC_2x2_L();
+    Mini_TriadC_2x2_O();
+    Mini_TriadC_2x2_P();
+}
+
+void M88::Quad_TriadC_2x2_A() {
+    std::uint8_t aHold = 0;
+    aHold = mData[0]; mData[0] = mData[2]; mData[2] = mData[18]; mData[18] = aHold;
+    aHold = mData[1]; mData[1] = mData[3]; mData[3] = mData[19]; mData[19] = aHold;
+    aHold = mData[8]; mData[8] = mData[10]; mData[10] = mData[26]; mData[26] = aHold;
+    aHold = mData[9]; mData[9] = mData[11]; mData[11] = mData[27]; mData[27] = aHold;
+}
+
+void M88::Quad_TriadC_2x2_B() {
+    std::uint8_t aHold = 0;
+    aHold = mData[4]; mData[4] = mData[6]; mData[6] = mData[22]; mData[22] = aHold;
+    aHold = mData[5]; mData[5] = mData[7]; mData[7] = mData[23]; mData[23] = aHold;
+    aHold = mData[12]; mData[12] = mData[14]; mData[14] = mData[30]; mData[30] = aHold;
+    aHold = mData[13]; mData[13] = mData[15]; mData[15] = mData[31]; mData[31] = aHold;
+}
+
+void M88::Quad_TriadC_2x2_C() {
+    std::uint8_t aHold = 0;
+    aHold = mData[32]; mData[32] = mData[34]; mData[34] = mData[50]; mData[50] = aHold;
+    aHold = mData[33]; mData[33] = mData[35]; mData[35] = mData[51]; mData[51] = aHold;
+    aHold = mData[40]; mData[40] = mData[42]; mData[42] = mData[58]; mData[58] = aHold;
+    aHold = mData[41]; mData[41] = mData[43]; mData[43] = mData[59]; mData[59] = aHold;
+}
+
+void M88::Quad_TriadC_2x2_D() {
+    std::uint8_t aHold = 0;
+    aHold = mData[36]; mData[36] = mData[38]; mData[38] = mData[54]; mData[54] = aHold;
+    aHold = mData[37]; mData[37] = mData[39]; mData[39] = mData[55]; mData[55] = aHold;
+    aHold = mData[44]; mData[44] = mData[46]; mData[46] = mData[62]; mData[62] = aHold;
+    aHold = mData[45]; mData[45] = mData[47]; mData[47] = mData[63]; mData[63] = aHold;
+}
+
+void M88::Mini_TriadC_2x2_A() {
+    std::uint8_t aHold = 0;
     aHold = mData[0]; mData[0] = mData[1]; mData[1] = mData[9]; mData[9] = aHold;
-
 }
 
-void M88::TriadBASixB() {
+void M88::Mini_TriadC_2x2_B() {
     std::uint8_t aHold = 0;
-
-    // cycle 0
     aHold = mData[2]; mData[2] = mData[3]; mData[3] = mData[11]; mData[11] = aHold;
-
 }
 
-void M88::TriadBASixC() {
+void M88::Mini_TriadC_2x2_C() {
     std::uint8_t aHold = 0;
-
-    // cycle 0
     aHold = mData[4]; mData[4] = mData[5]; mData[5] = mData[13]; mData[13] = aHold;
-
 }
 
-void M88::TriadBASixD() {
+void M88::Mini_TriadC_2x2_D() {
     std::uint8_t aHold = 0;
-
-    // cycle 0
     aHold = mData[6]; mData[6] = mData[7]; mData[7] = mData[15]; mData[15] = aHold;
-
 }
 
-void M88::TriadBASixE() {
+void M88::Mini_TriadC_2x2_E() {
     std::uint8_t aHold = 0;
-
-    // cycle 0
     aHold = mData[16]; mData[16] = mData[17]; mData[17] = mData[25]; mData[25] = aHold;
-
 }
 
-void M88::TriadBASixF() {
+void M88::Mini_TriadC_2x2_F() {
     std::uint8_t aHold = 0;
-
-    // cycle 0
     aHold = mData[18]; mData[18] = mData[19]; mData[19] = mData[27]; mData[27] = aHold;
-
 }
 
-void M88::TriadBASixG() {
+void M88::Mini_TriadC_2x2_G() {
     std::uint8_t aHold = 0;
-
-    // cycle 0
     aHold = mData[20]; mData[20] = mData[21]; mData[21] = mData[29]; mData[29] = aHold;
-
 }
 
-void M88::TriadBASixH() {
+void M88::Mini_TriadC_2x2_H() {
     std::uint8_t aHold = 0;
-
-    // cycle 0
     aHold = mData[22]; mData[22] = mData[23]; mData[23] = mData[31]; mData[31] = aHold;
-
 }
 
-void M88::TriadBASixI() {
+void M88::Mini_TriadC_2x2_I() {
     std::uint8_t aHold = 0;
-
-    // cycle 0
     aHold = mData[32]; mData[32] = mData[33]; mData[33] = mData[41]; mData[41] = aHold;
-
 }
 
-void M88::TriadBASixJ() {
+void M88::Mini_TriadC_2x2_J() {
     std::uint8_t aHold = 0;
-
-    // cycle 0
     aHold = mData[34]; mData[34] = mData[35]; mData[35] = mData[43]; mData[43] = aHold;
-
 }
 
-void M88::TriadBASixK() {
+void M88::Mini_TriadC_2x2_K() {
     std::uint8_t aHold = 0;
-
-    // cycle 0
     aHold = mData[36]; mData[36] = mData[37]; mData[37] = mData[45]; mData[45] = aHold;
-
 }
 
-void M88::TriadBASixL() {
+void M88::Mini_TriadC_2x2_L() {
     std::uint8_t aHold = 0;
-
-    // cycle 0
     aHold = mData[38]; mData[38] = mData[39]; mData[39] = mData[47]; mData[47] = aHold;
-
 }
 
-void M88::TriadBASixM() {
+void M88::Mini_TriadC_2x2_M() {
     std::uint8_t aHold = 0;
-
-    // cycle 0
     aHold = mData[48]; mData[48] = mData[49]; mData[49] = mData[57]; mData[57] = aHold;
-
 }
 
-void M88::TriadBASixN() {
+void M88::Mini_TriadC_2x2_N() {
     std::uint8_t aHold = 0;
-
-    // cycle 0
     aHold = mData[50]; mData[50] = mData[51]; mData[51] = mData[59]; mData[59] = aHold;
-
 }
 
-void M88::TriadBASixO() {
+void M88::Mini_TriadC_2x2_O() {
     std::uint8_t aHold = 0;
-
-    // cycle 0
     aHold = mData[52]; mData[52] = mData[53]; mData[53] = mData[61]; mData[61] = aHold;
-
 }
 
-void M88::TriadBASixP() {
+void M88::Mini_TriadC_2x2_P() {
     std::uint8_t aHold = 0;
-
-    // cycle 0
     aHold = mData[54]; mData[54] = mData[55]; mData[55] = mData[63]; mData[63] = aHold;
-
 }
 
-void M88::TriadBBSixA() {
-    std::uint8_t aHold = 0;
 
-    // cycle 0
+
+
+void M88::Full_TriadD_2x2() {
+    std::uint8_t aHold = 0;
+    aHold = mData[0]; mData[0] = mData[36]; mData[36] = mData[4]; mData[4] = aHold;
+    aHold = mData[1]; mData[1] = mData[37]; mData[37] = mData[5]; mData[5] = aHold;
+    aHold = mData[2]; mData[2] = mData[38]; mData[38] = mData[6]; mData[6] = aHold;
+    aHold = mData[3]; mData[3] = mData[39]; mData[39] = mData[7]; mData[7] = aHold;
+    aHold = mData[8]; mData[8] = mData[44]; mData[44] = mData[12]; mData[12] = aHold;
+    aHold = mData[9]; mData[9] = mData[45]; mData[45] = mData[13]; mData[13] = aHold;
+    aHold = mData[10]; mData[10] = mData[46]; mData[46] = mData[14]; mData[14] = aHold;
+    aHold = mData[11]; mData[11] = mData[47]; mData[47] = mData[15]; mData[15] = aHold;
+    aHold = mData[16]; mData[16] = mData[52]; mData[52] = mData[20]; mData[20] = aHold;
+    aHold = mData[17]; mData[17] = mData[53]; mData[53] = mData[21]; mData[21] = aHold;
+    aHold = mData[18]; mData[18] = mData[54]; mData[54] = mData[22]; mData[22] = aHold;
+    aHold = mData[19]; mData[19] = mData[55]; mData[55] = mData[23]; mData[23] = aHold;
+    aHold = mData[24]; mData[24] = mData[60]; mData[60] = mData[28]; mData[28] = aHold;
+    aHold = mData[25]; mData[25] = mData[61]; mData[61] = mData[29]; mData[29] = aHold;
+    aHold = mData[26]; mData[26] = mData[62]; mData[62] = mData[30]; mData[30] = aHold;
+    aHold = mData[27]; mData[27] = mData[63]; mData[63] = mData[31]; mData[31] = aHold;
+}
+
+void M88::Full_TriadD_EachQuad_2x2() {
+    Quad_TriadD_2x2_A();
+    Quad_TriadD_2x2_B();
+    Quad_TriadD_2x2_C();
+    Quad_TriadD_2x2_D();
+}
+
+void M88::Full_TriadD_EachMini_2x2() {
+    Mini_TriadD_2x2_A();
+    Mini_TriadD_2x2_B();
+    Mini_TriadD_2x2_C();
+    Mini_TriadD_2x2_D();
+    Mini_TriadD_2x2_E();
+    Mini_TriadD_2x2_F();
+    Mini_TriadD_2x2_G();
+    Mini_TriadD_2x2_H();
+    Mini_TriadD_2x2_I();
+    Mini_TriadD_2x2_J();
+    Mini_TriadD_2x2_K();
+    Mini_TriadD_2x2_L();
+    Mini_TriadD_2x2_M();
+    Mini_TriadD_2x2_N();
+    Mini_TriadD_2x2_O();
+    Mini_TriadD_2x2_P();
+}
+
+void M88::Quad_TriadD_EachMini_2x2_A() {
+    Mini_TriadD_2x2_A();
+    Mini_TriadD_2x2_B();
+    Mini_TriadD_2x2_E();
+    Mini_TriadD_2x2_F();
+}
+
+void M88::Quad_TriadD_EachMini_2x2_B() {
+    Mini_TriadD_2x2_C();
+    Mini_TriadD_2x2_D();
+    Mini_TriadD_2x2_G();
+    Mini_TriadD_2x2_H();
+}
+
+void M88::Quad_TriadD_EachMini_2x2_C() {
+    Mini_TriadD_2x2_I();
+    Mini_TriadD_2x2_J();
+    Mini_TriadD_2x2_M();
+    Mini_TriadD_2x2_N();
+}
+
+void M88::Quad_TriadD_EachMini_2x2_D() {
+    Mini_TriadD_2x2_K();
+    Mini_TriadD_2x2_L();
+    Mini_TriadD_2x2_O();
+    Mini_TriadD_2x2_P();
+}
+
+void M88::Quad_TriadD_2x2_A() {
+    std::uint8_t aHold = 0;
+    aHold = mData[0]; mData[0] = mData[18]; mData[18] = mData[2]; mData[2] = aHold;
+    aHold = mData[1]; mData[1] = mData[19]; mData[19] = mData[3]; mData[3] = aHold;
+    aHold = mData[8]; mData[8] = mData[26]; mData[26] = mData[10]; mData[10] = aHold;
+    aHold = mData[9]; mData[9] = mData[27]; mData[27] = mData[11]; mData[11] = aHold;
+}
+
+void M88::Quad_TriadD_2x2_B() {
+    std::uint8_t aHold = 0;
+    aHold = mData[4]; mData[4] = mData[22]; mData[22] = mData[6]; mData[6] = aHold;
+    aHold = mData[5]; mData[5] = mData[23]; mData[23] = mData[7]; mData[7] = aHold;
+    aHold = mData[12]; mData[12] = mData[30]; mData[30] = mData[14]; mData[14] = aHold;
+    aHold = mData[13]; mData[13] = mData[31]; mData[31] = mData[15]; mData[15] = aHold;
+}
+
+void M88::Quad_TriadD_2x2_C() {
+    std::uint8_t aHold = 0;
+    aHold = mData[32]; mData[32] = mData[50]; mData[50] = mData[34]; mData[34] = aHold;
+    aHold = mData[33]; mData[33] = mData[51]; mData[51] = mData[35]; mData[35] = aHold;
+    aHold = mData[40]; mData[40] = mData[58]; mData[58] = mData[42]; mData[42] = aHold;
+    aHold = mData[41]; mData[41] = mData[59]; mData[59] = mData[43]; mData[43] = aHold;
+}
+
+void M88::Quad_TriadD_2x2_D() {
+    std::uint8_t aHold = 0;
+    aHold = mData[36]; mData[36] = mData[54]; mData[54] = mData[38]; mData[38] = aHold;
+    aHold = mData[37]; mData[37] = mData[55]; mData[55] = mData[39]; mData[39] = aHold;
+    aHold = mData[44]; mData[44] = mData[62]; mData[62] = mData[46]; mData[46] = aHold;
+    aHold = mData[45]; mData[45] = mData[63]; mData[63] = mData[47]; mData[47] = aHold;
+}
+
+void M88::Mini_TriadD_2x2_A() {
+    std::uint8_t aHold = 0;
     aHold = mData[0]; mData[0] = mData[9]; mData[9] = mData[1]; mData[1] = aHold;
-
 }
 
-void M88::TriadBBSixB() {
+void M88::Mini_TriadD_2x2_B() {
     std::uint8_t aHold = 0;
-
-    // cycle 0
     aHold = mData[2]; mData[2] = mData[11]; mData[11] = mData[3]; mData[3] = aHold;
-
 }
 
-void M88::TriadBBSixC() {
+void M88::Mini_TriadD_2x2_C() {
     std::uint8_t aHold = 0;
-
-    // cycle 0
     aHold = mData[4]; mData[4] = mData[13]; mData[13] = mData[5]; mData[5] = aHold;
-
 }
 
-void M88::TriadBBSixD() {
+void M88::Mini_TriadD_2x2_D() {
     std::uint8_t aHold = 0;
-
-    // cycle 0
     aHold = mData[6]; mData[6] = mData[15]; mData[15] = mData[7]; mData[7] = aHold;
-
 }
 
-void M88::TriadBBSixE() {
+void M88::Mini_TriadD_2x2_E() {
     std::uint8_t aHold = 0;
-
-    // cycle 0
     aHold = mData[16]; mData[16] = mData[25]; mData[25] = mData[17]; mData[17] = aHold;
-
 }
 
-void M88::TriadBBSixF() {
+void M88::Mini_TriadD_2x2_F() {
     std::uint8_t aHold = 0;
-
-    // cycle 0
     aHold = mData[18]; mData[18] = mData[27]; mData[27] = mData[19]; mData[19] = aHold;
-
 }
 
-void M88::TriadBBSixG() {
+void M88::Mini_TriadD_2x2_G() {
     std::uint8_t aHold = 0;
-
-    // cycle 0
     aHold = mData[20]; mData[20] = mData[29]; mData[29] = mData[21]; mData[21] = aHold;
-
 }
 
-void M88::TriadBBSixH() {
+void M88::Mini_TriadD_2x2_H() {
     std::uint8_t aHold = 0;
-
-    // cycle 0
     aHold = mData[22]; mData[22] = mData[31]; mData[31] = mData[23]; mData[23] = aHold;
-
 }
 
-void M88::TriadBBSixI() {
+void M88::Mini_TriadD_2x2_I() {
     std::uint8_t aHold = 0;
-
-    // cycle 0
     aHold = mData[32]; mData[32] = mData[41]; mData[41] = mData[33]; mData[33] = aHold;
-
 }
 
-void M88::TriadBBSixJ() {
+void M88::Mini_TriadD_2x2_J() {
     std::uint8_t aHold = 0;
-
-    // cycle 0
     aHold = mData[34]; mData[34] = mData[43]; mData[43] = mData[35]; mData[35] = aHold;
-
 }
 
-void M88::TriadBBSixK() {
+void M88::Mini_TriadD_2x2_K() {
     std::uint8_t aHold = 0;
-
-    // cycle 0
     aHold = mData[36]; mData[36] = mData[45]; mData[45] = mData[37]; mData[37] = aHold;
-
 }
 
-void M88::TriadBBSixL() {
+void M88::Mini_TriadD_2x2_L() {
     std::uint8_t aHold = 0;
-
-    // cycle 0
     aHold = mData[38]; mData[38] = mData[47]; mData[47] = mData[39]; mData[39] = aHold;
-
 }
 
-void M88::TriadBBSixM() {
+void M88::Mini_TriadD_2x2_M() {
     std::uint8_t aHold = 0;
-
-    // cycle 0
     aHold = mData[48]; mData[48] = mData[57]; mData[57] = mData[49]; mData[49] = aHold;
-
 }
 
-void M88::TriadBBSixN() {
+void M88::Mini_TriadD_2x2_N() {
     std::uint8_t aHold = 0;
-
-    // cycle 0
     aHold = mData[50]; mData[50] = mData[59]; mData[59] = mData[51]; mData[51] = aHold;
-
 }
 
-void M88::TriadBBSixO() {
+void M88::Mini_TriadD_2x2_O() {
     std::uint8_t aHold = 0;
-
-    // cycle 0
     aHold = mData[52]; mData[52] = mData[61]; mData[61] = mData[53]; mData[53] = aHold;
-
 }
 
-void M88::TriadBBSixP() {
+void M88::Mini_TriadD_2x2_P() {
     std::uint8_t aHold = 0;
-
-    // cycle 0
     aHold = mData[54]; mData[54] = mData[63]; mData[63] = mData[55]; mData[55] = aHold;
-
 }
 
-void M88::TriadCASixA() {
-    std::uint8_t aHold = 0;
 
-    // cycle 0
+
+
+void M88::Full_TriadE_2x2() {
+    std::uint8_t aHold = 0;
+    aHold = mData[0]; mData[0] = mData[32]; mData[32] = mData[36]; mData[36] = aHold;
+    aHold = mData[1]; mData[1] = mData[33]; mData[33] = mData[37]; mData[37] = aHold;
+    aHold = mData[2]; mData[2] = mData[34]; mData[34] = mData[38]; mData[38] = aHold;
+    aHold = mData[3]; mData[3] = mData[35]; mData[35] = mData[39]; mData[39] = aHold;
+    aHold = mData[8]; mData[8] = mData[40]; mData[40] = mData[44]; mData[44] = aHold;
+    aHold = mData[9]; mData[9] = mData[41]; mData[41] = mData[45]; mData[45] = aHold;
+    aHold = mData[10]; mData[10] = mData[42]; mData[42] = mData[46]; mData[46] = aHold;
+    aHold = mData[11]; mData[11] = mData[43]; mData[43] = mData[47]; mData[47] = aHold;
+    aHold = mData[16]; mData[16] = mData[48]; mData[48] = mData[52]; mData[52] = aHold;
+    aHold = mData[17]; mData[17] = mData[49]; mData[49] = mData[53]; mData[53] = aHold;
+    aHold = mData[18]; mData[18] = mData[50]; mData[50] = mData[54]; mData[54] = aHold;
+    aHold = mData[19]; mData[19] = mData[51]; mData[51] = mData[55]; mData[55] = aHold;
+    aHold = mData[24]; mData[24] = mData[56]; mData[56] = mData[60]; mData[60] = aHold;
+    aHold = mData[25]; mData[25] = mData[57]; mData[57] = mData[61]; mData[61] = aHold;
+    aHold = mData[26]; mData[26] = mData[58]; mData[58] = mData[62]; mData[62] = aHold;
+    aHold = mData[27]; mData[27] = mData[59]; mData[59] = mData[63]; mData[63] = aHold;
+}
+
+void M88::Full_TriadE_EachQuad_2x2() {
+    Quad_TriadE_2x2_A();
+    Quad_TriadE_2x2_B();
+    Quad_TriadE_2x2_C();
+    Quad_TriadE_2x2_D();
+}
+
+void M88::Full_TriadE_EachMini_2x2() {
+    Mini_TriadE_2x2_A();
+    Mini_TriadE_2x2_B();
+    Mini_TriadE_2x2_C();
+    Mini_TriadE_2x2_D();
+    Mini_TriadE_2x2_E();
+    Mini_TriadE_2x2_F();
+    Mini_TriadE_2x2_G();
+    Mini_TriadE_2x2_H();
+    Mini_TriadE_2x2_I();
+    Mini_TriadE_2x2_J();
+    Mini_TriadE_2x2_K();
+    Mini_TriadE_2x2_L();
+    Mini_TriadE_2x2_M();
+    Mini_TriadE_2x2_N();
+    Mini_TriadE_2x2_O();
+    Mini_TriadE_2x2_P();
+}
+
+void M88::Quad_TriadE_EachMini_2x2_A() {
+    Mini_TriadE_2x2_A();
+    Mini_TriadE_2x2_B();
+    Mini_TriadE_2x2_E();
+    Mini_TriadE_2x2_F();
+}
+
+void M88::Quad_TriadE_EachMini_2x2_B() {
+    Mini_TriadE_2x2_C();
+    Mini_TriadE_2x2_D();
+    Mini_TriadE_2x2_G();
+    Mini_TriadE_2x2_H();
+}
+
+void M88::Quad_TriadE_EachMini_2x2_C() {
+    Mini_TriadE_2x2_I();
+    Mini_TriadE_2x2_J();
+    Mini_TriadE_2x2_M();
+    Mini_TriadE_2x2_N();
+}
+
+void M88::Quad_TriadE_EachMini_2x2_D() {
+    Mini_TriadE_2x2_K();
+    Mini_TriadE_2x2_L();
+    Mini_TriadE_2x2_O();
+    Mini_TriadE_2x2_P();
+}
+
+void M88::Quad_TriadE_2x2_A() {
+    std::uint8_t aHold = 0;
+    aHold = mData[0]; mData[0] = mData[16]; mData[16] = mData[18]; mData[18] = aHold;
+    aHold = mData[1]; mData[1] = mData[17]; mData[17] = mData[19]; mData[19] = aHold;
+    aHold = mData[8]; mData[8] = mData[24]; mData[24] = mData[26]; mData[26] = aHold;
+    aHold = mData[9]; mData[9] = mData[25]; mData[25] = mData[27]; mData[27] = aHold;
+}
+
+void M88::Quad_TriadE_2x2_B() {
+    std::uint8_t aHold = 0;
+    aHold = mData[4]; mData[4] = mData[20]; mData[20] = mData[22]; mData[22] = aHold;
+    aHold = mData[5]; mData[5] = mData[21]; mData[21] = mData[23]; mData[23] = aHold;
+    aHold = mData[12]; mData[12] = mData[28]; mData[28] = mData[30]; mData[30] = aHold;
+    aHold = mData[13]; mData[13] = mData[29]; mData[29] = mData[31]; mData[31] = aHold;
+}
+
+void M88::Quad_TriadE_2x2_C() {
+    std::uint8_t aHold = 0;
+    aHold = mData[32]; mData[32] = mData[48]; mData[48] = mData[50]; mData[50] = aHold;
+    aHold = mData[33]; mData[33] = mData[49]; mData[49] = mData[51]; mData[51] = aHold;
+    aHold = mData[40]; mData[40] = mData[56]; mData[56] = mData[58]; mData[58] = aHold;
+    aHold = mData[41]; mData[41] = mData[57]; mData[57] = mData[59]; mData[59] = aHold;
+}
+
+void M88::Quad_TriadE_2x2_D() {
+    std::uint8_t aHold = 0;
+    aHold = mData[36]; mData[36] = mData[52]; mData[52] = mData[54]; mData[54] = aHold;
+    aHold = mData[37]; mData[37] = mData[53]; mData[53] = mData[55]; mData[55] = aHold;
+    aHold = mData[44]; mData[44] = mData[60]; mData[60] = mData[62]; mData[62] = aHold;
+    aHold = mData[45]; mData[45] = mData[61]; mData[61] = mData[63]; mData[63] = aHold;
+}
+
+void M88::Mini_TriadE_2x2_A() {
+    std::uint8_t aHold = 0;
     aHold = mData[0]; mData[0] = mData[8]; mData[8] = mData[9]; mData[9] = aHold;
-
 }
 
-void M88::TriadCASixB() {
+void M88::Mini_TriadE_2x2_B() {
     std::uint8_t aHold = 0;
-
-    // cycle 0
     aHold = mData[2]; mData[2] = mData[10]; mData[10] = mData[11]; mData[11] = aHold;
-
 }
 
-void M88::TriadCASixC() {
+void M88::Mini_TriadE_2x2_C() {
     std::uint8_t aHold = 0;
-
-    // cycle 0
     aHold = mData[4]; mData[4] = mData[12]; mData[12] = mData[13]; mData[13] = aHold;
-
 }
 
-void M88::TriadCASixD() {
+void M88::Mini_TriadE_2x2_D() {
     std::uint8_t aHold = 0;
-
-    // cycle 0
     aHold = mData[6]; mData[6] = mData[14]; mData[14] = mData[15]; mData[15] = aHold;
-
 }
 
-void M88::TriadCASixE() {
+void M88::Mini_TriadE_2x2_E() {
     std::uint8_t aHold = 0;
-
-    // cycle 0
     aHold = mData[16]; mData[16] = mData[24]; mData[24] = mData[25]; mData[25] = aHold;
-
 }
 
-void M88::TriadCASixF() {
+void M88::Mini_TriadE_2x2_F() {
     std::uint8_t aHold = 0;
-
-    // cycle 0
     aHold = mData[18]; mData[18] = mData[26]; mData[26] = mData[27]; mData[27] = aHold;
-
 }
 
-void M88::TriadCASixG() {
+void M88::Mini_TriadE_2x2_G() {
     std::uint8_t aHold = 0;
-
-    // cycle 0
     aHold = mData[20]; mData[20] = mData[28]; mData[28] = mData[29]; mData[29] = aHold;
-
 }
 
-void M88::TriadCASixH() {
+void M88::Mini_TriadE_2x2_H() {
     std::uint8_t aHold = 0;
-
-    // cycle 0
     aHold = mData[22]; mData[22] = mData[30]; mData[30] = mData[31]; mData[31] = aHold;
-
 }
 
-void M88::TriadCASixI() {
+void M88::Mini_TriadE_2x2_I() {
     std::uint8_t aHold = 0;
-
-    // cycle 0
     aHold = mData[32]; mData[32] = mData[40]; mData[40] = mData[41]; mData[41] = aHold;
-
 }
 
-void M88::TriadCASixJ() {
+void M88::Mini_TriadE_2x2_J() {
     std::uint8_t aHold = 0;
-
-    // cycle 0
     aHold = mData[34]; mData[34] = mData[42]; mData[42] = mData[43]; mData[43] = aHold;
-
 }
 
-void M88::TriadCASixK() {
+void M88::Mini_TriadE_2x2_K() {
     std::uint8_t aHold = 0;
-
-    // cycle 0
     aHold = mData[36]; mData[36] = mData[44]; mData[44] = mData[45]; mData[45] = aHold;
-
 }
 
-void M88::TriadCASixL() {
+void M88::Mini_TriadE_2x2_L() {
     std::uint8_t aHold = 0;
-
-    // cycle 0
     aHold = mData[38]; mData[38] = mData[46]; mData[46] = mData[47]; mData[47] = aHold;
-
 }
 
-void M88::TriadCASixM() {
+void M88::Mini_TriadE_2x2_M() {
     std::uint8_t aHold = 0;
-
-    // cycle 0
     aHold = mData[48]; mData[48] = mData[56]; mData[56] = mData[57]; mData[57] = aHold;
-
 }
 
-void M88::TriadCASixN() {
+void M88::Mini_TriadE_2x2_N() {
     std::uint8_t aHold = 0;
-
-    // cycle 0
     aHold = mData[50]; mData[50] = mData[58]; mData[58] = mData[59]; mData[59] = aHold;
-
 }
 
-void M88::TriadCASixO() {
+void M88::Mini_TriadE_2x2_O() {
     std::uint8_t aHold = 0;
-
-    // cycle 0
     aHold = mData[52]; mData[52] = mData[60]; mData[60] = mData[61]; mData[61] = aHold;
-
 }
 
-void M88::TriadCASixP() {
+void M88::Mini_TriadE_2x2_P() {
     std::uint8_t aHold = 0;
-
-    // cycle 0
     aHold = mData[54]; mData[54] = mData[62]; mData[62] = mData[63]; mData[63] = aHold;
-
 }
 
-void M88::TriadCBSixA() {
-    std::uint8_t aHold = 0;
 
-    // cycle 0
+
+
+
+void M88::Full_TriadF_2x2() {
+    std::uint8_t aHold = 0;
+    aHold = mData[0]; mData[0] = mData[36]; mData[36] = mData[32]; mData[32] = aHold;
+    aHold = mData[1]; mData[1] = mData[37]; mData[37] = mData[33]; mData[33] = aHold;
+    aHold = mData[2]; mData[2] = mData[38]; mData[38] = mData[34]; mData[34] = aHold;
+    aHold = mData[3]; mData[3] = mData[39]; mData[39] = mData[35]; mData[35] = aHold;
+    aHold = mData[8]; mData[8] = mData[44]; mData[44] = mData[40]; mData[40] = aHold;
+    aHold = mData[9]; mData[9] = mData[45]; mData[45] = mData[41]; mData[41] = aHold;
+    aHold = mData[10]; mData[10] = mData[46]; mData[46] = mData[42]; mData[42] = aHold;
+    aHold = mData[11]; mData[11] = mData[47]; mData[47] = mData[43]; mData[43] = aHold;
+    aHold = mData[16]; mData[16] = mData[52]; mData[52] = mData[48]; mData[48] = aHold;
+    aHold = mData[17]; mData[17] = mData[53]; mData[53] = mData[49]; mData[49] = aHold;
+    aHold = mData[18]; mData[18] = mData[54]; mData[54] = mData[50]; mData[50] = aHold;
+    aHold = mData[19]; mData[19] = mData[55]; mData[55] = mData[51]; mData[51] = aHold;
+    aHold = mData[24]; mData[24] = mData[60]; mData[60] = mData[56]; mData[56] = aHold;
+    aHold = mData[25]; mData[25] = mData[61]; mData[61] = mData[57]; mData[57] = aHold;
+    aHold = mData[26]; mData[26] = mData[62]; mData[62] = mData[58]; mData[58] = aHold;
+    aHold = mData[27]; mData[27] = mData[63]; mData[63] = mData[59]; mData[59] = aHold;
+}
+
+void M88::Full_TriadF_EachQuad_2x2() {
+    Quad_TriadF_2x2_A();
+    Quad_TriadF_2x2_B();
+    Quad_TriadF_2x2_C();
+    Quad_TriadF_2x2_D();
+}
+
+void M88::Full_TriadF_EachMini_2x2() {
+    Mini_TriadF_2x2_A();
+    Mini_TriadF_2x2_B();
+    Mini_TriadF_2x2_C();
+    Mini_TriadF_2x2_D();
+    Mini_TriadF_2x2_E();
+    Mini_TriadF_2x2_F();
+    Mini_TriadF_2x2_G();
+    Mini_TriadF_2x2_H();
+    Mini_TriadF_2x2_I();
+    Mini_TriadF_2x2_J();
+    Mini_TriadF_2x2_K();
+    Mini_TriadF_2x2_L();
+    Mini_TriadF_2x2_M();
+    Mini_TriadF_2x2_N();
+    Mini_TriadF_2x2_O();
+    Mini_TriadF_2x2_P();
+}
+
+void M88::Quad_TriadF_EachMini_2x2_A() {
+    Mini_TriadF_2x2_A();
+    Mini_TriadF_2x2_B();
+    Mini_TriadF_2x2_E();
+    Mini_TriadF_2x2_F();
+}
+
+void M88::Quad_TriadF_EachMini_2x2_B() {
+    Mini_TriadF_2x2_C();
+    Mini_TriadF_2x2_D();
+    Mini_TriadF_2x2_G();
+    Mini_TriadF_2x2_H();
+}
+
+void M88::Quad_TriadF_EachMini_2x2_C() {
+    Mini_TriadF_2x2_I();
+    Mini_TriadF_2x2_J();
+    Mini_TriadF_2x2_M();
+    Mini_TriadF_2x2_N();
+}
+
+void M88::Quad_TriadF_EachMini_2x2_D() {
+    Mini_TriadF_2x2_K();
+    Mini_TriadF_2x2_L();
+    Mini_TriadF_2x2_O();
+    Mini_TriadF_2x2_P();
+}
+
+void M88::Quad_TriadF_2x2_A() {
+    std::uint8_t aHold = 0;
+    aHold = mData[0]; mData[0] = mData[18]; mData[18] = mData[16]; mData[16] = aHold;
+    aHold = mData[1]; mData[1] = mData[19]; mData[19] = mData[17]; mData[17] = aHold;
+    aHold = mData[8]; mData[8] = mData[26]; mData[26] = mData[24]; mData[24] = aHold;
+    aHold = mData[9]; mData[9] = mData[27]; mData[27] = mData[25]; mData[25] = aHold;
+}
+
+void M88::Quad_TriadF_2x2_B() {
+    std::uint8_t aHold = 0;
+    aHold = mData[4]; mData[4] = mData[22]; mData[22] = mData[20]; mData[20] = aHold;
+    aHold = mData[5]; mData[5] = mData[23]; mData[23] = mData[21]; mData[21] = aHold;
+    aHold = mData[12]; mData[12] = mData[30]; mData[30] = mData[28]; mData[28] = aHold;
+    aHold = mData[13]; mData[13] = mData[31]; mData[31] = mData[29]; mData[29] = aHold;
+}
+
+void M88::Quad_TriadF_2x2_C() {
+    std::uint8_t aHold = 0;
+    aHold = mData[32]; mData[32] = mData[50]; mData[50] = mData[48]; mData[48] = aHold;
+    aHold = mData[33]; mData[33] = mData[51]; mData[51] = mData[49]; mData[49] = aHold;
+    aHold = mData[40]; mData[40] = mData[58]; mData[58] = mData[56]; mData[56] = aHold;
+    aHold = mData[41]; mData[41] = mData[59]; mData[59] = mData[57]; mData[57] = aHold;
+}
+
+void M88::Quad_TriadF_2x2_D() {
+    std::uint8_t aHold = 0;
+    aHold = mData[36]; mData[36] = mData[54]; mData[54] = mData[52]; mData[52] = aHold;
+    aHold = mData[37]; mData[37] = mData[55]; mData[55] = mData[53]; mData[53] = aHold;
+    aHold = mData[44]; mData[44] = mData[62]; mData[62] = mData[60]; mData[60] = aHold;
+    aHold = mData[45]; mData[45] = mData[63]; mData[63] = mData[61]; mData[61] = aHold;
+}
+
+void M88::Mini_TriadF_2x2_A() {
+    std::uint8_t aHold = 0;
     aHold = mData[0]; mData[0] = mData[9]; mData[9] = mData[8]; mData[8] = aHold;
-
 }
 
-void M88::TriadCBSixB() {
+void M88::Mini_TriadF_2x2_B() {
     std::uint8_t aHold = 0;
-
-    // cycle 0
     aHold = mData[2]; mData[2] = mData[11]; mData[11] = mData[10]; mData[10] = aHold;
-
 }
 
-void M88::TriadCBSixC() {
+void M88::Mini_TriadF_2x2_C() {
     std::uint8_t aHold = 0;
-
-    // cycle 0
     aHold = mData[4]; mData[4] = mData[13]; mData[13] = mData[12]; mData[12] = aHold;
-
 }
 
-void M88::TriadCBSixD() {
+void M88::Mini_TriadF_2x2_D() {
     std::uint8_t aHold = 0;
-
-    // cycle 0
     aHold = mData[6]; mData[6] = mData[15]; mData[15] = mData[14]; mData[14] = aHold;
-
 }
 
-void M88::TriadCBSixE() {
+void M88::Mini_TriadF_2x2_E() {
     std::uint8_t aHold = 0;
-
-    // cycle 0
     aHold = mData[16]; mData[16] = mData[25]; mData[25] = mData[24]; mData[24] = aHold;
-
 }
 
-void M88::TriadCBSixF() {
+void M88::Mini_TriadF_2x2_F() {
     std::uint8_t aHold = 0;
-
-    // cycle 0
     aHold = mData[18]; mData[18] = mData[27]; mData[27] = mData[26]; mData[26] = aHold;
-
 }
 
-void M88::TriadCBSixG() {
+void M88::Mini_TriadF_2x2_G() {
     std::uint8_t aHold = 0;
-
-    // cycle 0
     aHold = mData[20]; mData[20] = mData[29]; mData[29] = mData[28]; mData[28] = aHold;
-
 }
 
-void M88::TriadCBSixH() {
+void M88::Mini_TriadF_2x2_H() {
     std::uint8_t aHold = 0;
-
-    // cycle 0
     aHold = mData[22]; mData[22] = mData[31]; mData[31] = mData[30]; mData[30] = aHold;
-
 }
 
-void M88::TriadCBSixI() {
+void M88::Mini_TriadF_2x2_I() {
     std::uint8_t aHold = 0;
-
-    // cycle 0
     aHold = mData[32]; mData[32] = mData[41]; mData[41] = mData[40]; mData[40] = aHold;
-
 }
 
-void M88::TriadCBSixJ() {
+void M88::Mini_TriadF_2x2_J() {
     std::uint8_t aHold = 0;
-
-    // cycle 0
     aHold = mData[34]; mData[34] = mData[43]; mData[43] = mData[42]; mData[42] = aHold;
-
 }
 
-void M88::TriadCBSixK() {
+void M88::Mini_TriadF_2x2_K() {
     std::uint8_t aHold = 0;
-
-    // cycle 0
     aHold = mData[36]; mData[36] = mData[45]; mData[45] = mData[44]; mData[44] = aHold;
-
 }
 
-void M88::TriadCBSixL() {
+void M88::Mini_TriadF_2x2_L() {
     std::uint8_t aHold = 0;
-
-    // cycle 0
     aHold = mData[38]; mData[38] = mData[47]; mData[47] = mData[46]; mData[46] = aHold;
-
 }
 
-void M88::TriadCBSixM() {
+void M88::Mini_TriadF_2x2_M() {
     std::uint8_t aHold = 0;
-
-    // cycle 0
     aHold = mData[48]; mData[48] = mData[57]; mData[57] = mData[56]; mData[56] = aHold;
-
 }
 
-void M88::TriadCBSixN() {
+void M88::Mini_TriadF_2x2_N() {
     std::uint8_t aHold = 0;
-
-    // cycle 0
     aHold = mData[50]; mData[50] = mData[59]; mData[59] = mData[58]; mData[58] = aHold;
-
 }
 
-void M88::TriadCBSixO() {
+void M88::Mini_TriadF_2x2_O() {
     std::uint8_t aHold = 0;
-
-    // cycle 0
     aHold = mData[52]; mData[52] = mData[61]; mData[61] = mData[60]; mData[60] = aHold;
-
 }
 
-void M88::TriadCBSixP() {
+void M88::Mini_TriadF_2x2_P() {
     std::uint8_t aHold = 0;
-
-    // cycle 0
     aHold = mData[54]; mData[54] = mData[63]; mData[63] = mData[62]; mData[62] = aHold;
-
 }
 
-void M88::TriadDASixA() {
-    std::uint8_t aHold = 0;
 
-    // cycle 0
+void M88::Full_TriadG_2x2() {
+    std::uint8_t aHold = 0;
+    aHold = mData[4]; mData[4] = mData[32]; mData[32] = mData[36]; mData[36] = aHold;
+    aHold = mData[5]; mData[5] = mData[33]; mData[33] = mData[37]; mData[37] = aHold;
+    aHold = mData[6]; mData[6] = mData[34]; mData[34] = mData[38]; mData[38] = aHold;
+    aHold = mData[7]; mData[7] = mData[35]; mData[35] = mData[39]; mData[39] = aHold;
+    aHold = mData[12]; mData[12] = mData[40]; mData[40] = mData[44]; mData[44] = aHold;
+    aHold = mData[13]; mData[13] = mData[41]; mData[41] = mData[45]; mData[45] = aHold;
+    aHold = mData[14]; mData[14] = mData[42]; mData[42] = mData[46]; mData[46] = aHold;
+    aHold = mData[15]; mData[15] = mData[43]; mData[43] = mData[47]; mData[47] = aHold;
+    aHold = mData[20]; mData[20] = mData[48]; mData[48] = mData[52]; mData[52] = aHold;
+    aHold = mData[21]; mData[21] = mData[49]; mData[49] = mData[53]; mData[53] = aHold;
+    aHold = mData[22]; mData[22] = mData[50]; mData[50] = mData[54]; mData[54] = aHold;
+    aHold = mData[23]; mData[23] = mData[51]; mData[51] = mData[55]; mData[55] = aHold;
+    aHold = mData[28]; mData[28] = mData[56]; mData[56] = mData[60]; mData[60] = aHold;
+    aHold = mData[29]; mData[29] = mData[57]; mData[57] = mData[61]; mData[61] = aHold;
+    aHold = mData[30]; mData[30] = mData[58]; mData[58] = mData[62]; mData[62] = aHold;
+    aHold = mData[31]; mData[31] = mData[59]; mData[59] = mData[63]; mData[63] = aHold;
+}
+
+void M88::Full_TriadG_EachQuad_2x2() {
+    Quad_TriadG_2x2_A();
+    Quad_TriadG_2x2_B();
+    Quad_TriadG_2x2_C();
+    Quad_TriadG_2x2_D();
+}
+
+void M88::Full_TriadG_EachMini_2x2() {
+    Mini_TriadG_2x2_A();
+    Mini_TriadG_2x2_B();
+    Mini_TriadG_2x2_C();
+    Mini_TriadG_2x2_D();
+    Mini_TriadG_2x2_E();
+    Mini_TriadG_2x2_F();
+    Mini_TriadG_2x2_G();
+    Mini_TriadG_2x2_H();
+    Mini_TriadG_2x2_I();
+    Mini_TriadG_2x2_J();
+    Mini_TriadG_2x2_K();
+    Mini_TriadG_2x2_L();
+    Mini_TriadG_2x2_M();
+    Mini_TriadG_2x2_N();
+    Mini_TriadG_2x2_O();
+    Mini_TriadG_2x2_P();
+}
+
+void M88::Quad_TriadG_EachMini_2x2_A() {
+    Mini_TriadG_2x2_A();
+    Mini_TriadG_2x2_B();
+    Mini_TriadG_2x2_E();
+    Mini_TriadG_2x2_F();
+}
+
+void M88::Quad_TriadG_EachMini_2x2_B() {
+    Mini_TriadG_2x2_C();
+    Mini_TriadG_2x2_D();
+    Mini_TriadG_2x2_G();
+    Mini_TriadG_2x2_H();
+}
+
+void M88::Quad_TriadG_EachMini_2x2_C() {
+    Mini_TriadG_2x2_I();
+    Mini_TriadG_2x2_J();
+    Mini_TriadG_2x2_M();
+    Mini_TriadG_2x2_N();
+}
+
+void M88::Quad_TriadG_EachMini_2x2_D() {
+    Mini_TriadG_2x2_K();
+    Mini_TriadG_2x2_L();
+    Mini_TriadG_2x2_O();
+    Mini_TriadG_2x2_P();
+}
+
+void M88::Quad_TriadG_2x2_A() {
+    std::uint8_t aHold = 0;
+    aHold = mData[2]; mData[2] = mData[16]; mData[16] = mData[18]; mData[18] = aHold;
+    aHold = mData[3]; mData[3] = mData[17]; mData[17] = mData[19]; mData[19] = aHold;
+    aHold = mData[10]; mData[10] = mData[24]; mData[24] = mData[26]; mData[26] = aHold;
+    aHold = mData[11]; mData[11] = mData[25]; mData[25] = mData[27]; mData[27] = aHold;
+}
+
+void M88::Quad_TriadG_2x2_B() {
+    std::uint8_t aHold = 0;
+    aHold = mData[6]; mData[6] = mData[20]; mData[20] = mData[22]; mData[22] = aHold;
+    aHold = mData[7]; mData[7] = mData[21]; mData[21] = mData[23]; mData[23] = aHold;
+    aHold = mData[14]; mData[14] = mData[28]; mData[28] = mData[30]; mData[30] = aHold;
+    aHold = mData[15]; mData[15] = mData[29]; mData[29] = mData[31]; mData[31] = aHold;
+}
+
+void M88::Quad_TriadG_2x2_C() {
+    std::uint8_t aHold = 0;
+    aHold = mData[34]; mData[34] = mData[48]; mData[48] = mData[50]; mData[50] = aHold;
+    aHold = mData[35]; mData[35] = mData[49]; mData[49] = mData[51]; mData[51] = aHold;
+    aHold = mData[42]; mData[42] = mData[56]; mData[56] = mData[58]; mData[58] = aHold;
+    aHold = mData[43]; mData[43] = mData[57]; mData[57] = mData[59]; mData[59] = aHold;
+}
+
+void M88::Quad_TriadG_2x2_D() {
+    std::uint8_t aHold = 0;
+    aHold = mData[38]; mData[38] = mData[52]; mData[52] = mData[54]; mData[54] = aHold;
+    aHold = mData[39]; mData[39] = mData[53]; mData[53] = mData[55]; mData[55] = aHold;
+    aHold = mData[46]; mData[46] = mData[60]; mData[60] = mData[62]; mData[62] = aHold;
+    aHold = mData[47]; mData[47] = mData[61]; mData[61] = mData[63]; mData[63] = aHold;
+}
+
+void M88::Mini_TriadG_2x2_A() {
+    std::uint8_t aHold = 0;
     aHold = mData[1]; mData[1] = mData[8]; mData[8] = mData[9]; mData[9] = aHold;
-
 }
 
-void M88::TriadDASixB() {
+void M88::Mini_TriadG_2x2_B() {
     std::uint8_t aHold = 0;
-
-    // cycle 0
     aHold = mData[3]; mData[3] = mData[10]; mData[10] = mData[11]; mData[11] = aHold;
-
 }
 
-void M88::TriadDASixC() {
+void M88::Mini_TriadG_2x2_C() {
     std::uint8_t aHold = 0;
-
-    // cycle 0
     aHold = mData[5]; mData[5] = mData[12]; mData[12] = mData[13]; mData[13] = aHold;
-
 }
 
-void M88::TriadDASixD() {
+void M88::Mini_TriadG_2x2_D() {
     std::uint8_t aHold = 0;
-
-    // cycle 0
     aHold = mData[7]; mData[7] = mData[14]; mData[14] = mData[15]; mData[15] = aHold;
-
 }
 
-void M88::TriadDASixE() {
+void M88::Mini_TriadG_2x2_E() {
     std::uint8_t aHold = 0;
-
-    // cycle 0
     aHold = mData[17]; mData[17] = mData[24]; mData[24] = mData[25]; mData[25] = aHold;
-
 }
 
-void M88::TriadDASixF() {
+void M88::Mini_TriadG_2x2_F() {
     std::uint8_t aHold = 0;
-
-    // cycle 0
     aHold = mData[19]; mData[19] = mData[26]; mData[26] = mData[27]; mData[27] = aHold;
-
 }
 
-void M88::TriadDASixG() {
+void M88::Mini_TriadG_2x2_G() {
     std::uint8_t aHold = 0;
-
-    // cycle 0
     aHold = mData[21]; mData[21] = mData[28]; mData[28] = mData[29]; mData[29] = aHold;
-
 }
 
-void M88::TriadDASixH() {
+void M88::Mini_TriadG_2x2_H() {
     std::uint8_t aHold = 0;
-
-    // cycle 0
     aHold = mData[23]; mData[23] = mData[30]; mData[30] = mData[31]; mData[31] = aHold;
-
 }
 
-void M88::TriadDASixI() {
+void M88::Mini_TriadG_2x2_I() {
     std::uint8_t aHold = 0;
-
-    // cycle 0
     aHold = mData[33]; mData[33] = mData[40]; mData[40] = mData[41]; mData[41] = aHold;
-
 }
 
-void M88::TriadDASixJ() {
+void M88::Mini_TriadG_2x2_J() {
     std::uint8_t aHold = 0;
-
-    // cycle 0
     aHold = mData[35]; mData[35] = mData[42]; mData[42] = mData[43]; mData[43] = aHold;
-
 }
 
-void M88::TriadDASixK() {
+void M88::Mini_TriadG_2x2_K() {
     std::uint8_t aHold = 0;
-
-    // cycle 0
     aHold = mData[37]; mData[37] = mData[44]; mData[44] = mData[45]; mData[45] = aHold;
-
 }
 
-void M88::TriadDASixL() {
+void M88::Mini_TriadG_2x2_L() {
     std::uint8_t aHold = 0;
-
-    // cycle 0
     aHold = mData[39]; mData[39] = mData[46]; mData[46] = mData[47]; mData[47] = aHold;
-
 }
 
-void M88::TriadDASixM() {
+void M88::Mini_TriadG_2x2_M() {
     std::uint8_t aHold = 0;
-
-    // cycle 0
     aHold = mData[49]; mData[49] = mData[56]; mData[56] = mData[57]; mData[57] = aHold;
-
 }
 
-void M88::TriadDASixN() {
+void M88::Mini_TriadG_2x2_N() {
     std::uint8_t aHold = 0;
-
-    // cycle 0
     aHold = mData[51]; mData[51] = mData[58]; mData[58] = mData[59]; mData[59] = aHold;
-
 }
 
-void M88::TriadDASixO() {
+void M88::Mini_TriadG_2x2_O() {
     std::uint8_t aHold = 0;
-
-    // cycle 0
     aHold = mData[53]; mData[53] = mData[60]; mData[60] = mData[61]; mData[61] = aHold;
-
 }
 
-void M88::TriadDASixP() {
+void M88::Mini_TriadG_2x2_P() {
     std::uint8_t aHold = 0;
-
-    // cycle 0
     aHold = mData[55]; mData[55] = mData[62]; mData[62] = mData[63]; mData[63] = aHold;
-
 }
 
-void M88::TriadDBSixA() {
-    std::uint8_t aHold = 0;
 
-    // cycle 0
+
+
+
+void M88::Full_TriadH_2x2() {
+    std::uint8_t aHold = 0;
+    aHold = mData[4]; mData[4] = mData[36]; mData[36] = mData[32]; mData[32] = aHold;
+    aHold = mData[5]; mData[5] = mData[37]; mData[37] = mData[33]; mData[33] = aHold;
+    aHold = mData[6]; mData[6] = mData[38]; mData[38] = mData[34]; mData[34] = aHold;
+    aHold = mData[7]; mData[7] = mData[39]; mData[39] = mData[35]; mData[35] = aHold;
+    aHold = mData[12]; mData[12] = mData[44]; mData[44] = mData[40]; mData[40] = aHold;
+    aHold = mData[13]; mData[13] = mData[45]; mData[45] = mData[41]; mData[41] = aHold;
+    aHold = mData[14]; mData[14] = mData[46]; mData[46] = mData[42]; mData[42] = aHold;
+    aHold = mData[15]; mData[15] = mData[47]; mData[47] = mData[43]; mData[43] = aHold;
+    aHold = mData[20]; mData[20] = mData[52]; mData[52] = mData[48]; mData[48] = aHold;
+    aHold = mData[21]; mData[21] = mData[53]; mData[53] = mData[49]; mData[49] = aHold;
+    aHold = mData[22]; mData[22] = mData[54]; mData[54] = mData[50]; mData[50] = aHold;
+    aHold = mData[23]; mData[23] = mData[55]; mData[55] = mData[51]; mData[51] = aHold;
+    aHold = mData[28]; mData[28] = mData[60]; mData[60] = mData[56]; mData[56] = aHold;
+    aHold = mData[29]; mData[29] = mData[61]; mData[61] = mData[57]; mData[57] = aHold;
+    aHold = mData[30]; mData[30] = mData[62]; mData[62] = mData[58]; mData[58] = aHold;
+    aHold = mData[31]; mData[31] = mData[63]; mData[63] = mData[59]; mData[59] = aHold;
+}
+
+void M88::Full_TriadH_EachQuad_2x2() {
+    Quad_TriadH_2x2_A();
+    Quad_TriadH_2x2_B();
+    Quad_TriadH_2x2_C();
+    Quad_TriadH_2x2_D();
+}
+
+void M88::Full_TriadH_EachMini_2x2() {
+    Mini_TriadH_2x2_A();
+    Mini_TriadH_2x2_B();
+    Mini_TriadH_2x2_C();
+    Mini_TriadH_2x2_D();
+    Mini_TriadH_2x2_E();
+    Mini_TriadH_2x2_F();
+    Mini_TriadH_2x2_G();
+    Mini_TriadH_2x2_H();
+    Mini_TriadH_2x2_I();
+    Mini_TriadH_2x2_J();
+    Mini_TriadH_2x2_K();
+    Mini_TriadH_2x2_L();
+    Mini_TriadH_2x2_M();
+    Mini_TriadH_2x2_N();
+    Mini_TriadH_2x2_O();
+    Mini_TriadH_2x2_P();
+}
+
+void M88::Quad_TriadH_EachMini_2x2_A() {
+    Mini_TriadH_2x2_A();
+    Mini_TriadH_2x2_B();
+    Mini_TriadH_2x2_E();
+    Mini_TriadH_2x2_F();
+}
+
+void M88::Quad_TriadH_EachMini_2x2_B() {
+    Mini_TriadH_2x2_C();
+    Mini_TriadH_2x2_D();
+    Mini_TriadH_2x2_G();
+    Mini_TriadH_2x2_H();
+}
+
+void M88::Quad_TriadH_EachMini_2x2_C() {
+    Mini_TriadH_2x2_I();
+    Mini_TriadH_2x2_J();
+    Mini_TriadH_2x2_M();
+    Mini_TriadH_2x2_N();
+}
+
+void M88::Quad_TriadH_EachMini_2x2_D() {
+    Mini_TriadH_2x2_K();
+    Mini_TriadH_2x2_L();
+    Mini_TriadH_2x2_O();
+    Mini_TriadH_2x2_P();
+}
+
+void M88::Quad_TriadH_2x2_A() {
+    std::uint8_t aHold = 0;
+    aHold = mData[2]; mData[2] = mData[18]; mData[18] = mData[16]; mData[16] = aHold;
+    aHold = mData[3]; mData[3] = mData[19]; mData[19] = mData[17]; mData[17] = aHold;
+    aHold = mData[10]; mData[10] = mData[26]; mData[26] = mData[24]; mData[24] = aHold;
+    aHold = mData[11]; mData[11] = mData[27]; mData[27] = mData[25]; mData[25] = aHold;
+}
+
+void M88::Quad_TriadH_2x2_B() {
+    std::uint8_t aHold = 0;
+    aHold = mData[6]; mData[6] = mData[22]; mData[22] = mData[20]; mData[20] = aHold;
+    aHold = mData[7]; mData[7] = mData[23]; mData[23] = mData[21]; mData[21] = aHold;
+    aHold = mData[14]; mData[14] = mData[30]; mData[30] = mData[28]; mData[28] = aHold;
+    aHold = mData[15]; mData[15] = mData[31]; mData[31] = mData[29]; mData[29] = aHold;
+}
+
+void M88::Quad_TriadH_2x2_C() {
+    std::uint8_t aHold = 0;
+    aHold = mData[34]; mData[34] = mData[50]; mData[50] = mData[48]; mData[48] = aHold;
+    aHold = mData[35]; mData[35] = mData[51]; mData[51] = mData[49]; mData[49] = aHold;
+    aHold = mData[42]; mData[42] = mData[58]; mData[58] = mData[56]; mData[56] = aHold;
+    aHold = mData[43]; mData[43] = mData[59]; mData[59] = mData[57]; mData[57] = aHold;
+}
+
+void M88::Quad_TriadH_2x2_D() {
+    std::uint8_t aHold = 0;
+    aHold = mData[38]; mData[38] = mData[54]; mData[54] = mData[52]; mData[52] = aHold;
+    aHold = mData[39]; mData[39] = mData[55]; mData[55] = mData[53]; mData[53] = aHold;
+    aHold = mData[46]; mData[46] = mData[62]; mData[62] = mData[60]; mData[60] = aHold;
+    aHold = mData[47]; mData[47] = mData[63]; mData[63] = mData[61]; mData[61] = aHold;
+}
+
+void M88::Mini_TriadH_2x2_A() {
+    std::uint8_t aHold = 0;
     aHold = mData[1]; mData[1] = mData[9]; mData[9] = mData[8]; mData[8] = aHold;
-
 }
 
-void M88::TriadDBSixB() {
+void M88::Mini_TriadH_2x2_B() {
     std::uint8_t aHold = 0;
-
-    // cycle 0
     aHold = mData[3]; mData[3] = mData[11]; mData[11] = mData[10]; mData[10] = aHold;
-
 }
 
-void M88::TriadDBSixC() {
+void M88::Mini_TriadH_2x2_C() {
     std::uint8_t aHold = 0;
-
-    // cycle 0
     aHold = mData[5]; mData[5] = mData[13]; mData[13] = mData[12]; mData[12] = aHold;
-
 }
 
-void M88::TriadDBSixD() {
+void M88::Mini_TriadH_2x2_D() {
     std::uint8_t aHold = 0;
-
-    // cycle 0
     aHold = mData[7]; mData[7] = mData[15]; mData[15] = mData[14]; mData[14] = aHold;
-
 }
 
-void M88::TriadDBSixE() {
+void M88::Mini_TriadH_2x2_E() {
     std::uint8_t aHold = 0;
-
-    // cycle 0
     aHold = mData[17]; mData[17] = mData[25]; mData[25] = mData[24]; mData[24] = aHold;
-
 }
 
-void M88::TriadDBSixF() {
+void M88::Mini_TriadH_2x2_F() {
     std::uint8_t aHold = 0;
-
-    // cycle 0
     aHold = mData[19]; mData[19] = mData[27]; mData[27] = mData[26]; mData[26] = aHold;
-
 }
 
-void M88::TriadDBSixG() {
+void M88::Mini_TriadH_2x2_G() {
     std::uint8_t aHold = 0;
-
-    // cycle 0
     aHold = mData[21]; mData[21] = mData[29]; mData[29] = mData[28]; mData[28] = aHold;
-
 }
 
-void M88::TriadDBSixH() {
+void M88::Mini_TriadH_2x2_H() {
     std::uint8_t aHold = 0;
-
-    // cycle 0
     aHold = mData[23]; mData[23] = mData[31]; mData[31] = mData[30]; mData[30] = aHold;
-
 }
 
-void M88::TriadDBSixI() {
+void M88::Mini_TriadH_2x2_I() {
     std::uint8_t aHold = 0;
-
-    // cycle 0
     aHold = mData[33]; mData[33] = mData[41]; mData[41] = mData[40]; mData[40] = aHold;
-
 }
 
-void M88::TriadDBSixJ() {
+void M88::Mini_TriadH_2x2_J() {
     std::uint8_t aHold = 0;
-
-    // cycle 0
     aHold = mData[35]; mData[35] = mData[43]; mData[43] = mData[42]; mData[42] = aHold;
-
 }
 
-void M88::TriadDBSixK() {
+void M88::Mini_TriadH_2x2_K() {
     std::uint8_t aHold = 0;
-
-    // cycle 0
     aHold = mData[37]; mData[37] = mData[45]; mData[45] = mData[44]; mData[44] = aHold;
-
 }
 
-void M88::TriadDBSixL() {
+void M88::Mini_TriadH_2x2_L() {
     std::uint8_t aHold = 0;
-
-    // cycle 0
     aHold = mData[39]; mData[39] = mData[47]; mData[47] = mData[46]; mData[46] = aHold;
-
 }
 
-void M88::TriadDBSixM() {
+void M88::Mini_TriadH_2x2_M() {
     std::uint8_t aHold = 0;
-
-    // cycle 0
     aHold = mData[49]; mData[49] = mData[57]; mData[57] = mData[56]; mData[56] = aHold;
-
 }
 
-void M88::TriadDBSixN() {
+void M88::Mini_TriadH_2x2_N() {
     std::uint8_t aHold = 0;
-
-    // cycle 0
     aHold = mData[51]; mData[51] = mData[59]; mData[59] = mData[58]; mData[58] = aHold;
-
 }
 
-void M88::TriadDBSixO() {
+void M88::Mini_TriadH_2x2_O() {
     std::uint8_t aHold = 0;
-
-    // cycle 0
     aHold = mData[53]; mData[53] = mData[61]; mData[61] = mData[60]; mData[60] = aHold;
-
 }
 
-void M88::TriadDBSixP() {
+void M88::Mini_TriadH_2x2_P() {
     std::uint8_t aHold = 0;
-
-    // cycle 0
     aHold = mData[55]; mData[55] = mData[63]; mData[63] = mData[62]; mData[62] = aHold;
-
-}
-
-void M88::SnakeASixA() {
-    std::uint8_t aHold = 0;
-
-    // cycle 0
-    aHold = mData[0]; mData[0] = mData[1]; mData[1] = mData[8]; mData[8] = mData[9];
-    mData[9] = aHold;
-
-}
-
-void M88::SnakeASixB() {
-    std::uint8_t aHold = 0;
-
-    // cycle 0
-    aHold = mData[2]; mData[2] = mData[3]; mData[3] = mData[10]; mData[10] = mData[11];
-    mData[11] = aHold;
-
-}
-
-void M88::SnakeASixC() {
-    std::uint8_t aHold = 0;
-
-    // cycle 0
-    aHold = mData[4]; mData[4] = mData[5]; mData[5] = mData[12]; mData[12] = mData[13];
-    mData[13] = aHold;
-
-}
-
-void M88::SnakeASixD() {
-    std::uint8_t aHold = 0;
-
-    // cycle 0
-    aHold = mData[6]; mData[6] = mData[7]; mData[7] = mData[14]; mData[14] = mData[15];
-    mData[15] = aHold;
-
-}
-
-void M88::SnakeASixE() {
-    std::uint8_t aHold = 0;
-
-    // cycle 0
-    aHold = mData[16]; mData[16] = mData[17]; mData[17] = mData[24]; mData[24] = mData[25];
-    mData[25] = aHold;
-
-}
-
-void M88::SnakeASixF() {
-    std::uint8_t aHold = 0;
-
-    // cycle 0
-    aHold = mData[18]; mData[18] = mData[19]; mData[19] = mData[26]; mData[26] = mData[27];
-    mData[27] = aHold;
-
-}
-
-void M88::SnakeASixG() {
-    std::uint8_t aHold = 0;
-
-    // cycle 0
-    aHold = mData[20]; mData[20] = mData[21]; mData[21] = mData[28]; mData[28] = mData[29];
-    mData[29] = aHold;
-
-}
-
-void M88::SnakeASixH() {
-    std::uint8_t aHold = 0;
-
-    // cycle 0
-    aHold = mData[22]; mData[22] = mData[23]; mData[23] = mData[30]; mData[30] = mData[31];
-    mData[31] = aHold;
-
-}
-
-void M88::SnakeASixI() {
-    std::uint8_t aHold = 0;
-
-    // cycle 0
-    aHold = mData[32]; mData[32] = mData[33]; mData[33] = mData[40]; mData[40] = mData[41];
-    mData[41] = aHold;
-
-}
-
-void M88::SnakeASixJ() {
-    std::uint8_t aHold = 0;
-
-    // cycle 0
-    aHold = mData[34]; mData[34] = mData[35]; mData[35] = mData[42]; mData[42] = mData[43];
-    mData[43] = aHold;
-
-}
-
-void M88::SnakeASixK() {
-    std::uint8_t aHold = 0;
-
-    // cycle 0
-    aHold = mData[36]; mData[36] = mData[37]; mData[37] = mData[44]; mData[44] = mData[45];
-    mData[45] = aHold;
-
-}
-
-void M88::SnakeASixL() {
-    std::uint8_t aHold = 0;
-
-    // cycle 0
-    aHold = mData[38]; mData[38] = mData[39]; mData[39] = mData[46]; mData[46] = mData[47];
-    mData[47] = aHold;
-
-}
-
-void M88::SnakeASixM() {
-    std::uint8_t aHold = 0;
-
-    // cycle 0
-    aHold = mData[48]; mData[48] = mData[49]; mData[49] = mData[56]; mData[56] = mData[57];
-    mData[57] = aHold;
-
-}
-
-void M88::SnakeASixN() {
-    std::uint8_t aHold = 0;
-
-    // cycle 0
-    aHold = mData[50]; mData[50] = mData[51]; mData[51] = mData[58]; mData[58] = mData[59];
-    mData[59] = aHold;
-
-}
-
-void M88::SnakeASixO() {
-    std::uint8_t aHold = 0;
-
-    // cycle 0
-    aHold = mData[52]; mData[52] = mData[53]; mData[53] = mData[60]; mData[60] = mData[61];
-    mData[61] = aHold;
-
-}
-
-void M88::SnakeASixP() {
-    std::uint8_t aHold = 0;
-
-    // cycle 0
-    aHold = mData[54]; mData[54] = mData[55]; mData[55] = mData[62]; mData[62] = mData[63];
-    mData[63] = aHold;
-
-}
-
-void M88::SnakeBSixA() {
-    std::uint8_t aHold = 0;
-
-    // cycle 0
-    aHold = mData[0]; mData[0] = mData[9]; mData[9] = mData[8]; mData[8] = mData[1];
-    mData[1] = aHold;
-
-}
-
-void M88::SnakeBSixB() {
-    std::uint8_t aHold = 0;
-
-    // cycle 0
-    aHold = mData[2]; mData[2] = mData[11]; mData[11] = mData[10]; mData[10] = mData[3];
-    mData[3] = aHold;
-
-}
-
-void M88::SnakeBSixC() {
-    std::uint8_t aHold = 0;
-
-    // cycle 0
-    aHold = mData[4]; mData[4] = mData[13]; mData[13] = mData[12]; mData[12] = mData[5];
-    mData[5] = aHold;
-
-}
-
-void M88::SnakeBSixD() {
-    std::uint8_t aHold = 0;
-
-    // cycle 0
-    aHold = mData[6]; mData[6] = mData[15]; mData[15] = mData[14]; mData[14] = mData[7];
-    mData[7] = aHold;
-
-}
-
-void M88::SnakeBSixE() {
-    std::uint8_t aHold = 0;
-
-    // cycle 0
-    aHold = mData[16]; mData[16] = mData[25]; mData[25] = mData[24]; mData[24] = mData[17];
-    mData[17] = aHold;
-
-}
-
-void M88::SnakeBSixF() {
-    std::uint8_t aHold = 0;
-
-    // cycle 0
-    aHold = mData[18]; mData[18] = mData[27]; mData[27] = mData[26]; mData[26] = mData[19];
-    mData[19] = aHold;
-
-}
-
-void M88::SnakeBSixG() {
-    std::uint8_t aHold = 0;
-
-    // cycle 0
-    aHold = mData[20]; mData[20] = mData[29]; mData[29] = mData[28]; mData[28] = mData[21];
-    mData[21] = aHold;
-
-}
-
-void M88::SnakeBSixH() {
-    std::uint8_t aHold = 0;
-
-    // cycle 0
-    aHold = mData[22]; mData[22] = mData[31]; mData[31] = mData[30]; mData[30] = mData[23];
-    mData[23] = aHold;
-
-}
-
-void M88::SnakeBSixI() {
-    std::uint8_t aHold = 0;
-
-    // cycle 0
-    aHold = mData[32]; mData[32] = mData[41]; mData[41] = mData[40]; mData[40] = mData[33];
-    mData[33] = aHold;
-
-}
-
-void M88::SnakeBSixJ() {
-    std::uint8_t aHold = 0;
-
-    // cycle 0
-    aHold = mData[34]; mData[34] = mData[43]; mData[43] = mData[42]; mData[42] = mData[35];
-    mData[35] = aHold;
-
-}
-
-void M88::SnakeBSixK() {
-    std::uint8_t aHold = 0;
-
-    // cycle 0
-    aHold = mData[36]; mData[36] = mData[45]; mData[45] = mData[44]; mData[44] = mData[37];
-    mData[37] = aHold;
-
-}
-
-void M88::SnakeBSixL() {
-    std::uint8_t aHold = 0;
-
-    // cycle 0
-    aHold = mData[38]; mData[38] = mData[47]; mData[47] = mData[46]; mData[46] = mData[39];
-    mData[39] = aHold;
-
-}
-
-void M88::SnakeBSixM() {
-    std::uint8_t aHold = 0;
-
-    // cycle 0
-    aHold = mData[48]; mData[48] = mData[57]; mData[57] = mData[56]; mData[56] = mData[49];
-    mData[49] = aHold;
-
-}
-
-void M88::SnakeBSixN() {
-    std::uint8_t aHold = 0;
-
-    // cycle 0
-    aHold = mData[50]; mData[50] = mData[59]; mData[59] = mData[58]; mData[58] = mData[51];
-    mData[51] = aHold;
-
-}
-
-void M88::SnakeBSixO() {
-    std::uint8_t aHold = 0;
-
-    // cycle 0
-    aHold = mData[52]; mData[52] = mData[61]; mData[61] = mData[60]; mData[60] = mData[53];
-    mData[53] = aHold;
-
-}
-
-void M88::SnakeBSixP() {
-    std::uint8_t aHold = 0;
-
-    // cycle 0
-    aHold = mData[54]; mData[54] = mData[63]; mData[63] = mData[62]; mData[62] = mData[55];
-    mData[55] = aHold;
-
-}
-
-void M88::SnakeCSixA() {
-    std::uint8_t aHold = 0;
-
-    // cycle 0
-    aHold = mData[0]; mData[0] = mData[8]; mData[8] = mData[1]; mData[1] = mData[9];
-    mData[9] = aHold;
-
-}
-
-void M88::SnakeCSixB() {
-    std::uint8_t aHold = 0;
-
-    // cycle 0
-    aHold = mData[2]; mData[2] = mData[10]; mData[10] = mData[3]; mData[3] = mData[11];
-    mData[11] = aHold;
-
-}
-
-void M88::SnakeCSixC() {
-    std::uint8_t aHold = 0;
-
-    // cycle 0
-    aHold = mData[4]; mData[4] = mData[12]; mData[12] = mData[5]; mData[5] = mData[13];
-    mData[13] = aHold;
-
-}
-
-void M88::SnakeCSixD() {
-    std::uint8_t aHold = 0;
-
-    // cycle 0
-    aHold = mData[6]; mData[6] = mData[14]; mData[14] = mData[7]; mData[7] = mData[15];
-    mData[15] = aHold;
-
-}
-
-void M88::SnakeCSixE() {
-    std::uint8_t aHold = 0;
-
-    // cycle 0
-    aHold = mData[16]; mData[16] = mData[24]; mData[24] = mData[17]; mData[17] = mData[25];
-    mData[25] = aHold;
-
-}
-
-void M88::SnakeCSixF() {
-    std::uint8_t aHold = 0;
-
-    // cycle 0
-    aHold = mData[18]; mData[18] = mData[26]; mData[26] = mData[19]; mData[19] = mData[27];
-    mData[27] = aHold;
-
-}
-
-void M88::SnakeCSixG() {
-    std::uint8_t aHold = 0;
-
-    // cycle 0
-    aHold = mData[20]; mData[20] = mData[28]; mData[28] = mData[21]; mData[21] = mData[29];
-    mData[29] = aHold;
-
-}
-
-void M88::SnakeCSixH() {
-    std::uint8_t aHold = 0;
-
-    // cycle 0
-    aHold = mData[22]; mData[22] = mData[30]; mData[30] = mData[23]; mData[23] = mData[31];
-    mData[31] = aHold;
-
-}
-
-void M88::SnakeCSixI() {
-    std::uint8_t aHold = 0;
-
-    // cycle 0
-    aHold = mData[32]; mData[32] = mData[40]; mData[40] = mData[33]; mData[33] = mData[41];
-    mData[41] = aHold;
-
-}
-
-void M88::SnakeCSixJ() {
-    std::uint8_t aHold = 0;
-
-    // cycle 0
-    aHold = mData[34]; mData[34] = mData[42]; mData[42] = mData[35]; mData[35] = mData[43];
-    mData[43] = aHold;
-
-}
-
-void M88::SnakeCSixK() {
-    std::uint8_t aHold = 0;
-
-    // cycle 0
-    aHold = mData[36]; mData[36] = mData[44]; mData[44] = mData[37]; mData[37] = mData[45];
-    mData[45] = aHold;
-
-}
-
-void M88::SnakeCSixL() {
-    std::uint8_t aHold = 0;
-
-    // cycle 0
-    aHold = mData[38]; mData[38] = mData[46]; mData[46] = mData[39]; mData[39] = mData[47];
-    mData[47] = aHold;
-
-}
-
-void M88::SnakeCSixM() {
-    std::uint8_t aHold = 0;
-
-    // cycle 0
-    aHold = mData[48]; mData[48] = mData[56]; mData[56] = mData[49]; mData[49] = mData[57];
-    mData[57] = aHold;
-
-}
-
-void M88::SnakeCSixN() {
-    std::uint8_t aHold = 0;
-
-    // cycle 0
-    aHold = mData[50]; mData[50] = mData[58]; mData[58] = mData[51]; mData[51] = mData[59];
-    mData[59] = aHold;
-
-}
-
-void M88::SnakeCSixO() {
-    std::uint8_t aHold = 0;
-
-    // cycle 0
-    aHold = mData[52]; mData[52] = mData[60]; mData[60] = mData[53]; mData[53] = mData[61];
-    mData[61] = aHold;
-
-}
-
-void M88::SnakeCSixP() {
-    std::uint8_t aHold = 0;
-
-    // cycle 0
-    aHold = mData[54]; mData[54] = mData[62]; mData[62] = mData[55]; mData[55] = mData[63];
-    mData[63] = aHold;
-
-}
-
-void M88::SnakeDSixA() {
-    std::uint8_t aHold = 0;
-
-    // cycle 0
-    aHold = mData[0]; mData[0] = mData[9]; mData[9] = mData[1]; mData[1] = mData[8];
-    mData[8] = aHold;
-
-}
-
-void M88::SnakeDSixB() {
-    std::uint8_t aHold = 0;
-
-    // cycle 0
-    aHold = mData[2]; mData[2] = mData[11]; mData[11] = mData[3]; mData[3] = mData[10];
-    mData[10] = aHold;
-
-}
-
-void M88::SnakeDSixC() {
-    std::uint8_t aHold = 0;
-
-    // cycle 0
-    aHold = mData[4]; mData[4] = mData[13]; mData[13] = mData[5]; mData[5] = mData[12];
-    mData[12] = aHold;
-
-}
-
-void M88::SnakeDSixD() {
-    std::uint8_t aHold = 0;
-
-    // cycle 0
-    aHold = mData[6]; mData[6] = mData[15]; mData[15] = mData[7]; mData[7] = mData[14];
-    mData[14] = aHold;
-
-}
-
-void M88::SnakeDSixE() {
-    std::uint8_t aHold = 0;
-
-    // cycle 0
-    aHold = mData[16]; mData[16] = mData[25]; mData[25] = mData[17]; mData[17] = mData[24];
-    mData[24] = aHold;
-
-}
-
-void M88::SnakeDSixF() {
-    std::uint8_t aHold = 0;
-
-    // cycle 0
-    aHold = mData[18]; mData[18] = mData[27]; mData[27] = mData[19]; mData[19] = mData[26];
-    mData[26] = aHold;
-
-}
-
-void M88::SnakeDSixG() {
-    std::uint8_t aHold = 0;
-
-    // cycle 0
-    aHold = mData[20]; mData[20] = mData[29]; mData[29] = mData[21]; mData[21] = mData[28];
-    mData[28] = aHold;
-
-}
-
-void M88::SnakeDSixH() {
-    std::uint8_t aHold = 0;
-
-    // cycle 0
-    aHold = mData[22]; mData[22] = mData[31]; mData[31] = mData[23]; mData[23] = mData[30];
-    mData[30] = aHold;
-
-}
-
-void M88::SnakeDSixI() {
-    std::uint8_t aHold = 0;
-
-    // cycle 0
-    aHold = mData[32]; mData[32] = mData[41]; mData[41] = mData[33]; mData[33] = mData[40];
-    mData[40] = aHold;
-
-}
-
-void M88::SnakeDSixJ() {
-    std::uint8_t aHold = 0;
-
-    // cycle 0
-    aHold = mData[34]; mData[34] = mData[43]; mData[43] = mData[35]; mData[35] = mData[42];
-    mData[42] = aHold;
-
-}
-
-void M88::SnakeDSixK() {
-    std::uint8_t aHold = 0;
-
-    // cycle 0
-    aHold = mData[36]; mData[36] = mData[45]; mData[45] = mData[37]; mData[37] = mData[44];
-    mData[44] = aHold;
-
-}
-
-void M88::SnakeDSixL() {
-    std::uint8_t aHold = 0;
-
-    // cycle 0
-    aHold = mData[38]; mData[38] = mData[47]; mData[47] = mData[39]; mData[39] = mData[46];
-    mData[46] = aHold;
-
-}
-
-void M88::SnakeDSixM() {
-    std::uint8_t aHold = 0;
-
-    // cycle 0
-    aHold = mData[48]; mData[48] = mData[57]; mData[57] = mData[49]; mData[49] = mData[56];
-    mData[56] = aHold;
-
-}
-
-void M88::SnakeDSixN() {
-    std::uint8_t aHold = 0;
-
-    // cycle 0
-    aHold = mData[50]; mData[50] = mData[59]; mData[59] = mData[51]; mData[51] = mData[58];
-    mData[58] = aHold;
-
-}
-
-void M88::SnakeDSixO() {
-    std::uint8_t aHold = 0;
-
-    // cycle 0
-    aHold = mData[52]; mData[52] = mData[61]; mData[61] = mData[53]; mData[53] = mData[60];
-    mData[60] = aHold;
-
 }
 
-void M88::SnakeDSixP() {
-    std::uint8_t aHold = 0;
 
-    // cycle 0
-    aHold = mData[54]; mData[54] = mData[63]; mData[63] = mData[55]; mData[55] = mData[62];
-    mData[62] = aHold;
-
-}
