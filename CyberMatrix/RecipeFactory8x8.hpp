@@ -27,11 +27,22 @@ public:
     static Recipe8x8        FlipC();
     static Recipe8x8        FlipD();
     
-    
-    
     static Recipe8x8        PinA();
     static Recipe8x8        PinB();
     
+    static Recipe8x8        ReachA();
+    static Recipe8x8        ReachB();
+    static Recipe8x8        ReachC();
+    static Recipe8x8        ReachD();
+    
+    static Recipe8x8        ShearA();
+    static Recipe8x8        ShearB();
+    static Recipe8x8        ShearC();
+    static Recipe8x8        ShearD();
+    
+    static Recipe8x8        SwapRows();
+    static Recipe8x8        SwapColums();
+    static Recipe8x8        SwapBoth();
     
 private:
     static Recipe8x8        MakeIdentityNamed(const char *pName);

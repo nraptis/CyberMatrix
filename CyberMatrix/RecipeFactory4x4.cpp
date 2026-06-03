@@ -160,6 +160,291 @@ Recipe4x4 RecipeFactory4x4::PinB() {
     );
 }
 
+Recipe4x4 RecipeFactory4x4::ReachA() {
+    //  A  B  C  D      C  B  A  D
+    //  E  F  G  H  ->  G  F  E  H
+    //  I  J  K  L      I  L  K  J
+    //  M  N  O  P      M  P  O  N
+    return Make("ReachA",
+                 2U,  1U,  0U,  3U,
+                 6U,  5U,  4U,  7U,
+                 8U, 11U, 10U,  9U,
+                12U, 15U, 14U, 13U
+    );
+}
+
+Recipe4x4 RecipeFactory4x4::ReachB() {
+    //  A  B  C  D      A  D  C  B
+    //  E  F  G  H  ->  E  H  G  F
+    //  I  J  K  L      K  J  I  L
+    //  M  N  O  P      O  N  M  P
+    return Make("ReachB",
+                 0U,  3U,  2U,  1U,
+                 4U,  7U,  6U,  5U,
+                10U,  9U,  8U, 11U,
+                14U, 13U, 12U, 15U
+    );
+}
+
+Recipe4x4 RecipeFactory4x4::ReachC() {
+    //  A  B  C  D      I  J  C  D
+    //  E  F  G  H  ->  E  F  O  P
+    //  I  J  K  L      A  B  K  L
+    //  M  N  O  P      M  N  G  H
+    return Make("ReachC",
+                 8U,  9U,  2U,  3U,
+                 4U,  5U, 14U, 15U,
+                 0U,  1U, 10U, 11U,
+                12U, 13U,  6U,  7U
+    );
+}
+
+Recipe4x4 RecipeFactory4x4::ReachD() {
+    //  A  B  C  D      A  B  K  L
+    //  E  F  G  H  ->  M  N  G  H
+    //  I  J  K  L      I  J  C  D
+    //  M  N  O  P      E  F  O  P
+    return Make("ReachD",
+                 0U,  1U, 10U, 11U,
+                12U, 13U,  6U,  7U,
+                 8U,  9U,  2U,  3U,
+                 4U,  5U, 14U, 15U
+    );
+}
+
+
+Recipe4x4 RecipeFactory4x4::RollHor1() {
+    //  A  B  C  D      D  A  B  C
+    //  E  F  G  H  ->  H  E  F  G
+    //  I  J  K  L      L  I  J  K
+    //  M  N  O  P      P  M  N  O
+    return Make("RollHor1",
+                 3U,  0U,  1U,  2U,
+                 7U,  4U,  5U,  6U,
+                11U,  8U,  9U, 10U,
+                15U, 12U, 13U, 14U
+    );
+}
+
+Recipe4x4 RecipeFactory4x4::RollHor2() {
+    //  A  B  C  D      C  D  A  B
+    //  E  F  G  H  ->  G  H  E  F
+    //  I  J  K  L      K  L  I  J
+    //  M  N  O  P      O  P  M  N
+    return Make("RollHor2",
+                 2U,  3U,  0U,  1U,
+                 6U,  7U,  4U,  5U,
+                10U, 11U,  8U,  9U,
+                14U, 15U, 12U, 13U
+    );
+}
+
+Recipe4x4 RecipeFactory4x4::RollHor3() {
+    //  A  B  C  D      B  C  D  A
+    //  E  F  G  H  ->  F  G  H  E
+    //  I  J  K  L      J  K  L  I
+    //  M  N  O  P      N  O  P  M
+    return Make("RollHor3",
+                 1U,  2U,  3U,  0U,
+                 5U,  6U,  7U,  4U,
+                 9U, 10U, 11U,  8U,
+                13U, 14U, 15U, 12U
+    );
+}
+
+Recipe4x4 RecipeFactory4x4::RollVer1() {
+    //  A  B  C  D      M  N  O  P
+    //  E  F  G  H  ->  A  B  C  D
+    //  I  J  K  L      E  F  G  H
+    //  M  N  O  P      I  J  K  L
+    return Make("RollVer1",
+                12U, 13U, 14U, 15U,
+                 0U,  1U,  2U,  3U,
+                 4U,  5U,  6U,  7U,
+                 8U,  9U, 10U, 11U
+    );
+}
+
+Recipe4x4 RecipeFactory4x4::RollVer2() {
+    //  A  B  C  D      I  J  K  L
+    //  E  F  G  H  ->  M  N  O  P
+    //  I  J  K  L      A  B  C  D
+    //  M  N  O  P      E  F  G  H
+    return Make("RollVer2",
+                 8U,  9U, 10U, 11U,
+                12U, 13U, 14U, 15U,
+                 0U,  1U,  2U,  3U,
+                 4U,  5U,  6U,  7U
+    );
+}
+
+Recipe4x4 RecipeFactory4x4::RollVer3() {
+    //  A  B  C  D      E  F  G  H
+    //  E  F  G  H  ->  I  J  K  L
+    //  I  J  K  L      M  N  O  P
+    //  M  N  O  P      A  B  C  D
+    return Make("RollVer3",
+                 4U,  5U,  6U,  7U,
+                 8U,  9U, 10U, 11U,
+                12U, 13U, 14U, 15U,
+                 0U,  1U,  2U,  3U
+    );
+}
+
+
+
+
+Recipe4x4 RecipeFactory4x4::ShearA() {
+//  A  B  C  D      C  D  A  B
+//  E  F  G  H  ->  H  E  F  G
+//  I  J  K  L      K  L  I  J
+//  M  N  O  P      P  M  N  O
+return Make("ShearA",
+             2U,  3U,  0U,  1U,
+             7U,  4U,  5U,  6U,
+            10U, 11U,  8U,  9U,
+            15U, 12U, 13U, 14U
+);
+}
+
+
+
+Recipe4x4 RecipeFactory4x4::ShearB() {
+//  A  B  C  D      D  A  B  C
+//  E  F  G  H  ->  G  H  E  F
+//  I  J  K  L      L  I  J  K
+//  M  N  O  P      O  P  M  N
+return Make("ShearB",
+             3U,  0U,  1U,  2U,
+             6U,  7U,  4U,  5U,
+            11U,  8U,  9U, 10U,
+            14U, 15U, 12U, 13U
+);
+}
+
+
+
+Recipe4x4 RecipeFactory4x4::ShearC() {
+//  A  B  C  D      I  N  K  P
+//  E  F  G  H  ->  M  B  O  D
+//  I  J  K  L      A  F  C  H
+//  M  N  O  P      E  J  G  L
+return Make("ShearC",
+             8U, 13U, 10U, 15U,
+            12U,  1U, 14U,  3U,
+             0U,  5U,  2U,  7U,
+             4U,  9U,  6U, 11U
+);
+}
+
+
+
+Recipe4x4 RecipeFactory4x4::ShearD() {
+//  A  B  C  D      M  J  O  L
+//  E  F  G  H  ->  A  N  C  P
+//  I  J  K  L      E  B  G  D
+//  M  N  O  P      I  F  K  H
+return Make("ShearD",
+            12U,  9U, 14U, 11U,
+             0U, 13U,  2U, 15U,
+             4U,  1U,  6U,  3U,
+             8U,  5U, 10U,  7U
+);
+}
+
+Recipe4x4 RecipeFactory4x4::SwapRows() {
+    //  A  B  C  D      E  F  G  H
+    //  E  F  G  H  ->  A  B  C  D
+    //  I  J  K  L      M  N  O  P
+    //  M  N  O  P      I  J  K  L
+    return Make("SwapRows",
+                 4U,  5U,  6U,  7U,
+                 0U,  1U,  2U,  3U,
+                12U, 13U, 14U, 15U,
+                 8U,  9U, 10U, 11U
+    );
+}
+
+Recipe4x4 RecipeFactory4x4::SwapColums() {
+    //  A  B  C  D      B  A  D  C
+    //  E  F  G  H  ->  F  E  H  G
+    //  I  J  K  L      J  I  L  K
+    //  M  N  O  P      N  M  P  O
+    return Make("SwapColums",
+                1U,  0U,  3U,  2U,
+                5U,  4U,  7U,  6U,
+                9U,  8U, 11U, 10U,
+                13U, 12U, 15U, 14U
+                );
+}
+
+
+
+Recipe4x4 RecipeFactory4x4::SwapBoth() {
+//  A  B  C  D      F  E  H  G
+//  E  F  G  H  ->  B  A  D  C
+//  I  J  K  L      N  M  P  O
+//  M  N  O  P      J  I  L  K
+return Make("SwapBoth",
+             5U,  4U,  7U,  6U,
+             1U,  0U,  3U,  2U,
+            13U, 12U, 15U, 14U,
+             9U,  8U, 11U, 10U
+);
+}
+
+Recipe4x4 RecipeFactory4x4::FoldA() {
+    //  A  B  C  D      D  F  G  A
+    //  E  F  G  H  ->  H  B  C  E
+    //  I  J  K  L      L  N  O  I
+    //  M  N  O  P      P  J  K  M
+    return Make("FoldA",
+                 3U,  5U,  6U,  0U,
+                 7U,  1U,  2U,  4U,
+                11U, 13U, 14U,  8U,
+                15U,  9U, 10U, 12U
+    );
+}
+
+Recipe4x4 RecipeFactory4x4::FoldB() {
+    //  A  B  C  D      M  N  O  P
+    //  E  F  G  H  ->  F  E  H  G
+    //  I  J  K  L      J  I  L  K
+    //  M  N  O  P      A  B  C  D
+    return Make("FoldB",
+                12U, 13U, 14U, 15U,
+                 5U,  4U,  7U,  6U,
+                 9U,  8U, 11U, 10U,
+                 0U,  1U,  2U,  3U
+    );
+}
+
+Recipe4x4 RecipeFactory4x4::FoldC() {
+    //  A  B  C  D      D  C  B  A
+    //  E  F  G  H  ->  H  G  F  E
+    //  I  J  K  L      L  K  J  I
+    //  M  N  O  P      P  O  N  M
+    return Make("FoldC",
+                 3U,  2U,  1U,  0U,
+                 7U,  6U,  5U,  4U,
+                11U, 10U,  9U,  8U,
+                15U, 14U, 13U, 12U
+    );
+}
+
+Recipe4x4 RecipeFactory4x4::FoldD() {
+    //  A  B  C  D      P  O  N  M
+    //  E  F  G  H  ->  H  G  F  E
+    //  I  J  K  L      L  K  J  I
+    //  M  N  O  P      D  C  B  A
+    return Make("FoldD",
+                15U, 14U, 13U, 12U,
+                 7U,  6U,  5U,  4U,
+                11U, 10U,  9U,  8U,
+                 3U,  2U,  1U,  0U
+    );
+}
+
 Recipe4x4 RecipeFactory4x4::CastleA() {
     //  A  B  C  D      G  H  L  K
     //  E  F  G  H  ->  C  M  A  O
@@ -172,8 +457,6 @@ Recipe4x4 RecipeFactory4x4::CastleA() {
                  5U,  4U,  8U,  9U
     );
 }
-
-
 
 
 Recipe4x4 RecipeFactory4x4::CastleB() {

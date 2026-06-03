@@ -30,6 +30,34 @@ public:
     static Recipe4x4        PinA();
     static Recipe4x4        PinB();
     
+    static Recipe4x4        ReachA();
+    static Recipe4x4        ReachB();
+    static Recipe4x4        ReachC();
+    static Recipe4x4        ReachD();
+    
+    // hpp
+    static Recipe4x4        RollHor1();
+    static Recipe4x4        RollHor2();
+    static Recipe4x4        RollHor3();
+
+    static Recipe4x4        RollVer1();
+    static Recipe4x4        RollVer2();
+    static Recipe4x4        RollVer3();
+    
+    static Recipe4x4        ShearA();
+    static Recipe4x4        ShearB();
+    static Recipe4x4        ShearC();
+    static Recipe4x4        ShearD();
+
+    static Recipe4x4        SwapRows();
+    static Recipe4x4        SwapColums();
+    static Recipe4x4        SwapBoth();
+    
+    static Recipe4x4        FoldA();
+    static Recipe4x4        FoldB();
+    static Recipe4x4        FoldC();
+    static Recipe4x4        FoldD();
+    
     static Recipe4x4        CastleA();
     static Recipe4x4        CastleB();
     static Recipe4x4        CastleC();

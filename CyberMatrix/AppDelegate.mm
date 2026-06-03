@@ -71,14 +71,48 @@ static void PrintGridComment(const Pick4& p, std::size_t index) {
 
 - (void)applicationDidFinishLaunching:(NSNotification *)aNotification {
     
-    //RecipeExporter2x2::Export(RecipeFactory2x2::TriadH());
-    TestExporter2x2::Export(RecipeFactory2x2::TriadH());
     
-    //RecipeExporter4x4::Export(RecipeFactory4x4::SnakeA());
-    //TestExporter4x4::Export(RecipeFactory4x4::SnakeA());
+    //RecipeExporter2x2::Export(RecipeFactory2x2::SwapD());
+    //TestExporter2x2::Export(RecipeFactory2x2::SwapD());
     
-    //RecipeExporter8x8::Export(RecipeFactory8x8::SnakeA());
-    //TestExporter8x8::Export(RecipeFactory8x8::SnakeA());
+    //RecipeExporter4x4::Export(RecipeFactory4x4::FoldD());
+    TestExporter4x4::Export(RecipeFactory4x4::FoldD());
+    
+    //RecipeExporter8x8::Export(RecipeFactory8x8::ShearD());
+    //TestExporter8x8::Export(RecipeFactory8x8::ShearD());
+    
+    
+    
+    /*
+    const std::string aName = "ShearD";
+    void (Slice::*aFunction)() = &Slice::_ShearD;
+
+    M88 aMatrix;
+
+    aMatrix.Reset();
+    Slice aSliceA = aMatrix.GetQuadA();
+    aSliceA.PrepareSlots();
+    (aSliceA.*aFunction)();
+    aSliceA.RealizeSlots();
+    aMatrix.RecordStart();
+    aMatrix.Paste(aSliceA);
+    aMatrix.RecordStop();
+    aSliceA.PrintRecipeFactory4x4(aName);
+
+    aMatrix.Reset();
+    Slice aSliceB = aMatrix.GetFull();
+    aSliceB.PrepareSlots();
+    (aSliceB.*aFunction)();
+    aSliceB.RealizeSlots();
+    aMatrix.RecordStart();
+    aMatrix.Paste(aSliceB);
+    aMatrix.RecordStop();
+    aSliceB.PrintRecipeFactory8x8(aName);
+    */
+    
+    
+    
+    
     
     
     /*

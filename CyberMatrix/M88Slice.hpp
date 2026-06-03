@@ -119,6 +119,21 @@ public:
     void                        _FlipC(); // main transpose
     void                        _FlipD(); // anti transpose
     
+    void                        _ReachA();
+    void                        _ReachB();
+    void                        _ReachC();
+    void                        _ReachD();
+    
+    void                        _SwapRows();
+    void                        _SwapColumns();
+    void                        _SwapBoth();
+    
+    void                        _ShearA();
+    void                        _ShearB();
+    void                        _ShearC();
+    void                        _ShearD();
+    
+    
     
 };
 

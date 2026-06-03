@@ -17,6 +17,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		047461D82FCF6DB1002215F7 /* CyberMatrix.xctestplan */ = {isa = PBXFileReference; lastKnownFileType = text; path = CyberMatrix.xctestplan; sourceTree = "<group>"; };
 		A8C324942FC9C0F4001F26CC /* CyberMatrix.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = CyberMatrix.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A8FFE9852FC9FF6500444405 /* UnitTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = UnitTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -69,6 +70,7 @@
 		A8C3248B2FC9C0F4001F26CC = {
 			isa = PBXGroup;
 			children = (
+				047461D82FCF6DB1002215F7 /* CyberMatrix.xctestplan */,
 				A8C324962FC9C0F4001F26CC /* CyberMatrix */,
 				A8FFE9862FC9FF6500444405 /* UnitTests */,
 				A8C324952FC9C0F4001F26CC /* Products */,

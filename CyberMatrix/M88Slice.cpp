@@ -506,6 +506,175 @@ void Slice::_Pin(int pStartDirection) {
     }
 }
 
+void Slice::_ReachA() {
+    std::memcpy(mTempData, mData, sizeof(mTempData));
+    
+    for (std::size_t y = 0; y < mSize; y += 2) {
+        int aStartX = 1;
+        if ((y & 2) == 0) { aStartX = (1 - aStartX); }
+        for (std::size_t x = aStartX; x <= (mSize - 3); x += 4) {
+            mData[x][y] = mTempData[x + 2][y];
+            mData[x][y + 1] = mTempData[x + 2][y + 1];
+            
+            mData[x + 2][y] = mTempData[x][y];
+            mData[x + 2][y + 1] = mTempData[x][y + 1];
+            
+        }
+    }
+}
+
+void Slice::_ReachB() {
+    std::memcpy(mTempData, mData, sizeof(mTempData));
+    
+    for (std::size_t y = 0; y < mSize; y += 2) {
+        int aStartX = 0;
+        if ((y & 2) == 0) { aStartX = (1 - aStartX); }
+        for (std::size_t x = aStartX; x <= (mSize - 3); x += 4) {
+            mData[x][y] = mTempData[x + 2][y];
+            mData[x][y + 1] = mTempData[x + 2][y + 1];
+            
+            mData[x + 2][y] = mTempData[x][y];
+            mData[x + 2][y + 1] = mTempData[x][y + 1];
+            
+        }
+    }
+}
+
+void Slice::_ReachC() {
+    std::memcpy(mTempData, mData, sizeof(mTempData));
+    
+    for (std::size_t x = 0; x < mSize; x += 2) {
+        int aStartY = 1;
+        if ((x & 2) == 0) { aStartY = (1 - aStartY); }
+        
+        for (std::size_t y = aStartY; y <= (mSize - 3); y += 4) {
+            mData[x][y] = mTempData[x][y + 2];
+            mData[x + 1][y] = mTempData[x + 1][y + 2];
+            
+            mData[x][y + 2] = mTempData[x][y];
+            mData[x + 1][y + 2] = mTempData[x + 1][y];
+        }
+    }
+}
+
+void Slice::_ReachD() {
+    std::memcpy(mTempData, mData, sizeof(mTempData));
+    
+    for (std::size_t x = 0; x < mSize; x += 2) {
+        int aStartY = 0;
+        if ((x & 2) == 0) { aStartY = (1 - aStartY); }
+        
+        for (std::size_t y = aStartY; y <= (mSize - 3); y += 4) {
+            mData[x][y] = mTempData[x][y + 2];
+            mData[x + 1][y] = mTempData[x + 1][y + 2];
+            
+            mData[x][y + 2] = mTempData[x][y];
+            mData[x + 1][y + 2] = mTempData[x + 1][y];
+        }
+    }
+}
+
+
+
+void Slice::_SwapRows() {
+    std::memcpy(mTempData, mData, sizeof(mTempData));
+
+    for (std::size_t x = 0; x < mSize; x++) {
+        for (std::size_t y = 0; y < mSize; y += 2) {
+            mData[x][y] = mTempData[x][y + 1U];
+            mData[x][y + 1U] = mTempData[x][y];
+        }
+    }
+}
+
+void Slice::_SwapColumns() {
+    std::memcpy(mTempData, mData, sizeof(mTempData));
+
+    for (std::size_t x = 0; x < mSize; x += 2) {
+        for (std::size_t y = 0; y < mSize; y++) {
+            mData[x][y] = mTempData[x + 1U][y];
+            mData[x + 1U][y] = mTempData[x][y];
+        }
+    }
+}
+
+void Slice::_SwapBoth() {
+    std::memcpy(mTempData, mData, sizeof(mTempData));
+
+    for (std::size_t x = 0; x < mSize; x++) {
+        for (std::size_t y = 0; y < mSize; y++) {
+            const std::size_t aNewX = x ^ 1U;
+            const std::size_t aNewY = y ^ 1U;
+
+            mData[aNewX][aNewY] = mTempData[x][y];
+        }
+    }
+}
+
+void Slice::_ShearA() {
+    std::memcpy(mTempData, mData, sizeof(mTempData));
+
+    const std::size_t aHalfShift = mSize / 2U;
+    const std::size_t aQuarterShift = mSize / 4U;
+
+    for (std::size_t y = 0; y < mSize; y++) {
+        const std::size_t aShift = ((y & 1U) == 0U) ? aHalfShift : aQuarterShift;
+
+        for (std::size_t x = 0; x < mSize; x++) {
+            const std::size_t aNewX = (x + aShift) % mSize;
+            mData[aNewX][y] = mTempData[x][y];
+        }
+    }
+}
+
+void Slice::_ShearB() {
+    std::memcpy(mTempData, mData, sizeof(mTempData));
+
+    const std::size_t aHalfShift = mSize / 2U;
+    const std::size_t aQuarterShift = mSize / 4U;
+
+    for (std::size_t y = 0; y < mSize; y++) {
+        const std::size_t aShift = ((y & 1U) == 0U) ? aQuarterShift : aHalfShift;
+
+        for (std::size_t x = 0; x < mSize; x++) {
+            const std::size_t aNewX = (x + aShift) % mSize;
+            mData[aNewX][y] = mTempData[x][y];
+        }
+    }
+}
+
+void Slice::_ShearC() {
+    std::memcpy(mTempData, mData, sizeof(mTempData));
+
+    const std::size_t aHalfShift = mSize / 2U;
+    const std::size_t aQuarterShift = mSize / 4U;
+
+    for (std::size_t x = 0; x < mSize; x++) {
+        const std::size_t aShift = ((x & 1U) == 0U) ? aHalfShift : aQuarterShift;
+
+        for (std::size_t y = 0; y < mSize; y++) {
+            const std::size_t aNewY = (y + aShift) % mSize;
+            mData[x][aNewY] = mTempData[x][y];
+        }
+    }
+}
+
+void Slice::_ShearD() {
+    std::memcpy(mTempData, mData, sizeof(mTempData));
+
+    const std::size_t aHalfShift = mSize / 2U;
+    const std::size_t aQuarterShift = mSize / 4U;
+
+    for (std::size_t x = 0; x < mSize; x++) {
+        const std::size_t aShift = ((x & 1U) == 0U) ? aQuarterShift : aHalfShift;
+
+        for (std::size_t y = 0; y < mSize; y++) {
+            const std::size_t aNewY = (y + aShift) % mSize;
+            mData[x][aNewY] = mTempData[x][y];
+        }
+    }
+}
+
 std::vector<Cycle> Slice::FindCycles() const {
     std::map<std::size_t, std::size_t> aDestToSource;
 

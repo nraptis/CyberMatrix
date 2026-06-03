@@ -194,6 +194,247 @@ Recipe8x8 RecipeFactory8x8::PinA() {
     );
 }
 
+Recipe8x8 RecipeFactory8x8::ReachA() {
+    //  AA AB AC AD AE AF AG AH      AC AB AA AD AG AF AE AH
+    //  BA BB BC BD BE BF BG BH  ->  BC BB BA BD BG BF BE BH
+    //  CA CB CC CD CE CF CG CH      CA CD CC CB CE CH CG CF
+    //  DA DB DC DD DE DF DG DH      DA DD DC DB DE DH DG DF
+    //  EA EB EC ED EE EF EG EH      EC EB EA ED EG EF EE EH
+    //  FA FB FC FD FE FF FG FH      FC FB FA FD FG FF FE FH
+    //  GA GB GC GD GE GF GG GH      GA GD GC GB GE GH GG GF
+    //  HA HB HC HD HE HF HG HH      HA HD HC HB HE HH HG HF
+    return Make("ReachA",
+                 2U,  1U,  0U,  3U,  6U,  5U,  4U,  7U,
+                10U,  9U,  8U, 11U, 14U, 13U, 12U, 15U,
+                16U, 19U, 18U, 17U, 20U, 23U, 22U, 21U,
+                24U, 27U, 26U, 25U, 28U, 31U, 30U, 29U,
+                34U, 33U, 32U, 35U, 38U, 37U, 36U, 39U,
+                42U, 41U, 40U, 43U, 46U, 45U, 44U, 47U,
+                48U, 51U, 50U, 49U, 52U, 55U, 54U, 53U,
+                56U, 59U, 58U, 57U, 60U, 63U, 62U, 61U
+    );
+}
+
+Recipe8x8 RecipeFactory8x8::ReachB() {
+    //  AA AB AC AD AE AF AG AH      AA AD AC AB AE AH AG AF
+    //  BA BB BC BD BE BF BG BH  ->  BA BD BC BB BE BH BG BF
+    //  CA CB CC CD CE CF CG CH      CC CB CA CD CG CF CE CH
+    //  DA DB DC DD DE DF DG DH      DC DB DA DD DG DF DE DH
+    //  EA EB EC ED EE EF EG EH      EA ED EC EB EE EH EG EF
+    //  FA FB FC FD FE FF FG FH      FA FD FC FB FE FH FG FF
+    //  GA GB GC GD GE GF GG GH      GC GB GA GD GG GF GE GH
+    //  HA HB HC HD HE HF HG HH      HC HB HA HD HG HF HE HH
+    return Make("ReachB",
+                 0U,  3U,  2U,  1U,  4U,  7U,  6U,  5U,
+                 8U, 11U, 10U,  9U, 12U, 15U, 14U, 13U,
+                18U, 17U, 16U, 19U, 22U, 21U, 20U, 23U,
+                26U, 25U, 24U, 27U, 30U, 29U, 28U, 31U,
+                32U, 35U, 34U, 33U, 36U, 39U, 38U, 37U,
+                40U, 43U, 42U, 41U, 44U, 47U, 46U, 45U,
+                50U, 49U, 48U, 51U, 54U, 53U, 52U, 55U,
+                58U, 57U, 56U, 59U, 62U, 61U, 60U, 63U
+    );
+}
+
+Recipe8x8 RecipeFactory8x8::ReachC() {
+    //  AA AB AC AD AE AF AG AH      CA CB AC AD CE CF AG AH
+    //  BA BB BC BD BE BF BG BH  ->  BA BB DC DD BE BF DG DH
+    //  CA CB CC CD CE CF CG CH      AA AB CC CD AE AF CG CH
+    //  DA DB DC DD DE DF DG DH      DA DB BC BD DE DF BG BH
+    //  EA EB EC ED EE EF EG EH      GA GB EC ED GE GF EG EH
+    //  FA FB FC FD FE FF FG FH      FA FB HC HD FE FF HG HH
+    //  GA GB GC GD GE GF GG GH      EA EB GC GD EE EF GG GH
+    //  HA HB HC HD HE HF HG HH      HA HB FC FD HE HF FG FH
+    return Make("ReachC",
+                16U, 17U,  2U,  3U, 20U, 21U,  6U,  7U,
+                 8U,  9U, 26U, 27U, 12U, 13U, 30U, 31U,
+                 0U,  1U, 18U, 19U,  4U,  5U, 22U, 23U,
+                24U, 25U, 10U, 11U, 28U, 29U, 14U, 15U,
+                48U, 49U, 34U, 35U, 52U, 53U, 38U, 39U,
+                40U, 41U, 58U, 59U, 44U, 45U, 62U, 63U,
+                32U, 33U, 50U, 51U, 36U, 37U, 54U, 55U,
+                56U, 57U, 42U, 43U, 60U, 61U, 46U, 47U
+    );
+}
+
+Recipe8x8 RecipeFactory8x8::ReachD() {
+    //  AA AB AC AD AE AF AG AH      AA AB CC CD AE AF CG CH
+    //  BA BB BC BD BE BF BG BH  ->  DA DB BC BD DE DF BG BH
+    //  CA CB CC CD CE CF CG CH      CA CB AC AD CE CF AG AH
+    //  DA DB DC DD DE DF DG DH      BA BB DC DD BE BF DG DH
+    //  EA EB EC ED EE EF EG EH      EA EB GC GD EE EF GG GH
+    //  FA FB FC FD FE FF FG FH      HA HB FC FD HE HF FG FH
+    //  GA GB GC GD GE GF GG GH      GA GB EC ED GE GF EG EH
+    //  HA HB HC HD HE HF HG HH      FA FB HC HD FE FF HG HH
+    return Make("ReachD",
+                 0U,  1U, 18U, 19U,  4U,  5U, 22U, 23U,
+                24U, 25U, 10U, 11U, 28U, 29U, 14U, 15U,
+                16U, 17U,  2U,  3U, 20U, 21U,  6U,  7U,
+                 8U,  9U, 26U, 27U, 12U, 13U, 30U, 31U,
+                32U, 33U, 50U, 51U, 36U, 37U, 54U, 55U,
+                56U, 57U, 42U, 43U, 60U, 61U, 46U, 47U,
+                48U, 49U, 34U, 35U, 52U, 53U, 38U, 39U,
+                40U, 41U, 58U, 59U, 44U, 45U, 62U, 63U
+    );
+}
+
+
+
+
+
+Recipe8x8 RecipeFactory8x8::ShearA() {
+//  AA AB AC AD AE AF AG AH      AE AF AG AH AA AB AC AD
+//  BA BB BC BD BE BF BG BH  ->  BG BH BA BB BC BD BE BF
+//  CA CB CC CD CE CF CG CH      CE CF CG CH CA CB CC CD
+//  DA DB DC DD DE DF DG DH      DG DH DA DB DC DD DE DF
+//  EA EB EC ED EE EF EG EH      EE EF EG EH EA EB EC ED
+//  FA FB FC FD FE FF FG FH      FG FH FA FB FC FD FE FF
+//  GA GB GC GD GE GF GG GH      GE GF GG GH GA GB GC GD
+//  HA HB HC HD HE HF HG HH      HG HH HA HB HC HD HE HF
+return Make("ShearA",
+             4U,  5U,  6U,  7U,  0U,  1U,  2U,  3U,
+            14U, 15U,  8U,  9U, 10U, 11U, 12U, 13U,
+            20U, 21U, 22U, 23U, 16U, 17U, 18U, 19U,
+            30U, 31U, 24U, 25U, 26U, 27U, 28U, 29U,
+            36U, 37U, 38U, 39U, 32U, 33U, 34U, 35U,
+            46U, 47U, 40U, 41U, 42U, 43U, 44U, 45U,
+            52U, 53U, 54U, 55U, 48U, 49U, 50U, 51U,
+            62U, 63U, 56U, 57U, 58U, 59U, 60U, 61U
+);
+}
+
+Recipe8x8 RecipeFactory8x8::ShearB() {
+//  AA AB AC AD AE AF AG AH      AG AH AA AB AC AD AE AF
+//  BA BB BC BD BE BF BG BH  ->  BE BF BG BH BA BB BC BD
+//  CA CB CC CD CE CF CG CH      CG CH CA CB CC CD CE CF
+//  DA DB DC DD DE DF DG DH      DE DF DG DH DA DB DC DD
+//  EA EB EC ED EE EF EG EH      EG EH EA EB EC ED EE EF
+//  FA FB FC FD FE FF FG FH      FE FF FG FH FA FB FC FD
+//  GA GB GC GD GE GF GG GH      GG GH GA GB GC GD GE GF
+//  HA HB HC HD HE HF HG HH      HE HF HG HH HA HB HC HD
+return Make("ShearB",
+             6U,  7U,  0U,  1U,  2U,  3U,  4U,  5U,
+            12U, 13U, 14U, 15U,  8U,  9U, 10U, 11U,
+            22U, 23U, 16U, 17U, 18U, 19U, 20U, 21U,
+            28U, 29U, 30U, 31U, 24U, 25U, 26U, 27U,
+            38U, 39U, 32U, 33U, 34U, 35U, 36U, 37U,
+            44U, 45U, 46U, 47U, 40U, 41U, 42U, 43U,
+            54U, 55U, 48U, 49U, 50U, 51U, 52U, 53U,
+            60U, 61U, 62U, 63U, 56U, 57U, 58U, 59U
+);
+}
+
+
+
+
+
+Recipe8x8 RecipeFactory8x8::ShearC() {
+//  AA AB AC AD AE AF AG AH      EA GB EC GD EE GF EG GH
+//  BA BB BC BD BE BF BG BH  ->  FA HB FC HD FE HF FG HH
+//  CA CB CC CD CE CF CG CH      GA AB GC AD GE AF GG AH
+//  DA DB DC DD DE DF DG DH      HA BB HC BD HE BF HG BH
+//  EA EB EC ED EE EF EG EH      AA CB AC CD AE CF AG CH
+//  FA FB FC FD FE FF FG FH      BA DB BC DD BE DF BG DH
+//  GA GB GC GD GE GF GG GH      CA EB CC ED CE EF CG EH
+//  HA HB HC HD HE HF HG HH      DA FB DC FD DE FF DG FH
+return Make("ShearC",
+            32U, 49U, 34U, 51U, 36U, 53U, 38U, 55U,
+            40U, 57U, 42U, 59U, 44U, 61U, 46U, 63U,
+            48U,  1U, 50U,  3U, 52U,  5U, 54U,  7U,
+            56U,  9U, 58U, 11U, 60U, 13U, 62U, 15U,
+             0U, 17U,  2U, 19U,  4U, 21U,  6U, 23U,
+             8U, 25U, 10U, 27U, 12U, 29U, 14U, 31U,
+            16U, 33U, 18U, 35U, 20U, 37U, 22U, 39U,
+            24U, 41U, 26U, 43U, 28U, 45U, 30U, 47U
+);
+}
+
+Recipe8x8 RecipeFactory8x8::ShearD() {
+//  AA AB AC AD AE AF AG AH      GA EB GC ED GE EF GG EH
+//  BA BB BC BD BE BF BG BH  ->  HA FB HC FD HE FF HG FH
+//  CA CB CC CD CE CF CG CH      AA GB AC GD AE GF AG GH
+//  DA DB DC DD DE DF DG DH      BA HB BC HD BE HF BG HH
+//  EA EB EC ED EE EF EG EH      CA AB CC AD CE AF CG AH
+//  FA FB FC FD FE FF FG FH      DA BB DC BD DE BF DG BH
+//  GA GB GC GD GE GF GG GH      EA CB EC CD EE CF EG CH
+//  HA HB HC HD HE HF HG HH      FA DB FC DD FE DF FG DH
+return Make("ShearD",
+            48U, 33U, 50U, 35U, 52U, 37U, 54U, 39U,
+            56U, 41U, 58U, 43U, 60U, 45U, 62U, 47U,
+             0U, 49U,  2U, 51U,  4U, 53U,  6U, 55U,
+             8U, 57U, 10U, 59U, 12U, 61U, 14U, 63U,
+            16U,  1U, 18U,  3U, 20U,  5U, 22U,  7U,
+            24U,  9U, 26U, 11U, 28U, 13U, 30U, 15U,
+            32U, 17U, 34U, 19U, 36U, 21U, 38U, 23U,
+            40U, 25U, 42U, 27U, 44U, 29U, 46U, 31U
+);
+}
+
+Recipe8x8 RecipeFactory8x8::SwapRows() {
+    //  AA AB AC AD AE AF AG AH      BA BB BC BD BE BF BG BH
+    //  BA BB BC BD BE BF BG BH  ->  AA AB AC AD AE AF AG AH
+    //  CA CB CC CD CE CF CG CH      DA DB DC DD DE DF DG DH
+    //  DA DB DC DD DE DF DG DH      CA CB CC CD CE CF CG CH
+    //  EA EB EC ED EE EF EG EH      FA FB FC FD FE FF FG FH
+    //  FA FB FC FD FE FF FG FH      EA EB EC ED EE EF EG EH
+    //  GA GB GC GD GE GF GG GH      HA HB HC HD HE HF HG HH
+    //  HA HB HC HD HE HF HG HH      GA GB GC GD GE GF GG GH
+    return Make("SwapRows",
+                 8U,  9U, 10U, 11U, 12U, 13U, 14U, 15U,
+                 0U,  1U,  2U,  3U,  4U,  5U,  6U,  7U,
+                24U, 25U, 26U, 27U, 28U, 29U, 30U, 31U,
+                16U, 17U, 18U, 19U, 20U, 21U, 22U, 23U,
+                40U, 41U, 42U, 43U, 44U, 45U, 46U, 47U,
+                32U, 33U, 34U, 35U, 36U, 37U, 38U, 39U,
+                56U, 57U, 58U, 59U, 60U, 61U, 62U, 63U,
+                48U, 49U, 50U, 51U, 52U, 53U, 54U, 55U
+    );
+}
+
+
+Recipe8x8 RecipeFactory8x8::SwapColums() {
+    //  AA AB AC AD AE AF AG AH      AB AA AD AC AF AE AH AG
+    //  BA BB BC BD BE BF BG BH  ->  BB BA BD BC BF BE BH BG
+    //  CA CB CC CD CE CF CG CH      CB CA CD CC CF CE CH CG
+    //  DA DB DC DD DE DF DG DH      DB DA DD DC DF DE DH DG
+    //  EA EB EC ED EE EF EG EH      EB EA ED EC EF EE EH EG
+    //  FA FB FC FD FE FF FG FH      FB FA FD FC FF FE FH FG
+    //  GA GB GC GD GE GF GG GH      GB GA GD GC GF GE GH GG
+    //  HA HB HC HD HE HF HG HH      HB HA HD HC HF HE HH HG
+    return Make("SwapColums",
+                1U,  0U,  3U,  2U,  5U,  4U,  7U,  6U,
+                9U,  8U, 11U, 10U, 13U, 12U, 15U, 14U,
+                17U, 16U, 19U, 18U, 21U, 20U, 23U, 22U,
+                25U, 24U, 27U, 26U, 29U, 28U, 31U, 30U,
+                33U, 32U, 35U, 34U, 37U, 36U, 39U, 38U,
+                41U, 40U, 43U, 42U, 45U, 44U, 47U, 46U,
+                49U, 48U, 51U, 50U, 53U, 52U, 55U, 54U,
+                57U, 56U, 59U, 58U, 61U, 60U, 63U, 62U
+                );
+}
+
+
+Recipe8x8 RecipeFactory8x8::SwapBoth() {
+//  AA AB AC AD AE AF AG AH      BB BA BD BC BF BE BH BG
+//  BA BB BC BD BE BF BG BH  ->  AB AA AD AC AF AE AH AG
+//  CA CB CC CD CE CF CG CH      DB DA DD DC DF DE DH DG
+//  DA DB DC DD DE DF DG DH      CB CA CD CC CF CE CH CG
+//  EA EB EC ED EE EF EG EH      FB FA FD FC FF FE FH FG
+//  FA FB FC FD FE FF FG FH      EB EA ED EC EF EE EH EG
+//  GA GB GC GD GE GF GG GH      HB HA HD HC HF HE HH HG
+//  HA HB HC HD HE HF HG HH      GB GA GD GC GF GE GH GG
+return Make("SwapBoth",
+             9U,  8U, 11U, 10U, 13U, 12U, 15U, 14U,
+             1U,  0U,  3U,  2U,  5U,  4U,  7U,  6U,
+            25U, 24U, 27U, 26U, 29U, 28U, 31U, 30U,
+            17U, 16U, 19U, 18U, 21U, 20U, 23U, 22U,
+            41U, 40U, 43U, 42U, 45U, 44U, 47U, 46U,
+            33U, 32U, 35U, 34U, 37U, 36U, 39U, 38U,
+            57U, 56U, 59U, 58U, 61U, 60U, 63U, 62U,
+            49U, 48U, 51U, 50U, 53U, 52U, 55U, 54U
+);
+}
+
 Recipe8x8 RecipeFactory8x8::PinB() {
     //  AA AB AC AD AE AF AG AH      AH BH CH DH EH FH GH HH
     //  BA BB BC BD BE BF BG BH  ->  AG GB FB EB DB CB BB HG

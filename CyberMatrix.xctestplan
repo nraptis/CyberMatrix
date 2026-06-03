@@ -1,0 +1,30 @@
+{
+  "configurations" : [
+    {
+      "id" : "7DDB7271-9779-4552-80F4-9100F4C190DC",
+      "name" : "Test Scheme Action",
+      "options" : {
+
+      }
+    }
+  ],
+  "defaultOptions" : {
+    "performanceAntipatternCheckerEnabled" : true,
+    "targetForVariableExpansion" : {
+      "containerPath" : "container:CyberMatrix.xcodeproj",
+      "identifier" : "A8C324932FC9C0F4001F26CC",
+      "name" : "CyberMatrix"
+    }
+  },
+  "testTargets" : [
+    {
+      "parallelizable" : false,
+      "target" : {
+        "containerPath" : "container:CyberMatrix.xcodeproj",
+        "identifier" : "A8FFE9842FC9FF6500444405",
+        "name" : "UnitTests"
+      }
+    }
+  ],
+  "version" : 1
+}
