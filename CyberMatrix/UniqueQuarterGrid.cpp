@@ -502,3 +502,217 @@ void UniqueQuarterGrid::SwapHalvesHor() {
     }
 }
 
+
+void UniqueQuarterGrid::SwapAB() {
+    std::uint8_t aTemp[4][4];
+
+    std::memcpy(aTemp, mData, sizeof(aTemp));
+
+    // A B      B A
+    // C D  ->  C D
+
+    for (std::size_t x = 0U; x < 2U; ++x) {
+        for (std::size_t y = 0U; y < 2U; ++y) {
+            mData[x][y] = aTemp[x + 2U][y];
+            mData[x + 2U][y] = aTemp[x][y];
+        }
+    }
+}
+
+void UniqueQuarterGrid::SwapBC() {
+    std::uint8_t aTemp[4][4];
+
+    std::memcpy(aTemp, mData, sizeof(aTemp));
+
+    // A B      A C
+    // C D  ->  B D
+
+    for (std::size_t x = 0U; x < 2U; ++x) {
+        for (std::size_t y = 0U; y < 2U; ++y) {
+            mData[x + 2U][y] = aTemp[x][y + 2U];
+            mData[x][y + 2U] = aTemp[x + 2U][y];
+        }
+    }
+}
+
+void UniqueQuarterGrid::SwapAD() {
+    std::uint8_t aTemp[4][4];
+
+    std::memcpy(aTemp, mData, sizeof(aTemp));
+
+    // A B      D B
+    // C D  ->  C A
+
+    for (std::size_t x = 0U; x < 2U; ++x) {
+        for (std::size_t y = 0U; y < 2U; ++y) {
+            mData[x][y] = aTemp[x + 2U][y + 2U];
+            mData[x + 2U][y + 2U] = aTemp[x][y];
+        }
+    }
+}
+
+void UniqueQuarterGrid::SwapLongQuartersA() {
+    std::uint8_t aTemp[4][4];
+
+    std::memcpy(aTemp, mData, sizeof(aTemp));
+
+    // Row bands:
+    // A B C D  ->  B A D C
+
+    for (std::size_t x = 0U; x < 4U; x++) {
+        for (std::size_t y = 0U; y < 4U; y++) {
+            const std::size_t aNewY = ((y & 1U) == 0U) ? y + 1U : y - 1U;
+
+            mData[x][aNewY] = aTemp[x][y];
+        }
+    }
+}
+
+void UniqueQuarterGrid::SwapLongQuartersB() {
+    std::uint8_t aTemp[4][4];
+
+    std::memcpy(aTemp, mData, sizeof(aTemp));
+
+    // Row bands:
+    // A B C D  ->  C D A B
+
+    for (std::size_t x = 0U; x < 4U; x++) {
+        for (std::size_t y = 0U; y < 4U; y++) {
+            const std::size_t aNewY = (y + 2U) & 3U;
+
+            mData[x][aNewY] = aTemp[x][y];
+        }
+    }
+}
+
+void UniqueQuarterGrid::SwapLongQuartersC() {
+    std::uint8_t aTemp[4][4];
+
+    std::memcpy(aTemp, mData, sizeof(aTemp));
+
+    // Row bands:
+    // A B C D  ->  D C B A
+
+    for (std::size_t x = 0U; x < 4U; x++) {
+        for (std::size_t y = 0U; y < 4U; y++) {
+            const std::size_t aNewY = 3U - y;
+
+            mData[x][aNewY] = aTemp[x][y];
+        }
+    }
+}
+
+void UniqueQuarterGrid::SwapTallQuartersA() {
+    std::uint8_t aTemp[4][4];
+
+    std::memcpy(aTemp, mData, sizeof(aTemp));
+
+    // Column bands:
+    // A B C D  ->  B A D C
+
+    for (std::size_t x = 0U; x < 4U; x++) {
+        for (std::size_t y = 0U; y < 4U; y++) {
+            const std::size_t aNewX = ((x & 1U) == 0U) ? x + 1U : x - 1U;
+
+            mData[aNewX][y] = aTemp[x][y];
+        }
+    }
+}
+
+void UniqueQuarterGrid::SwapTallQuartersB() {
+    std::uint8_t aTemp[4][4];
+
+    std::memcpy(aTemp, mData, sizeof(aTemp));
+
+    // Column bands:
+    // A B C D  ->  C D A B
+
+    for (std::size_t x = 0U; x < 4U; x++) {
+        for (std::size_t y = 0U; y < 4U; y++) {
+            const std::size_t aNewX = (x + 2U) & 3U;
+
+            mData[aNewX][y] = aTemp[x][y];
+        }
+    }
+}
+
+void UniqueQuarterGrid::SwapTallQuartersC() {
+    std::uint8_t aTemp[4][4];
+
+    std::memcpy(aTemp, mData, sizeof(aTemp));
+
+    // Column bands:
+    // A B C D  ->  D C B A
+
+    for (std::size_t x = 0U; x < 4U; x++) {
+        for (std::size_t y = 0U; y < 4U; y++) {
+            const std::size_t aNewX = 3U - x;
+
+            mData[aNewX][y] = aTemp[x][y];
+        }
+    }
+}
+
+
+
+void UniqueQuarterGrid::HexA() {
+    std::uint8_t aTemp[4][4];
+
+    std::memcpy(aTemp, mData, sizeof(aTemp));
+
+    // a b c d      f b c g
+    // e f g h  ->  e a d h
+    // i j k l      i m p l
+    // m n o p      j n o k
+
+    mData[0][0] = aTemp[1][1];
+    mData[1][0] = aTemp[1][0];
+    mData[2][0] = aTemp[2][0];
+    mData[3][0] = aTemp[2][1];
+
+    mData[0][1] = aTemp[0][1];
+    mData[1][1] = aTemp[0][0];
+    mData[2][1] = aTemp[3][0];
+    mData[3][1] = aTemp[3][1];
+
+    mData[0][2] = aTemp[0][2];
+    mData[1][2] = aTemp[0][3];
+    mData[2][2] = aTemp[3][3];
+    mData[3][2] = aTemp[3][2];
+
+    mData[0][3] = aTemp[1][2];
+    mData[1][3] = aTemp[1][3];
+    mData[2][3] = aTemp[2][3];
+    mData[3][3] = aTemp[2][2];
+}
+
+void UniqueQuarterGrid::HexB() {
+    std::uint8_t aTemp[4][4];
+
+    std::memcpy(aTemp, mData, sizeof(aTemp));
+
+    // a b c d      a e h d
+    // e f g h  ->  b f g c
+    // i j k l      n j k o
+    // m n o p      m i l p
+
+    mData[0][0] = aTemp[0][0];
+    mData[1][0] = aTemp[0][1];
+    mData[2][0] = aTemp[3][1];
+    mData[3][0] = aTemp[3][0];
+
+    mData[0][1] = aTemp[1][0];
+    mData[1][1] = aTemp[1][1];
+    mData[2][1] = aTemp[2][1];
+    mData[3][1] = aTemp[2][0];
+
+    mData[0][2] = aTemp[1][3];
+    mData[1][2] = aTemp[1][2];
+    mData[2][2] = aTemp[2][2];
+    mData[3][2] = aTemp[2][3];
+
+    mData[0][3] = aTemp[0][3];
+    mData[1][3] = aTemp[0][2];
+    mData[2][3] = aTemp[3][2];
+    mData[3][3] = aTemp[3][3];
+}

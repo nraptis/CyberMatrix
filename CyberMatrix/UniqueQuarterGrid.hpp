@@ -38,17 +38,17 @@ public:
     void RotateRight();
     void RotateLeft();
     void Rotate180();
-    
+
     void FlipA();
     void FlipB();
     void FlipC();
     void FlipD();
-    
+
     void ShearA();
     void ShearB();
     void ShearC();
     void ShearD();
-    
+
     void ZigZagA();
     void ZigZagB();
     void ZigZagC();
@@ -58,11 +58,24 @@ public:
     void JewelB();
     void JewelC();
     void JewelD();
-    
+
     void SwapHalvesVer();
     void SwapHalvesHor();
-    
-    
+
+    void SwapAB();
+    void SwapBC();
+    void SwapAD();
+
+    void SwapLongQuartersA();
+    void SwapLongQuartersB();
+    void SwapLongQuartersC();
+
+    void SwapTallQuartersA();
+    void SwapTallQuartersB();
+    void SwapTallQuartersC();
+
+    void HexA();
+    void HexB();
     
 
 public:

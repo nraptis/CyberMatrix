@@ -1,0 +1,94 @@
+//
+//  Test_Full_HydrogenA.mm
+//  CyberMatrixTests
+//
+
+#import <XCTest/XCTest.h>
+
+#include "M88.hpp"
+#include "VerifyFull.hpp"
+#include "Tests.hpp"
+#include "Logging.hpp"
+
+@interface Test_Full_HydrogenA : XCTestCase
+
+@end
+
+@implementation Test_Full_HydrogenA
+
+- (void)testFull_HydrogenA_4x4 {
+    M88 aBefore = VerifyFull::SpawnTestMatrixFull();
+    M88 aAfter = aBefore;
+
+    aAfter.Full_HydrogenA_4x4();
+
+    const M aExpected = {
+        { 32, 33, 34, 35, 18, 19, 16, 17 },
+        { 40, 41, 42, 43, 26, 27, 24, 25 },
+        { 48, 49, 50, 51,  2,  3,  0,  1 },
+        { 56, 57, 58, 59, 10, 11,  8,  9 },
+        { 54, 55, 52, 53,  4,  5,  6,  7 },
+        { 62, 63, 60, 61, 12, 13, 14, 15 },
+        { 38, 39, 36, 37, 20, 21, 22, 23 },
+        { 46, 47, 44, 45, 28, 29, 30, 31 }
+    };
+
+    if (!VerifyFull::CheckFull(aBefore, aAfter, aExpected)) {
+        Logging::Log("Before", aBefore);
+        Logging::Log("After", aAfter);
+        XCTFail(@"%s failed", sel_getName(_cmd));
+        return;
+    }
+}
+
+- (void)testFull_HydrogenA_EachQuad_4x4 {
+    M88 aBefore = VerifyFull::SpawnTestMatrixFull();
+    M88 aAfter = aBefore;
+
+    aAfter.Full_HydrogenA_EachQuad_4x4();
+
+    const M aExpected = {
+        { 16, 17,  9,  8, 20, 21, 13, 12 },
+        { 24, 25,  1,  0, 28, 29,  5,  4 },
+        { 27, 26,  2,  3, 31, 30,  6,  7 },
+        { 19, 18, 10, 11, 23, 22, 14, 15 },
+        { 48, 49, 41, 40, 52, 53, 45, 44 },
+        { 56, 57, 33, 32, 60, 61, 37, 36 },
+        { 59, 58, 34, 35, 63, 62, 38, 39 },
+        { 51, 50, 42, 43, 55, 54, 46, 47 }
+    };
+
+    if (!VerifyFull::CheckFull(aBefore, aAfter, aExpected)) {
+        Logging::Log("Before", aBefore);
+        Logging::Log("After", aAfter);
+        XCTFail(@"%s failed", sel_getName(_cmd));
+        return;
+    }
+}
+
+- (void)testFull_HydrogenA_8x8 {
+    M88 aBefore = VerifyFull::SpawnTestMatrixFull();
+    M88 aAfter = aBefore;
+
+    aAfter.Full_HydrogenA_8x8();
+
+    const M aExpected = {
+        { 40, 32, 42, 34, 26, 18, 24, 16 },
+        { 41, 33, 43, 35, 27, 19, 25, 17 },
+        { 56, 48, 58, 50, 10,  2,  8,  0 },
+        { 57, 49, 59, 51, 11,  3,  9,  1 },
+        { 62, 54, 60, 52, 12,  4, 14,  6 },
+        { 63, 55, 61, 53, 13,  5, 15,  7 },
+        { 46, 38, 44, 36, 28, 20, 30, 22 },
+        { 47, 39, 45, 37, 29, 21, 31, 23 }
+    };
+
+    if (!VerifyFull::CheckFull(aBefore, aAfter, aExpected)) {
+        Logging::Log("Before", aBefore);
+        Logging::Log("After", aAfter);
+        XCTFail(@"%s failed", sel_getName(_cmd));
+        return;
+    }
+}
+
+@end

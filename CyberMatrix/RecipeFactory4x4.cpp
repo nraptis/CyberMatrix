@@ -1617,3 +1617,1881 @@ Recipe4x4 RecipeFactory4x4::ZirconiumD() {
                  8U,  4U,  5U,  1U
     );
 }
+
+
+Recipe4x4 RecipeFactory4x4::HydrogenA() {
+    //  A  B  C  D      I  J  F  E
+    //  E  F  G  H  ->  M  N  B  A
+    //  I  J  K  L      P  O  C  D
+    //  M  N  O  P      L  K  G  H
+    return Make("HydrogenA",
+                 8U,  9U,  5U,  4U,
+                12U, 13U,  1U,  0U,
+                15U, 14U,  2U,  3U,
+                11U, 10U,  6U,  7U
+    );
+}
+
+Recipe4x4 RecipeFactory4x4::HydrogenB() {
+    //  A  B  C  D      L  K  G  H
+    //  E  F  G  H  ->  P  O  C  D
+    //  I  J  K  L      M  N  B  A
+    //  M  N  O  P      I  J  F  E
+    return Make("HydrogenB",
+                11U, 10U,  6U,  7U,
+                15U, 14U,  2U,  3U,
+                12U, 13U,  1U,  0U,
+                 8U,  9U,  5U,  4U
+    );
+}
+
+Recipe4x4 RecipeFactory4x4::HydrogenC() {
+    //  A  B  C  D      P  O  C  D
+    //  E  F  G  H  ->  L  K  G  H
+    //  I  J  K  L      I  J  F  E
+    //  M  N  O  P      M  N  B  A
+    return Make("HydrogenC",
+                15U, 14U,  2U,  3U,
+                11U, 10U,  6U,  7U,
+                 8U,  9U,  5U,  4U,
+                12U, 13U,  1U,  0U
+    );
+}
+
+Recipe4x4 RecipeFactory4x4::HydrogenD() {
+    //  A  B  C  D      N  M  A  B
+    //  E  F  G  H  ->  J  I  E  F
+    //  I  J  K  L      K  L  H  G
+    //  M  N  O  P      O  P  D  C
+    return Make("HydrogenD",
+                13U, 12U,  0U,  1U,
+                 9U,  8U,  4U,  5U,
+                10U, 11U,  7U,  6U,
+                14U, 15U,  3U,  2U
+    );
+}
+
+Recipe4x4 RecipeFactory4x4::HeliumA() {
+    //  A  B  C  D      O  P  D  C
+    //  E  F  G  H  ->  K  L  H  G
+    //  I  J  K  L      J  I  E  F
+    //  M  N  O  P      N  M  A  B
+    return Make("HeliumA",
+                14U, 15U,  3U,  2U,
+                10U, 11U,  7U,  6U,
+                 9U,  8U,  4U,  5U,
+                13U, 12U,  0U,  1U
+    );
+}
+
+Recipe4x4 RecipeFactory4x4::HeliumB() {
+    //  A  B  C  D      K  L  H  G
+    //  E  F  G  H  ->  O  P  D  C
+    //  I  J  K  L      N  M  A  B
+    //  M  N  O  P      J  I  E  F
+    return Make("HeliumB",
+                10U, 11U,  7U,  6U,
+                14U, 15U,  3U,  2U,
+                13U, 12U,  0U,  1U,
+                 9U,  8U,  4U,  5U
+    );
+}
+
+Recipe4x4 RecipeFactory4x4::HeliumC() {
+    //  A  B  C  D      H  G  K  L
+    //  E  F  G  H  ->  D  C  O  P
+    //  I  J  K  L      A  B  N  M
+    //  M  N  O  P      E  F  J  I
+    return Make("HeliumC",
+                 7U,  6U, 10U, 11U,
+                 3U,  2U, 14U, 15U,
+                 0U,  1U, 13U, 12U,
+                 4U,  5U,  9U,  8U
+    );
+}
+
+Recipe4x4 RecipeFactory4x4::HeliumD() {
+    //  A  B  C  D      E  F  J  I
+    //  E  F  G  H  ->  A  B  N  M
+    //  I  J  K  L      D  C  O  P
+    //  M  N  O  P      H  G  K  L
+    return Make("HeliumD",
+                 4U,  5U,  9U,  8U,
+                 0U,  1U, 13U, 12U,
+                 3U,  2U, 14U, 15U,
+                 7U,  6U, 10U, 11U
+    );
+}
+
+Recipe4x4 RecipeFactory4x4::NeonA() {
+    //  A  B  C  D      A  B  N  M
+    //  E  F  G  H  ->  E  F  J  I
+    //  I  J  K  L      H  G  K  L
+    //  M  N  O  P      D  C  O  P
+    return Make("NeonA",
+                 0U,  1U, 13U, 12U,
+                 4U,  5U,  9U,  8U,
+                 7U,  6U, 10U, 11U,
+                 3U,  2U, 14U, 15U
+    );
+}
+
+Recipe4x4 RecipeFactory4x4::NeonB() {
+    //  A  B  C  D      C  D  P  O
+    //  E  F  G  H  ->  G  H  L  K
+    //  I  J  K  L      F  E  I  J
+    //  M  N  O  P      B  A  M  N
+    return Make("NeonB",
+                 2U,  3U, 15U, 14U,
+                 6U,  7U, 11U, 10U,
+                 5U,  4U,  8U,  9U,
+                 1U,  0U, 12U, 13U
+    );
+}
+
+Recipe4x4 RecipeFactory4x4::NeonC() {
+    //  A  B  C  D      B  A  M  N
+    //  E  F  G  H  ->  F  E  I  J
+    //  I  J  K  L      G  H  L  K
+    //  M  N  O  P      C  D  P  O
+    return Make("NeonC",
+                 1U,  0U, 12U, 13U,
+                 5U,  4U,  8U,  9U,
+                 6U,  7U, 11U, 10U,
+                 2U,  3U, 15U, 14U
+    );
+}
+
+Recipe4x4 RecipeFactory4x4::NeonD() {
+    //  A  B  C  D      F  E  I  J
+    //  E  F  G  H  ->  B  A  M  N
+    //  I  J  K  L      C  D  P  O
+    //  M  N  O  P      G  H  L  K
+    return Make("NeonD",
+                 5U,  4U,  8U,  9U,
+                 1U,  0U, 12U, 13U,
+                 2U,  3U, 15U, 14U,
+                 6U,  7U, 11U, 10U
+    );
+}
+
+Recipe4x4 RecipeFactory4x4::ArgonA() {
+    //  A  B  C  D      E  A  D  H
+    //  E  F  G  H  ->  F  B  C  G
+    //  I  J  K  L      J  N  O  K
+    //  M  N  O  P      I  M  P  L
+    return Make("ArgonA",
+                 4U,  0U,  3U,  7U,
+                 5U,  1U,  2U,  6U,
+                 9U, 13U, 14U, 10U,
+                 8U, 12U, 15U, 11U
+    );
+}
+
+Recipe4x4 RecipeFactory4x4::ArgonB() {
+    //  A  B  C  D      A  K  N  H
+    //  E  F  G  H  ->  E  O  J  D
+    //  I  J  K  L      M  L  B  G
+    //  M  N  O  P      I  P  F  C
+    return Make("ArgonB",
+                 0U, 10U, 13U,  7U,
+                 4U, 14U,  9U,  3U,
+                12U, 11U,  1U,  6U,
+                 8U, 15U,  5U,  2U
+    );
+}
+
+Recipe4x4 RecipeFactory4x4::ArgonC() {
+    //  A  B  C  D      E  O  J  D
+    //  E  F  G  H  ->  A  K  N  H
+    //  I  J  K  L      I  P  F  C
+    //  M  N  O  P      M  L  B  G
+    return Make("ArgonC",
+                 4U, 14U,  9U,  3U,
+                 0U, 10U, 13U,  7U,
+                 8U, 15U,  5U,  2U,
+                12U, 11U,  1U,  6U
+    );
+}
+
+Recipe4x4 RecipeFactory4x4::ArgonD() {
+    //  A  B  C  D      G  M  L  B
+    //  E  F  G  H  ->  C  I  P  F
+    //  I  J  K  L      K  N  H  A
+    //  M  N  O  P      O  J  D  E
+    return Make("ArgonD",
+                 6U, 12U, 11U,  1U,
+                 2U,  8U, 15U,  5U,
+                10U, 13U,  7U,  0U,
+                14U,  9U,  3U,  4U
+    );
+}
+
+Recipe4x4 RecipeFactory4x4::KryptonA() {
+    //  A  B  C  D      F  P  I  C
+    //  E  F  G  H  ->  B  L  M  G
+    //  I  J  K  L      J  O  E  D
+    //  M  N  O  P      N  K  A  H
+    return Make("KryptonA",
+                 5U, 15U,  8U,  2U,
+                 1U, 11U, 12U,  6U,
+                 9U, 14U,  4U,  3U,
+                13U, 10U,  0U,  7U
+    );
+}
+
+Recipe4x4 RecipeFactory4x4::KryptonB() {
+    //  A  B  C  D      B  L  M  G
+    //  E  F  G  H  ->  F  P  I  C
+    //  I  J  K  L      N  K  A  H
+    //  M  N  O  P      J  O  E  D
+    return Make("KryptonB",
+                 1U, 11U, 12U,  6U,
+                 5U, 15U,  8U,  2U,
+                13U, 10U,  0U,  7U,
+                 9U, 14U,  4U,  3U
+    );
+}
+
+Recipe4x4 RecipeFactory4x4::KryptonC() {
+    //  A  B  C  D      M  G  B  L
+    //  E  F  G  H  ->  I  C  F  P
+    //  I  J  K  L      A  H  N  K
+    //  M  N  O  P      E  D  J  O
+    return Make("KryptonC",
+                12U,  6U,  1U, 11U,
+                 8U,  2U,  5U, 15U,
+                 0U,  7U, 13U, 10U,
+                 4U,  3U,  9U, 14U
+    );
+}
+
+Recipe4x4 RecipeFactory4x4::KryptonD() {
+    //  A  B  C  D      P  F  C  I
+    //  E  F  G  H  ->  L  B  G  M
+    //  I  J  K  L      D  E  O  J
+    //  M  N  O  P      H  A  K  N
+    return Make("KryptonD",
+                15U,  5U,  2U,  8U,
+                11U,  1U,  6U, 12U,
+                 3U,  4U, 14U,  9U,
+                 7U,  0U, 10U, 13U
+    );
+}
+
+Recipe4x4 RecipeFactory4x4::XenonA() {
+    //  A  B  C  D      L  B  G  M
+    //  E  F  G  H  ->  P  F  C  I
+    //  I  J  K  L      H  A  K  N
+    //  M  N  O  P      D  E  O  J
+    return Make("XenonA",
+                11U,  1U,  6U, 12U,
+                15U,  5U,  2U,  8U,
+                 7U,  0U, 10U, 13U,
+                 3U,  4U, 14U,  9U
+    );
+}
+
+Recipe4x4 RecipeFactory4x4::XenonB() {
+    //  A  B  C  D      J  D  E  O
+    //  E  F  G  H  ->  N  H  A  K
+    //  I  J  K  L      F  C  I  P
+    //  M  N  O  P      B  G  M  L
+    return Make("XenonB",
+                 9U,  3U,  4U, 14U,
+                13U,  7U,  0U, 10U,
+                 5U,  2U,  8U, 15U,
+                 1U,  6U, 12U, 11U
+    );
+}
+
+Recipe4x4 RecipeFactory4x4::XenonC() {
+    //  A  B  C  D      K  A  H  N
+    //  E  F  G  H  ->  O  E  D  J
+    //  I  J  K  L      G  B  L  M
+    //  M  N  O  P      C  F  P  I
+    return Make("XenonC",
+                10U,  0U,  7U, 13U,
+                14U,  4U,  3U,  9U,
+                 6U,  1U, 11U, 12U,
+                 2U,  5U, 15U,  8U
+    );
+}
+
+Recipe4x4 RecipeFactory4x4::XenonD() {
+    //  A  B  C  D      O  E  D  J
+    //  E  F  G  H  ->  K  A  H  N
+    //  I  J  K  L      C  F  P  I
+    //  M  N  O  P      G  B  L  M
+    return Make("XenonD",
+                14U,  4U,  3U,  9U,
+                10U,  0U,  7U, 13U,
+                 2U,  5U, 15U,  8U,
+                 6U,  1U, 11U, 12U
+    );
+}
+
+Recipe4x4 RecipeFactory4x4::RadonA() {
+    //  A  B  C  D      I  P  F  C
+    //  E  F  G  H  ->  M  L  B  G
+    //  I  J  K  L      J  O  E  D
+    //  M  N  O  P      N  K  A  H
+    return Make("RadonA",
+                 8U, 15U,  5U,  2U,
+                12U, 11U,  1U,  6U,
+                 9U, 14U,  4U,  3U,
+                13U, 10U,  0U,  7U
+    );
+}
+
+Recipe4x4 RecipeFactory4x4::RadonB() {
+    //  A  B  C  D      L  M  G  B
+    //  E  F  G  H  ->  P  I  C  F
+    //  I  J  K  L      K  N  H  A
+    //  M  N  O  P      O  J  D  E
+    return Make("RadonB",
+                11U, 12U,  6U,  1U,
+                15U,  8U,  2U,  5U,
+                10U, 13U,  7U,  0U,
+                14U,  9U,  3U,  4U
+    );
+}
+
+Recipe4x4 RecipeFactory4x4::RadonC() {
+    //  A  B  C  D      P  I  C  F
+    //  E  F  G  H  ->  L  M  G  B
+    //  I  J  K  L      O  J  D  E
+    //  M  N  O  P      K  N  H  A
+    return Make("RadonC",
+                15U,  8U,  2U,  5U,
+                11U, 12U,  6U,  1U,
+                14U,  9U,  3U,  4U,
+                10U, 13U,  7U,  0U
+    );
+}
+
+Recipe4x4 RecipeFactory4x4::RadonD() {
+    //  A  B  C  D      N  K  A  H
+    //  E  F  G  H  ->  J  O  E  D
+    //  I  J  K  L      M  L  B  G
+    //  M  N  O  P      I  P  F  C
+    return Make("RadonD",
+                13U, 10U,  0U,  7U,
+                 9U, 14U,  4U,  3U,
+                12U, 11U,  1U,  6U,
+                 8U, 15U,  5U,  2U
+    );
+}
+
+Recipe4x4 RecipeFactory4x4::FluorineA() {
+    //  A  B  C  D      O  J  D  E
+    //  E  F  G  H  ->  K  N  H  A
+    //  I  J  K  L      P  I  C  F
+    //  M  N  O  P      L  M  G  B
+    return Make("FluorineA",
+                14U,  9U,  3U,  4U,
+                10U, 13U,  7U,  0U,
+                15U,  8U,  2U,  5U,
+                11U, 12U,  6U,  1U
+    );
+}
+
+Recipe4x4 RecipeFactory4x4::FluorineB() {
+    //  A  B  C  D      K  N  H  A
+    //  E  F  G  H  ->  O  J  D  E
+    //  I  J  K  L      L  M  G  B
+    //  M  N  O  P      P  I  C  F
+    return Make("FluorineB",
+                10U, 13U,  7U,  0U,
+                14U,  9U,  3U,  4U,
+                11U, 12U,  6U,  1U,
+                15U,  8U,  2U,  5U
+    );
+}
+
+Recipe4x4 RecipeFactory4x4::FluorineC() {
+    //  A  B  C  D      H  A  K  N
+    //  E  F  G  H  ->  D  E  O  J
+    //  I  J  K  L      G  B  L  M
+    //  M  N  O  P      C  F  P  I
+    return Make("FluorineC",
+                 7U,  0U, 10U, 13U,
+                 3U,  4U, 14U,  9U,
+                 6U,  1U, 11U, 12U,
+                 2U,  5U, 15U,  8U
+    );
+}
+
+Recipe4x4 RecipeFactory4x4::FluorineD() {
+    //  A  B  C  D      E  D  J  O
+    //  E  F  G  H  ->  A  H  N  K
+    //  I  J  K  L      F  C  I  P
+    //  M  N  O  P      B  G  M  L
+    return Make("FluorineD",
+                 4U,  3U,  9U, 14U,
+                 0U,  7U, 13U, 10U,
+                 5U,  2U,  8U, 15U,
+                 1U,  6U, 12U, 11U
+    );
+}
+
+Recipe4x4 RecipeFactory4x4::ChlorineA() {
+    //  A  B  C  D      A  H  N  K
+    //  E  F  G  H  ->  E  D  J  O
+    //  I  J  K  L      B  G  M  L
+    //  M  N  O  P      F  C  I  P
+    return Make("ChlorineA",
+                 0U,  7U, 13U, 10U,
+                 4U,  3U,  9U, 14U,
+                 1U,  6U, 12U, 11U,
+                 5U,  2U,  8U, 15U
+    );
+}
+
+Recipe4x4 RecipeFactory4x4::ChlorineB() {
+    //  A  B  C  D      C  F  P  I
+    //  E  F  G  H  ->  G  B  L  M
+    //  I  J  K  L      D  E  O  J
+    //  M  N  O  P      H  A  K  N
+    return Make("ChlorineB",
+                 2U,  5U, 15U,  8U,
+                 6U,  1U, 11U, 12U,
+                 3U,  4U, 14U,  9U,
+                 7U,  0U, 10U, 13U
+    );
+}
+
+Recipe4x4 RecipeFactory4x4::ChlorineC() {
+    //  A  B  C  D      B  G  M  L
+    //  E  F  G  H  ->  F  C  I  P
+    //  I  J  K  L      A  H  N  K
+    //  M  N  O  P      E  D  J  O
+    return Make("ChlorineC",
+                 1U,  6U, 12U, 11U,
+                 5U,  2U,  8U, 15U,
+                 0U,  7U, 13U, 10U,
+                 4U,  3U,  9U, 14U
+    );
+}
+
+Recipe4x4 RecipeFactory4x4::ChlorineD() {
+    //  A  B  C  D      F  C  I  P
+    //  E  F  G  H  ->  B  G  M  L
+    //  I  J  K  L      E  D  J  O
+    //  M  N  O  P      A  H  N  K
+    return Make("ChlorineD",
+                 5U,  2U,  8U, 15U,
+                 1U,  6U, 12U, 11U,
+                 4U,  3U,  9U, 14U,
+                 0U,  7U, 13U, 10U
+    );
+}
+
+
+Recipe4x4 RecipeFactory4x4::MapleA() {
+    //  A  B  C  D      N  M  I  J
+    //  E  F  G  H  ->  B  A  E  F
+    //  I  J  K  L      C  D  H  G
+    //  M  N  O  P      O  P  L  K
+    return Make("MapleA",
+                13U, 12U,  8U,  9U,
+                 1U,  0U,  4U,  5U,
+                 2U,  3U,  7U,  6U,
+                14U, 15U, 11U, 10U
+    );
+}
+
+Recipe4x4 RecipeFactory4x4::MapleB() {
+    //  A  B  C  D      F  E  A  B
+    //  E  F  G  H  ->  J  I  M  N
+    //  I  J  K  L      K  L  P  O
+    //  M  N  O  P      G  H  D  C
+    return Make("MapleB",
+                 5U,  4U,  0U,  1U,
+                 9U,  8U, 12U, 13U,
+                10U, 11U, 15U, 14U,
+                 6U,  7U,  3U,  2U
+    );
+}
+
+Recipe4x4 RecipeFactory4x4::MapleC() {
+    //  A  B  C  D      P  M  A  D
+    //  E  F  G  H  ->  L  I  E  H
+    //  I  J  K  L      K  J  F  G
+    //  M  N  O  P      O  N  B  C
+    return Make("MapleC",
+                15U, 12U,  0U,  3U,
+                11U,  8U,  4U,  7U,
+                10U,  9U,  5U,  6U,
+                14U, 13U,  1U,  2U
+    );
+}
+
+Recipe4x4 RecipeFactory4x4::MapleD() {
+    //  A  B  C  D      N  O  C  B
+    //  E  F  G  H  ->  J  K  G  F
+    //  I  J  K  L      I  L  H  E
+    //  M  N  O  P      M  P  D  A
+    return Make("MapleD",
+                13U, 14U,  2U,  1U,
+                 9U, 10U,  6U,  5U,
+                 8U, 11U,  7U,  4U,
+                12U, 15U,  3U,  0U
+    );
+}
+
+Recipe4x4 RecipeFactory4x4::WillowA() {
+    //  A  B  C  D      L  K  O  P
+    //  E  F  G  H  ->  H  G  C  D
+    //  I  J  K  L      E  F  B  A
+    //  M  N  O  P      I  J  N  M
+    return Make("WillowA",
+                11U, 10U, 14U, 15U,
+                 7U,  6U,  2U,  3U,
+                 4U,  5U,  1U,  0U,
+                 8U,  9U, 13U, 12U
+    );
+}
+
+Recipe4x4 RecipeFactory4x4::WillowB() {
+    //  A  B  C  D      D  C  G  H
+    //  E  F  G  H  ->  P  O  K  L
+    //  I  J  K  L      M  N  J  I
+    //  M  N  O  P      A  B  F  E
+    return Make("WillowB",
+                 3U,  2U,  6U,  7U,
+                15U, 14U, 10U, 11U,
+                12U, 13U,  9U,  8U,
+                 0U,  1U,  5U,  4U
+    );
+}
+
+Recipe4x4 RecipeFactory4x4::WillowC() {
+    //  A  B  C  D      J  K  G  F
+    //  E  F  G  H  ->  N  O  C  B
+    //  I  J  K  L      M  P  D  A
+    //  M  N  O  P      I  L  H  E
+    return Make("WillowC",
+                 9U, 10U,  6U,  5U,
+                13U, 14U,  2U,  1U,
+                12U, 15U,  3U,  0U,
+                 8U, 11U,  7U,  4U
+    );
+}
+
+Recipe4x4 RecipeFactory4x4::WillowD() {
+    //  A  B  C  D      L  I  E  H
+    //  E  F  G  H  ->  P  M  A  D
+    //  I  J  K  L      O  N  B  C
+    //  M  N  O  P      K  J  F  G
+    return Make("WillowD",
+                11U,  8U,  4U,  7U,
+                15U, 12U,  0U,  3U,
+                14U, 13U,  1U,  2U,
+                10U,  9U,  5U,  6U
+    );
+}
+
+Recipe4x4 RecipeFactory4x4::BirchA() {
+    //  A  B  C  D      M  N  J  I
+    //  E  F  G  H  ->  A  B  F  E
+    //  I  J  K  L      D  C  G  H
+    //  M  N  O  P      P  O  K  L
+    return Make("BirchA",
+                12U, 13U,  9U,  8U,
+                 0U,  1U,  5U,  4U,
+                 3U,  2U,  6U,  7U,
+                15U, 14U, 10U, 11U
+    );
+}
+
+Recipe4x4 RecipeFactory4x4::BirchB() {
+    //  A  B  C  D      E  F  B  A
+    //  E  F  G  H  ->  I  J  N  M
+    //  I  J  K  L      L  K  O  P
+    //  M  N  O  P      H  G  C  D
+    return Make("BirchB",
+                 4U,  5U,  1U,  0U,
+                 8U,  9U, 13U, 12U,
+                11U, 10U, 14U, 15U,
+                 7U,  6U,  2U,  3U
+    );
+}
+
+Recipe4x4 RecipeFactory4x4::BirchC() {
+    //  A  B  C  D      O  N  B  C
+    //  E  F  G  H  ->  K  J  F  G
+    //  I  J  K  L      L  I  E  H
+    //  M  N  O  P      P  M  A  D
+    return Make("BirchC",
+                14U, 13U,  1U,  2U,
+                10U,  9U,  5U,  6U,
+                11U,  8U,  4U,  7U,
+                15U, 12U,  0U,  3U
+    );
+}
+
+Recipe4x4 RecipeFactory4x4::BirchD() {
+    //  A  B  C  D      M  P  D  A
+    //  E  F  G  H  ->  I  L  H  E
+    //  I  J  K  L      J  K  G  F
+    //  M  N  O  P      N  O  C  B
+    return Make("BirchD",
+                12U, 15U,  3U,  0U,
+                 8U, 11U,  7U,  4U,
+                 9U, 10U,  6U,  5U,
+                13U, 14U,  2U,  1U
+    );
+}
+
+Recipe4x4 RecipeFactory4x4::CedarA() {
+    //  A  B  C  D      K  L  P  O
+    //  E  F  G  H  ->  G  H  D  C
+    //  I  J  K  L      F  E  A  B
+    //  M  N  O  P      J  I  M  N
+    return Make("CedarA",
+                10U, 11U, 15U, 14U,
+                 6U,  7U,  3U,  2U,
+                 5U,  4U,  0U,  1U,
+                 9U,  8U, 12U, 13U
+    );
+}
+
+Recipe4x4 RecipeFactory4x4::CedarB() {
+    //  A  B  C  D      C  D  H  G
+    //  E  F  G  H  ->  O  P  L  K
+    //  I  J  K  L      N  M  I  J
+    //  M  N  O  P      B  A  E  F
+    return Make("CedarB",
+                 2U,  3U,  7U,  6U,
+                14U, 15U, 11U, 10U,
+                13U, 12U,  8U,  9U,
+                 1U,  0U,  4U,  5U
+    );
+}
+
+Recipe4x4 RecipeFactory4x4::CedarC() {
+    //  A  B  C  D      M  P  D  A
+    //  E  F  G  H  ->  I  L  H  E
+    //  I  J  K  L      J  K  G  F
+    //  M  N  O  P      N  O  C  B
+    return Make("CedarC",
+                12U, 15U,  3U,  0U,
+                 8U, 11U,  7U,  4U,
+                 9U, 10U,  6U,  5U,
+                13U, 14U,  2U,  1U
+    );
+}
+
+Recipe4x4 RecipeFactory4x4::CedarD() {
+    //  A  B  C  D      O  N  B  C
+    //  E  F  G  H  ->  K  J  F  G
+    //  I  J  K  L      L  I  E  H
+    //  M  N  O  P      P  M  A  D
+    return Make("CedarD",
+                14U, 13U,  1U,  2U,
+                10U,  9U,  5U,  6U,
+                11U,  8U,  4U,  7U,
+                15U, 12U,  0U,  3U
+    );
+}
+
+Recipe4x4 RecipeFactory4x4::HickoryA() {
+    //  A  B  C  D      M  L  K  P
+    //  E  F  G  H  ->  N  I  J  O
+    //  I  J  K  L      A  F  G  B
+    //  M  N  O  P      D  E  H  C
+    return Make("HickoryA",
+                12U, 11U, 10U, 15U,
+                13U,  8U,  9U, 14U,
+                 0U,  5U,  6U,  1U,
+                 3U,  4U,  7U,  2U
+    );
+}
+
+Recipe4x4 RecipeFactory4x4::HickoryB() {
+    //  A  B  C  D      O  J  I  N
+    //  E  F  G  H  ->  P  K  L  M
+    //  I  J  K  L      C  H  E  D
+    //  M  N  O  P      B  G  F  A
+    return Make("HickoryB",
+                14U,  9U,  8U, 13U,
+                15U, 10U, 11U, 12U,
+                 2U,  7U,  4U,  3U,
+                 1U,  6U,  5U,  0U
+    );
+}
+
+Recipe4x4 RecipeFactory4x4::HickoryC() {
+    //  A  B  C  D      E  L  I  F
+    //  E  F  G  H  ->  H  K  J  G
+    //  I  J  K  L      C  P  O  B
+    //  M  N  O  P      D  M  N  A
+    return Make("HickoryC",
+                 4U, 11U,  8U,  5U,
+                 7U, 10U,  9U,  6U,
+                 2U, 15U, 14U,  1U,
+                 3U, 12U, 13U,  0U
+    );
+}
+
+Recipe4x4 RecipeFactory4x4::HickoryD() {
+    //  A  B  C  D      M  D  A  N
+    //  E  F  G  H  ->  P  C  B  O
+    //  I  J  K  L      K  H  G  J
+    //  M  N  O  P      L  E  F  I
+    return Make("HickoryD",
+                12U,  3U,  0U, 13U,
+                15U,  2U,  1U, 14U,
+                10U,  7U,  6U,  9U,
+                11U,  4U,  5U,  8U
+    );
+}
+
+Recipe4x4 RecipeFactory4x4::JuniperA() {
+    //  A  B  C  D      B  F  I  E
+    //  E  F  G  H  ->  G  K  H  D
+    //  I  J  K  L      C  O  L  P
+    //  M  N  O  P      N  J  M  A
+    return Make("JuniperA",
+                 1U,  5U,  8U,  4U,
+                 6U, 10U,  7U,  3U,
+                 2U, 14U, 11U, 15U,
+                13U,  9U, 12U,  0U
+    );
+}
+
+Recipe4x4 RecipeFactory4x4::JuniperB() {
+    //  A  B  C  D      D  H  K  G
+    //  E  F  G  H  ->  E  I  F  B
+    //  I  J  K  L      A  M  J  N
+    //  M  N  O  P      P  L  O  C
+    return Make("JuniperB",
+                 3U,  7U, 10U,  6U,
+                 4U,  8U,  5U,  1U,
+                 0U, 12U,  9U, 13U,
+                15U, 11U, 14U,  2U
+    );
+}
+
+Recipe4x4 RecipeFactory4x4::JuniperC() {
+    //  A  B  C  D      J  F  K  O
+    //  E  F  G  H  ->  M  I  H  L
+    //  I  J  K  L      A  E  D  P
+    //  M  N  O  P      N  B  G  C
+    return Make("JuniperC",
+                 9U,  5U, 10U, 14U,
+                12U,  8U,  7U, 11U,
+                 0U,  4U,  3U, 15U,
+                13U,  1U,  6U,  2U
+    );
+}
+
+Recipe4x4 RecipeFactory4x4::JuniperD() {
+    //  A  B  C  D      B  N  C  G
+    //  E  F  G  H  ->  E  A  P  D
+    //  I  J  K  L      I  M  L  H
+    //  M  N  O  P      F  J  O  K
+    return Make("JuniperD",
+                 1U, 13U,  2U,  6U,
+                 4U,  0U, 15U,  3U,
+                 8U, 12U, 11U,  7U,
+                 5U,  9U, 14U, 10U
+    );
+}
+
+Recipe4x4 RecipeFactory4x4::YorkA() {
+    //  A  B  C  D      D  J  O  E
+    //  E  F  G  H  ->  H  N  K  A
+    //  I  J  K  L      P  I  C  F
+    //  M  N  O  P      L  M  G  B
+    return Make("YorkA",
+                 3U,  9U, 14U,  4U,
+                 7U, 13U, 10U,  0U,
+                15U,  8U,  2U,  5U,
+                11U, 12U,  6U,  1U
+    );
+}
+
+Recipe4x4 RecipeFactory4x4::YorkB() {
+    //  A  B  C  D      I  P  F  C
+    //  E  F  G  H  ->  M  L  B  G
+    //  I  J  K  L      E  O  J  D
+    //  M  N  O  P      A  K  N  H
+    return Make("YorkB",
+                 8U, 15U,  5U,  2U,
+                12U, 11U,  1U,  6U,
+                 4U, 14U,  9U,  3U,
+                 0U, 10U, 13U,  7U
+    );
+}
+
+Recipe4x4 RecipeFactory4x4::YorkC() {
+    //  A  B  C  D      O  J  D  E
+    //  E  F  G  H  ->  K  N  H  A
+    //  I  J  K  L      P  F  C  I
+    //  M  N  O  P      L  B  G  M
+    return Make("YorkC",
+                14U,  9U,  3U,  4U,
+                10U, 13U,  7U,  0U,
+                15U,  5U,  2U,  8U,
+                11U,  1U,  6U, 12U
+    );
+}
+
+Recipe4x4 RecipeFactory4x4::YorkD() {
+    //  A  B  C  D      I  C  F  P
+    //  E  F  G  H  ->  M  G  B  L
+    //  I  J  K  L      J  O  E  D
+    //  M  N  O  P      N  K  A  H
+    return Make("YorkD",
+                 8U,  2U,  5U, 15U,
+                12U,  6U,  1U, 11U,
+                 9U, 14U,  4U,  3U,
+                13U, 10U,  0U,  7U
+    );
+}
+
+Recipe4x4 RecipeFactory4x4::EssexA() {
+    //  A  B  C  D      H  A  K  N
+    //  E  F  G  H  ->  D  E  O  J
+    //  I  J  K  L      G  M  L  B
+    //  M  N  O  P      C  I  P  F
+    return Make("EssexA",
+                 7U,  0U, 10U, 13U,
+                 3U,  4U, 14U,  9U,
+                 6U, 12U, 11U,  1U,
+                 2U,  8U, 15U,  5U
+    );
+}
+
+Recipe4x4 RecipeFactory4x4::EssexB() {
+    //  A  B  C  D      O  J  D  E
+    //  E  F  G  H  ->  K  N  H  A
+    //  I  J  K  L      C  I  P  F
+    //  M  N  O  P      G  M  L  B
+    return Make("EssexB",
+                14U,  9U,  3U,  4U,
+                10U, 13U,  7U,  0U,
+                 2U,  8U, 15U,  5U,
+                 6U, 12U, 11U,  1U
+    );
+}
+
+Recipe4x4 RecipeFactory4x4::EssexC() {
+    //  A  B  C  D      I  P  F  C
+    //  E  F  G  H  ->  M  L  B  G
+    //  I  J  K  L      J  D  E  O
+    //  M  N  O  P      N  H  A  K
+    return Make("EssexC",
+                 8U, 15U,  5U,  2U,
+                12U, 11U,  1U,  6U,
+                 9U,  3U,  4U, 14U,
+                13U,  7U,  0U, 10U
+    );
+}
+
+Recipe4x4 RecipeFactory4x4::EssexD() {
+    //  A  B  C  D      O  E  D  J
+    //  E  F  G  H  ->  K  A  H  N
+    //  I  J  K  L      P  I  C  F
+    //  M  N  O  P      L  M  G  B
+    return Make("EssexD",
+                14U,  4U,  3U,  9U,
+                10U,  0U,  7U, 13U,
+                15U,  8U,  2U,  5U,
+                11U, 12U,  6U,  1U
+    );
+}
+
+Recipe4x4 RecipeFactory4x4::WessexA() {
+    //  A  B  C  D      C  I  P  F
+    //  E  F  G  H  ->  G  M  L  B
+    //  I  J  K  L      O  J  D  E
+    //  M  N  O  P      K  N  H  A
+    return Make("WessexA",
+                 2U,  8U, 15U,  5U,
+                 6U, 12U, 11U,  1U,
+                14U,  9U,  3U,  4U,
+                10U, 13U,  7U,  0U
+    );
+}
+
+Recipe4x4 RecipeFactory4x4::WessexB() {
+    //  A  B  C  D      J  O  E  D
+    //  E  F  G  H  ->  N  K  A  H
+    //  I  J  K  L      F  P  I  C
+    //  M  N  O  P      B  L  M  G
+    return Make("WessexB",
+                 9U, 14U,  4U,  3U,
+                13U, 10U,  0U,  7U,
+                 5U, 15U,  8U,  2U,
+                 1U, 11U, 12U,  6U
+    );
+}
+
+Recipe4x4 RecipeFactory4x4::WessexC() {
+    //  A  B  C  D      P  I  C  F
+    //  E  F  G  H  ->  L  M  G  B
+    //  I  J  K  L      O  E  D  J
+    //  M  N  O  P      K  A  H  N
+    return Make("WessexC",
+                15U,  8U,  2U,  5U,
+                11U, 12U,  6U,  1U,
+                14U,  4U,  3U,  9U,
+                10U,  0U,  7U, 13U
+    );
+}
+
+Recipe4x4 RecipeFactory4x4::WessexD() {
+    //  A  B  C  D      J  D  E  O
+    //  E  F  G  H  ->  N  H  A  K
+    //  I  J  K  L      I  P  F  C
+    //  M  N  O  P      M  L  B  G
+    return Make("WessexD",
+                 9U,  3U,  4U, 14U,
+                13U,  7U,  0U, 10U,
+                 8U, 15U,  5U,  2U,
+                12U, 11U,  1U,  6U
+    );
+}
+
+Recipe4x4 RecipeFactory4x4::MerciaA() {
+    //  A  B  C  D      C  F  P  I
+    //  E  F  G  H  ->  G  B  L  M
+    //  I  J  K  L      D  J  O  E
+    //  M  N  O  P      H  N  K  A
+    return Make("MerciaA",
+                 2U,  5U, 15U,  8U,
+                 6U,  1U, 11U, 12U,
+                 3U,  9U, 14U,  4U,
+                 7U, 13U, 10U,  0U
+    );
+}
+
+Recipe4x4 RecipeFactory4x4::MerciaB() {
+    //  A  B  C  D      L  M  G  B
+    //  E  F  G  H  ->  P  I  C  F
+    //  I  J  K  L      H  N  K  A
+    //  M  N  O  P      D  J  O  E
+    return Make("MerciaB",
+                11U, 12U,  6U,  1U,
+                15U,  8U,  2U,  5U,
+                 7U, 13U, 10U,  0U,
+                 3U,  9U, 14U,  4U
+    );
+}
+
+Recipe4x4 RecipeFactory4x4::MerciaC() {
+    //  A  B  C  D      N  K  A  H
+    //  E  F  G  H  ->  J  O  E  D
+    //  I  J  K  L      M  G  B  L
+    //  M  N  O  P      I  C  F  P
+    return Make("MerciaC",
+                13U, 10U,  0U,  7U,
+                 9U, 14U,  4U,  3U,
+                12U,  6U,  1U, 11U,
+                 8U,  2U,  5U, 15U
+    );
+}
+
+Recipe4x4 RecipeFactory4x4::MerciaD() {
+    //  A  B  C  D      L  B  G  M
+    //  E  F  G  H  ->  P  F  C  I
+    //  I  J  K  L      K  N  H  A
+    //  M  N  O  P      O  J  D  E
+    return Make("MerciaD",
+                11U,  1U,  6U, 12U,
+                15U,  5U,  2U,  8U,
+                10U, 13U,  7U,  0U,
+                14U,  9U,  3U,  4U
+    );
+}
+
+Recipe4x4 RecipeFactory4x4::SussexA() {
+    //  A  B  C  D      C  I  M  G
+    //  E  F  G  H  ->  F  P  J  D
+    //  I  J  K  L      N  L  B  H
+    //  M  N  O  P      K  O  E  A
+    return Make("SussexA",
+                 2U,  8U, 12U,  6U,
+                 5U, 15U,  9U,  3U,
+                13U, 11U,  1U,  7U,
+                10U, 14U,  4U,  0U
+    );
+}
+
+Recipe4x4 RecipeFactory4x4::SussexB() {
+    //  A  B  C  D      L  N  H  B
+    //  E  F  G  H  ->  O  K  A  E
+    //  I  J  K  L      G  M  I  C
+    //  M  N  O  P      D  J  P  F
+    return Make("SussexB",
+                11U, 13U,  7U,  1U,
+                14U, 10U,  0U,  4U,
+                 6U, 12U,  8U,  2U,
+                 3U,  9U, 15U,  5U
+    );
+}
+
+Recipe4x4 RecipeFactory4x4::SussexC() {
+    //  A  B  C  D      M  I  C  G
+    //  E  F  G  H  ->  J  P  F  D
+    //  I  J  K  L      N  H  B  L
+    //  M  N  O  P      K  A  E  O
+    return Make("SussexC",
+                12U,  8U,  2U,  6U,
+                 9U, 15U,  5U,  3U,
+                13U,  7U,  1U, 11U,
+                10U,  0U,  4U, 14U
+    );
+}
+
+Recipe4x4 RecipeFactory4x4::SussexD() {
+    //  A  B  C  D      L  B  H  N
+    //  E  F  G  H  ->  O  E  A  K
+    //  I  J  K  L      I  M  G  C
+    //  M  N  O  P      P  J  D  F
+    return Make("SussexD",
+                11U,  1U,  7U, 13U,
+                14U,  4U,  0U, 10U,
+                 8U, 12U,  6U,  2U,
+                15U,  9U,  3U,  5U
+    );
+}
+
+Recipe4x4 RecipeFactory4x4::UmbriaA() {
+    //  A  B  C  D      A  K  B  L
+    //  E  F  G  H  ->  E  O  N  H
+    //  I  J  K  L      M  P  F  G
+    //  M  N  O  P      I  D  J  C
+    return Make("UmbriaA",
+                 0U, 10U,  1U, 11U,
+                 4U, 14U, 13U,  7U,
+                12U, 15U,  5U,  6U,
+                 8U,  3U,  9U,  2U
+    );
+}
+
+Recipe4x4 RecipeFactory4x4::UmbriaB() {
+    //  A  B  C  D      P  M  G  F
+    //  E  F  G  H  ->  D  I  C  J
+    //  I  J  K  L      L  B  K  A
+    //  M  N  O  P      H  N  O  E
+    return Make("UmbriaB",
+                15U, 12U,  6U,  5U,
+                 3U,  8U,  2U,  9U,
+                11U,  1U, 10U,  0U,
+                 7U, 13U, 14U,  4U
+    );
+}
+
+Recipe4x4 RecipeFactory4x4::UmbriaC() {
+    //  A  B  C  D      B  K  A  L
+    //  E  F  G  H  ->  N  O  E  H
+    //  I  J  K  L      M  G  F  P
+    //  M  N  O  P      I  C  J  D
+    return Make("UmbriaC",
+                 1U, 10U,  0U, 11U,
+                13U, 14U,  4U,  7U,
+                12U,  6U,  5U, 15U,
+                 8U,  2U,  9U,  3U
+    );
+}
+
+Recipe4x4 RecipeFactory4x4::UmbriaD() {
+    //  A  B  C  D      P  F  G  M
+    //  E  F  G  H  ->  D  J  C  I
+    //  I  J  K  L      K  B  L  A
+    //  M  N  O  P      O  N  H  E
+    return Make("UmbriaD",
+                15U,  5U,  6U, 12U,
+                 3U,  9U,  2U,  8U,
+                10U,  1U, 11U,  0U,
+                14U, 13U,  7U,  4U
+    );
+}
+
+Recipe4x4 RecipeFactory4x4::TokyoA() {
+    //  A  B  C  D      E  B  D  G
+    //  E  F  G  H  ->  N  F  K  C
+    //  I  J  K  L      J  M  O  L
+    //  M  N  O  P      A  I  H  P
+    return Make("TokyoA",
+                 4U,  1U,  3U,  6U,
+                13U,  5U, 10U,  2U,
+                 9U, 12U, 14U, 11U,
+                 0U,  8U,  7U, 15U
+    );
+}
+
+Recipe4x4 RecipeFactory4x4::TokyoB() {
+    //  A  B  C  D      A  F  H  C
+    //  E  F  G  H  ->  E  M  D  L
+    //  I  J  K  L      N  I  K  P
+    //  M  N  O  P      J  B  O  G
+    return Make("TokyoB",
+                 0U,  5U,  7U,  2U,
+                 4U, 12U,  3U, 11U,
+                13U,  8U, 10U, 15U,
+                 9U,  1U, 14U,  6U
+    );
+}
+
+Recipe4x4 RecipeFactory4x4::TokyoC() {
+    //  A  B  C  D      K  L  N  M
+    //  E  F  G  H  ->  I  O  P  J
+    //  I  J  K  L      H  G  A  B
+    //  M  N  O  P      F  D  C  E
+    return Make("TokyoC",
+                10U, 11U, 13U, 12U,
+                 8U, 14U, 15U,  9U,
+                 7U,  6U,  0U,  1U,
+                 5U,  3U,  2U,  4U
+    );
+}
+
+Recipe4x4 RecipeFactory4x4::TokyoD() {
+    //  A  B  C  D      M  K  L  N
+    //  E  F  G  H  ->  O  P  J  I
+    //  I  J  K  L      B  H  G  A
+    //  M  N  O  P      D  C  E  F
+    return Make("TokyoD",
+                12U, 10U, 11U, 13U,
+                14U, 15U,  9U,  8U,
+                 1U,  7U,  6U,  0U,
+                 3U,  2U,  4U,  5U
+    );
+}
+
+Recipe4x4 RecipeFactory4x4::KyotoA() {
+    //  A  B  C  D      N  I  K  P
+    //  E  F  G  H  ->  J  B  O  G
+    //  I  J  K  L      A  F  H  C
+    //  M  N  O  P      E  M  D  L
+    return Make("KyotoA",
+                13U,  8U, 10U, 15U,
+                 9U,  1U, 14U,  6U,
+                 0U,  5U,  7U,  2U,
+                 4U, 12U,  3U, 11U
+    );
+}
+
+Recipe4x4 RecipeFactory4x4::KyotoB() {
+    //  A  B  C  D      J  M  O  L
+    //  E  F  G  H  ->  A  I  H  P
+    //  I  J  K  L      E  B  D  G
+    //  M  N  O  P      N  F  K  C
+    return Make("KyotoB",
+                 9U, 12U, 14U, 11U,
+                 0U,  8U,  7U, 15U,
+                 4U,  1U,  3U,  6U,
+                13U,  5U, 10U,  2U
+    );
+}
+
+Recipe4x4 RecipeFactory4x4::KyotoC() {
+    //  A  B  C  D      K  L  N  M
+    //  E  F  G  H  ->  P  J  I  O
+    //  I  J  K  L      H  G  A  B
+    //  M  N  O  P      C  E  F  D
+    return Make("KyotoC",
+                10U, 11U, 13U, 12U,
+                15U,  9U,  8U, 14U,
+                 7U,  6U,  0U,  1U,
+                 2U,  4U,  5U,  3U
+    );
+}
+
+Recipe4x4 RecipeFactory4x4::KyotoD() {
+    //  A  B  C  D      L  N  M  K
+    //  E  F  G  H  ->  O  P  J  I
+    //  I  J  K  L      G  A  B  H
+    //  M  N  O  P      D  C  E  F
+    return Make("KyotoD",
+                11U, 13U, 12U, 10U,
+                14U, 15U,  9U,  8U,
+                 6U,  0U,  1U,  7U,
+                 3U,  2U,  4U,  5U
+    );
+}
+
+Recipe4x4 RecipeFactory4x4::OsakaA() {
+    //  A  B  C  D      K  H  O  L
+    //  E  F  G  H  ->  G  P  C  D
+    //  I  J  K  L      E  B  A  N
+    //  M  N  O  P      I  J  M  F
+    return Make("OsakaA",
+                10U,  7U, 14U, 11U,
+                 6U, 15U,  2U,  3U,
+                 4U,  1U,  0U, 13U,
+                 8U,  9U, 12U,  5U
+    );
+}
+
+Recipe4x4 RecipeFactory4x4::OsakaB() {
+    //  A  B  C  D      H  O  L  K
+    //  E  F  G  H  ->  D  G  P  C
+    //  I  J  K  L      B  A  N  E
+    //  M  N  O  P      F  I  J  M
+    return Make("OsakaB",
+                 7U, 14U, 11U, 10U,
+                 3U,  6U, 15U,  2U,
+                 1U,  0U, 13U,  4U,
+                 5U,  8U,  9U, 12U
+    );
+}
+
+Recipe4x4 RecipeFactory4x4::OsakaC() {
+    //  A  B  C  D      A  M  E  I
+    //  E  F  G  H  ->  J  L  F  H
+    //  I  J  K  L      O  C  K  G
+    //  M  N  O  P      P  N  D  B
+    return Make("OsakaC",
+                 0U, 12U,  4U,  8U,
+                 9U, 11U,  5U,  7U,
+                14U,  2U, 10U,  6U,
+                15U, 13U,  3U,  1U
+    );
+}
+
+Recipe4x4 RecipeFactory4x4::OsakaD() {
+    //  A  B  C  D      J  N  F  B
+    //  E  F  G  H  ->  O  M  K  I
+    //  I  J  K  L      P  L  D  H
+    //  M  N  O  P      A  C  E  G
+    return Make("OsakaD",
+                 9U, 13U,  5U,  1U,
+                14U, 12U, 10U,  8U,
+                15U, 11U,  3U,  7U,
+                 0U,  2U,  4U,  6U
+    );
+}
+
+Recipe4x4 RecipeFactory4x4::NaraA() {
+    //  A  B  C  D      L  K  M  N
+    //  E  F  G  H  ->  O  I  J  P
+    //  I  J  K  L      G  H  B  A
+    //  M  N  O  P      D  F  E  C
+    return Make("NaraA",
+                11U, 10U, 12U, 13U,
+                14U,  8U,  9U, 15U,
+                 6U,  7U,  1U,  0U,
+                 3U,  5U,  4U,  2U
+    );
+}
+
+Recipe4x4 RecipeFactory4x4::NaraB() {
+    //  A  B  C  D      K  M  N  L
+    //  E  F  G  H  ->  P  O  I  J
+    //  I  J  K  L      H  B  A  G
+    //  M  N  O  P      C  D  F  E
+    return Make("NaraB",
+                10U, 12U, 13U, 11U,
+                15U, 14U,  8U,  9U,
+                 7U,  1U,  0U,  6U,
+                 2U,  3U,  5U,  4U
+    );
+}
+
+Recipe4x4 RecipeFactory4x4::NaraC() {
+    //  A  B  C  D      B  E  G  D
+    //  E  F  G  H  ->  F  N  C  K
+    //  I  J  K  L      M  J  L  O
+    //  M  N  O  P      I  A  P  H
+    return Make("NaraC",
+                 1U,  4U,  6U,  3U,
+                 5U, 13U,  2U, 10U,
+                12U,  9U, 11U, 14U,
+                 8U,  0U, 15U,  7U
+    );
+}
+
+Recipe4x4 RecipeFactory4x4::NaraD() {
+    //  A  B  C  D      F  A  C  H
+    //  E  F  G  H  ->  M  E  L  D
+    //  I  J  K  L      I  N  P  K
+    //  M  N  O  P      B  J  G  O
+    return Make("NaraD",
+                 5U,  0U,  2U,  7U,
+                12U,  4U, 11U,  3U,
+                 8U, 13U, 15U, 10U,
+                 1U,  9U,  6U, 14U
+    );
+}
+
+Recipe4x4 RecipeFactory4x4::KobeA() {
+    //  A  B  C  D      J  B  O  G
+    //  E  F  G  H  ->  N  I  K  P
+    //  I  J  K  L      E  M  D  L
+    //  M  N  O  P      A  F  H  C
+    return Make("KobeA",
+                 9U,  1U, 14U,  6U,
+                13U,  8U, 10U, 15U,
+                 4U, 12U,  3U, 11U,
+                 0U,  5U,  7U,  2U
+    );
+}
+
+Recipe4x4 RecipeFactory4x4::KobeB() {
+    //  A  B  C  D      A  I  H  P
+    //  E  F  G  H  ->  J  M  O  L
+    //  I  J  K  L      N  F  K  C
+    //  M  N  O  P      E  B  D  G
+    return Make("KobeB",
+                 0U,  8U,  7U, 15U,
+                 9U, 12U, 14U, 11U,
+                13U,  5U, 10U,  2U,
+                 4U,  1U,  3U,  6U
+    );
+}
+
+Recipe4x4 RecipeFactory4x4::KobeC() {
+    //  A  B  C  D      C  E  F  D
+    //  E  F  G  H  ->  H  G  A  B
+    //  I  J  K  L      P  J  I  O
+    //  M  N  O  P      K  L  N  M
+    return Make("KobeC",
+                 2U,  4U,  5U,  3U,
+                 7U,  6U,  0U,  1U,
+                15U,  9U,  8U, 14U,
+                10U, 11U, 13U, 12U
+    );
+}
+
+Recipe4x4 RecipeFactory4x4::KobeD() {
+    //  A  B  C  D      D  C  E  F
+    //  E  F  G  H  ->  G  A  B  H
+    //  I  J  K  L      O  P  J  I
+    //  M  N  O  P      L  N  M  K
+    return Make("KobeD",
+                 3U,  2U,  4U,  5U,
+                 6U,  0U,  1U,  7U,
+                14U, 15U,  9U,  8U,
+                11U, 13U, 12U, 10U
+    );
+}
+
+Recipe4x4 RecipeFactory4x4::SapporoA() {
+    //  A  B  C  D      P  H  I  A
+    //  E  F  G  H  ->  G  D  B  E
+    //  I  J  K  L      C  K  F  N
+    //  M  N  O  P      L  O  M  J
+    return Make("SapporoA",
+                15U,  7U,  8U,  0U,
+                 6U,  3U,  1U,  4U,
+                 2U, 10U,  5U, 13U,
+                11U, 14U, 12U,  9U
+    );
+}
+
+Recipe4x4 RecipeFactory4x4::SapporoB() {
+    //  A  B  C  D      G  O  B  J
+    //  E  F  G  H  ->  C  H  F  A
+    //  I  J  K  L      L  D  M  E
+    //  M  N  O  P      P  K  I  N
+    return Make("SapporoB",
+                 6U, 14U,  1U,  9U,
+                 2U,  7U,  5U,  0U,
+                11U,  3U, 12U,  4U,
+                15U, 10U,  8U, 13U
+    );
+}
+
+Recipe4x4 RecipeFactory4x4::SapporoC() {
+    //  A  B  C  D      K  M  N  L
+    //  E  F  G  H  ->  I  J  P  O
+    //  I  J  K  L      H  B  A  G
+    //  M  N  O  P      F  E  C  D
+    return Make("SapporoC",
+                10U, 12U, 13U, 11U,
+                 8U,  9U, 15U, 14U,
+                 7U,  1U,  0U,  6U,
+                 5U,  4U,  2U,  3U
+    );
+}
+
+Recipe4x4 RecipeFactory4x4::SapporoD() {
+    //  A  B  C  D      M  N  L  K
+    //  E  F  G  H  ->  O  I  J  P
+    //  I  J  K  L      B  A  G  H
+    //  M  N  O  P      D  F  E  C
+    return Make("SapporoD",
+                12U, 13U, 11U, 10U,
+                14U,  8U,  9U, 15U,
+                 1U,  0U,  6U,  7U,
+                 3U,  5U,  4U,  2U
+    );
+}
+
+Recipe4x4 RecipeFactory4x4::NagoyaA() {
+    //  A  B  C  D      G  C  P  J
+    //  E  F  G  H  ->  H  K  O  B
+    //  I  J  K  L      F  D  M  I
+    //  M  N  O  P      E  L  N  A
+    return Make("NagoyaA",
+                 6U,  2U, 15U,  9U,
+                 7U, 10U, 14U,  1U,
+                 5U,  3U, 12U,  8U,
+                 4U, 11U, 13U,  0U
+    );
+}
+
+Recipe4x4 RecipeFactory4x4::NagoyaB() {
+    //  A  B  C  D      C  P  J  G
+    //  E  F  G  H  ->  B  H  K  O
+    //  I  J  K  L      D  M  I  F
+    //  M  N  O  P      A  E  L  N
+    return Make("NagoyaB",
+                 2U, 15U,  9U,  6U,
+                 1U,  7U, 10U, 14U,
+                 3U, 12U,  8U,  5U,
+                 0U,  4U, 11U, 13U
+    );
+}
+
+Recipe4x4 RecipeFactory4x4::NagoyaC() {
+    //  A  B  C  D      M  N  F  E
+    //  E  F  G  H  ->  L  J  A  C
+    //  I  J  K  L      P  O  G  H
+    //  M  N  O  P      K  I  B  D
+    return Make("NagoyaC",
+                12U, 13U,  5U,  4U,
+                11U,  9U,  0U,  2U,
+                15U, 14U,  6U,  7U,
+                10U,  8U,  1U,  3U
+    );
+}
+
+Recipe4x4 RecipeFactory4x4::NagoyaD() {
+    //  A  B  C  D      L  I  A  D
+    //  E  F  G  H  ->  P  N  G  E
+    //  I  J  K  L      K  J  B  C
+    //  M  N  O  P      M  O  F  H
+    return Make("NagoyaD",
+                11U,  8U,  0U,  3U,
+                15U, 13U,  6U,  4U,
+                10U,  9U,  1U,  2U,
+                12U, 14U,  5U,  7U
+    );
+}
+
+Recipe4x4 RecipeFactory4x4::FukuokaA() {
+    //  A  B  C  D      G  H  B  A
+    //  E  F  G  H  ->  D  F  E  C
+    //  I  J  K  L      L  K  M  N
+    //  M  N  O  P      O  I  J  P
+    return Make("FukuokaA",
+                 6U,  7U,  1U,  0U,
+                 3U,  5U,  4U,  2U,
+                11U, 10U, 12U, 13U,
+                14U,  8U,  9U, 15U
+    );
+}
+
+Recipe4x4 RecipeFactory4x4::FukuokaB() {
+    //  A  B  C  D      H  B  A  G
+    //  E  F  G  H  ->  C  D  F  E
+    //  I  J  K  L      K  M  N  L
+    //  M  N  O  P      P  O  I  J
+    return Make("FukuokaB",
+                 7U,  1U,  0U,  6U,
+                 2U,  3U,  5U,  4U,
+                10U, 12U, 13U, 11U,
+                15U, 14U,  8U,  9U
+    );
+}
+
+Recipe4x4 RecipeFactory4x4::FukuokaC() {
+    //  A  B  C  D      M  J  L  O
+    //  E  F  G  H  ->  I  A  P  H
+    //  I  J  K  L      B  E  G  D
+    //  M  N  O  P      F  N  C  K
+    return Make("FukuokaC",
+                12U,  9U, 11U, 14U,
+                 8U,  0U, 15U,  7U,
+                 1U,  4U,  6U,  3U,
+                 5U, 13U,  2U, 10U
+    );
+}
+
+Recipe4x4 RecipeFactory4x4::FukuokaD() {
+    //  A  B  C  D      I  N  P  K
+    //  E  F  G  H  ->  B  J  G  O
+    //  I  J  K  L      F  A  C  H
+    //  M  N  O  P      M  E  L  D
+    return Make("FukuokaD",
+                 8U, 13U, 15U, 10U,
+                 1U,  9U,  6U, 14U,
+                 5U,  0U,  2U,  7U,
+                12U,  4U, 11U,  3U
+    );
+}
+
+
+Recipe4x4 RecipeFactory4x4::GlendaleA() {
+    //  A  B  C  D      G  D  B  E
+    //  E  F  G  H  ->  C  K  F  N
+    //  I  J  K  L      L  O  M  J
+    //  M  N  O  P      P  H  I  A
+    return Make("GlendaleA",
+                 6U,  3U,  1U,  4U,
+                 2U, 10U,  5U, 13U,
+                11U, 14U, 12U,  9U,
+                15U,  7U,  8U,  0U
+    );
+}
+
+Recipe4x4 RecipeFactory4x4::GlendaleB() {
+    //  A  B  C  D      C  H  F  A
+    //  E  F  G  H  ->  L  D  M  E
+    //  I  J  K  L      P  K  I  N
+    //  M  N  O  P      G  O  B  J
+    return Make("GlendaleB",
+                 2U,  7U,  5U,  0U,
+                11U,  3U, 12U,  4U,
+                15U, 10U,  8U, 13U,
+                 6U, 14U,  1U,  9U
+    );
+}
+
+Recipe4x4 RecipeFactory4x4::GlendaleC() {
+    //  A  B  C  D      F  D  C  E
+    //  E  F  G  H  ->  H  G  A  B
+    //  I  J  K  L      I  O  P  J
+    //  M  N  O  P      K  L  N  M
+    return Make("GlendaleC",
+                 5U,  3U,  2U,  4U,
+                 7U,  6U,  0U,  1U,
+                 8U, 14U, 15U,  9U,
+                10U, 11U, 13U, 12U
+    );
+}
+
+Recipe4x4 RecipeFactory4x4::GlendaleD() {
+    //  A  B  C  D      D  C  E  F
+    //  E  F  G  H  ->  B  H  G  A
+    //  I  J  K  L      O  P  J  I
+    //  M  N  O  P      M  K  L  N
+    return Make("GlendaleD",
+                 3U,  2U,  4U,  5U,
+                 1U,  7U,  6U,  0U,
+                14U, 15U,  9U,  8U,
+                12U, 10U, 11U, 13U
+    );
+}
+
+Recipe4x4 RecipeFactory4x4::BurbankA() {
+    //  A  B  C  D      E  M  D  L
+    //  E  F  G  H  ->  A  F  H  C
+    //  I  J  K  L      J  B  O  G
+    //  M  N  O  P      N  I  K  P
+    return Make("BurbankA",
+                 4U, 12U,  3U, 11U,
+                 0U,  5U,  7U,  2U,
+                 9U,  1U, 14U,  6U,
+                13U,  8U, 10U, 15U
+    );
+}
+
+Recipe4x4 RecipeFactory4x4::BurbankB() {
+    //  A  B  C  D      N  F  K  C
+    //  E  F  G  H  ->  E  B  D  G
+    //  I  J  K  L      A  I  H  P
+    //  M  N  O  P      J  M  O  L
+    return Make("BurbankB",
+                13U,  5U, 10U,  2U,
+                 4U,  1U,  3U,  6U,
+                 0U,  8U,  7U, 15U,
+                 9U, 12U, 14U, 11U
+    );
+}
+
+Recipe4x4 RecipeFactory4x4::BurbankC() {
+    //  A  B  C  D      K  P  H  C
+    //  E  F  G  H  ->  L  J  G  E
+    //  I  J  K  L      N  I  A  F
+    //  M  N  O  P      M  O  B  D
+    return Make("BurbankC",
+                10U, 15U,  7U,  2U,
+                11U,  9U,  6U,  4U,
+                13U,  8U,  0U,  5U,
+                12U, 14U,  1U,  3U
+    );
+}
+
+Recipe4x4 RecipeFactory4x4::BurbankD() {
+    //  A  B  C  D      L  O  G  D
+    //  E  F  G  H  ->  N  P  A  C
+    //  I  J  K  L      M  J  B  E
+    //  M  N  O  P      K  I  H  F
+    return Make("BurbankD",
+                11U, 14U,  6U,  3U,
+                13U, 15U,  0U,  2U,
+                12U,  9U,  1U,  4U,
+                10U,  8U,  7U,  5U
+    );
+}
+
+Recipe4x4 RecipeFactory4x4::InglewoodA() {
+    //  A  B  C  D      I  J  M  F
+    //  E  F  G  H  ->  E  B  A  N
+    //  I  J  K  L      G  P  C  D
+    //  M  N  O  P      K  H  O  L
+    return Make("InglewoodA",
+                 8U,  9U, 12U,  5U,
+                 4U,  1U,  0U, 13U,
+                 6U, 15U,  2U,  3U,
+                10U,  7U, 14U, 11U
+    );
+}
+
+Recipe4x4 RecipeFactory4x4::InglewoodB() {
+    //  A  B  C  D      F  I  J  M
+    //  E  F  G  H  ->  B  A  N  E
+    //  I  J  K  L      D  G  P  C
+    //  M  N  O  P      H  O  L  K
+    return Make("InglewoodB",
+                 5U,  8U,  9U, 12U,
+                 1U,  0U, 13U,  4U,
+                 3U,  6U, 15U,  2U,
+                 7U, 14U, 11U, 10U
+    );
+}
+
+Recipe4x4 RecipeFactory4x4::InglewoodC() {
+    //  A  B  C  D      P  N  D  B
+    //  E  F  G  H  ->  O  C  K  G
+    //  I  J  K  L      J  L  F  H
+    //  M  N  O  P      A  M  E  I
+    return Make("InglewoodC",
+                15U, 13U,  3U,  1U,
+                14U,  2U, 10U,  6U,
+                 9U, 11U,  5U,  7U,
+                 0U, 12U,  4U,  8U
+    );
+}
+
+Recipe4x4 RecipeFactory4x4::InglewoodD() {
+    //  A  B  C  D      A  C  E  G
+    //  E  F  G  H  ->  P  L  D  H
+    //  I  J  K  L      O  M  K  I
+    //  M  N  O  P      J  N  F  B
+    return Make("InglewoodD",
+                 0U,  2U,  4U,  6U,
+                15U, 11U,  3U,  7U,
+                14U, 12U, 10U,  8U,
+                 9U, 13U,  5U,  1U
+    );
+}
+
+Recipe4x4 RecipeFactory4x4::PasadenaA() {
+    //  A  B  C  D      D  F  E  C
+    //  E  F  G  H  ->  G  H  B  A
+    //  I  J  K  L      O  I  J  P
+    //  M  N  O  P      L  K  M  N
+    return Make("PasadenaA",
+                 3U,  5U,  4U,  2U,
+                 6U,  7U,  1U,  0U,
+                14U,  8U,  9U, 15U,
+                11U, 10U, 12U, 13U
+    );
+}
+
+Recipe4x4 RecipeFactory4x4::PasadenaB() {
+    //  A  B  C  D      C  D  F  E
+    //  E  F  G  H  ->  H  B  A  G
+    //  I  J  K  L      P  O  I  J
+    //  M  N  O  P      K  M  N  L
+    return Make("PasadenaB",
+                 2U,  3U,  5U,  4U,
+                 7U,  1U,  0U,  6U,
+                15U, 14U,  8U,  9U,
+                10U, 12U, 13U, 11U
+    );
+}
+
+Recipe4x4 RecipeFactory4x4::PasadenaC() {
+    //  A  B  C  D      I  A  P  H
+    //  E  F  G  H  ->  M  J  L  O
+    //  I  J  K  L      F  N  C  K
+    //  M  N  O  P      B  E  G  D
+    return Make("PasadenaC",
+                 8U,  0U, 15U,  7U,
+                12U,  9U, 11U, 14U,
+                 5U, 13U,  2U, 10U,
+                 1U,  4U,  6U,  3U
+    );
+}
+
+Recipe4x4 RecipeFactory4x4::PasadenaD() {
+    //  A  B  C  D      B  J  G  O
+    //  E  F  G  H  ->  I  N  P  K
+    //  I  J  K  L      M  E  L  D
+    //  M  N  O  P      F  A  C  H
+    return Make("PasadenaD",
+                 1U,  9U,  6U, 14U,
+                 8U, 13U, 15U, 10U,
+                12U,  4U, 11U,  3U,
+                 5U,  0U,  2U,  7U
+    );
+}
+
+Recipe4x4 RecipeFactory4x4::TorranceA() {
+    //  A  B  C  D      G  O  B  J
+    //  E  F  G  H  ->  P  K  I  N
+    //  I  J  K  L      L  D  M  E
+    //  M  N  O  P      C  H  F  A
+    return Make("TorranceA",
+                 6U, 14U,  1U,  9U,
+                15U, 10U,  8U, 13U,
+                11U,  3U, 12U,  4U,
+                 2U,  7U,  5U,  0U
+    );
+}
+
+Recipe4x4 RecipeFactory4x4::TorranceB() {
+    //  A  B  C  D      P  H  I  A
+    //  E  F  G  H  ->  L  O  M  J
+    //  I  J  K  L      C  K  F  N
+    //  M  N  O  P      G  D  B  E
+    return Make("TorranceB",
+                15U,  7U,  8U,  0U,
+                11U, 14U, 12U,  9U,
+                 2U, 10U,  5U, 13U,
+                 6U,  3U,  1U,  4U
+    );
+}
+
+Recipe4x4 RecipeFactory4x4::TorranceC() {
+    //  A  B  C  D      M  O  B  D
+    //  E  F  G  H  ->  N  I  A  F
+    //  I  J  K  L      L  J  G  E
+    //  M  N  O  P      K  P  H  C
+    return Make("TorranceC",
+                12U, 14U,  1U,  3U,
+                13U,  8U,  0U,  5U,
+                11U,  9U,  6U,  4U,
+                10U, 15U,  7U,  2U
+    );
+}
+
+Recipe4x4 RecipeFactory4x4::TorranceD() {
+    //  A  B  C  D      K  I  H  F
+    //  E  F  G  H  ->  M  J  B  E
+    //  I  J  K  L      N  P  A  C
+    //  M  N  O  P      L  O  G  D
+    return Make("TorranceD",
+                10U,  8U,  7U,  5U,
+                12U,  9U,  1U,  4U,
+                13U, 15U,  0U,  2U,
+                11U, 14U,  6U,  3U
+    );
+}
+
+Recipe4x4 RecipeFactory4x4::HawthorneA() {
+    //  A  B  C  D      L  O  M  J
+    //  E  F  G  H  ->  C  K  F  N
+    //  I  J  K  L      G  D  B  E
+    //  M  N  O  P      P  H  I  A
+    return Make("HawthorneA",
+                11U, 14U, 12U,  9U,
+                 2U, 10U,  5U, 13U,
+                 6U,  3U,  1U,  4U,
+                15U,  7U,  8U,  0U
+    );
+}
+
+Recipe4x4 RecipeFactory4x4::HawthorneB() {
+    //  A  B  C  D      P  K  I  N
+    //  E  F  G  H  ->  L  D  M  E
+    //  I  J  K  L      C  H  F  A
+    //  M  N  O  P      G  O  B  J
+    return Make("HawthorneB",
+                15U, 10U,  8U, 13U,
+                11U,  3U, 12U,  4U,
+                 2U,  7U,  5U,  0U,
+                 6U, 14U,  1U,  9U
+    );
+}
+
+Recipe4x4 RecipeFactory4x4::HawthorneC() {
+    //  A  B  C  D      F  E  C  D
+    //  E  F  G  H  ->  H  B  A  G
+    //  I  J  K  L      I  J  P  O
+    //  M  N  O  P      K  M  N  L
+    return Make("HawthorneC",
+                 5U,  4U,  2U,  3U,
+                 7U,  1U,  0U,  6U,
+                 8U,  9U, 15U, 14U,
+                10U, 12U, 13U, 11U
+    );
+}
+
+Recipe4x4 RecipeFactory4x4::HawthorneD() {
+    //  A  B  C  D      D  F  E  C
+    //  E  F  G  H  ->  B  A  G  H
+    //  I  J  K  L      O  I  J  P
+    //  M  N  O  P      M  N  L  K
+    return Make("HawthorneD",
+                 3U,  5U,  4U,  2U,
+                 1U,  0U,  6U,  7U,
+                14U,  8U,  9U, 15U,
+                12U, 13U, 11U, 10U
+    );
+}
+
+
+Recipe4x4 RecipeFactory4x4::WizardA() {
+    //  A  B  C  D      E  N  C  G
+    //  E  F  G  H  ->  B  F  K  D
+    //  I  J  K  L      I  M  O  H
+    //  M  N  O  P      A  J  L  P
+    return Make("WizardA",
+                 4U, 13U,  2U,  6U,
+                 1U,  5U, 10U,  3U,
+                 8U, 12U, 14U,  7U,
+                 0U,  9U, 11U, 15U
+    );
+}
+
+Recipe4x4 RecipeFactory4x4::WizardB() {
+    //  A  B  C  D      A  E  L  C
+    //  E  F  G  H  ->  F  M  D  H
+    //  I  J  K  L      B  I  K  O
+    //  M  N  O  P      J  N  P  G
+    return Make("WizardB",
+                 0U,  4U, 11U,  2U,
+                 5U, 12U,  3U,  7U,
+                 1U,  8U, 10U, 14U,
+                 9U, 13U, 15U,  6U
+    );
+}
+
+Recipe4x4 RecipeFactory4x4::WizardC() {
+    //  A  B  C  D      E  B  H  F
+    //  E  F  G  H  ->  C  A  G  D
+    //  I  J  K  L      N  P  O  L
+    //  M  N  O  P      M  J  I  K
+    return Make("WizardC",
+                 4U,  1U,  7U,  5U,
+                 2U,  0U,  6U,  3U,
+                13U, 15U, 14U, 11U,
+                12U,  9U,  8U, 10U
+    );
+}
+
+Recipe4x4 RecipeFactory4x4::WizardD() {
+    //  A  B  C  D      F  A  B  D
+    //  E  F  G  H  ->  E  G  H  C
+    //  I  J  K  L      L  J  P  K
+    //  M  N  O  P      N  I  O  M
+    return Make("WizardD",
+                 5U,  0U,  1U,  3U,
+                 4U,  6U,  7U,  2U,
+                11U,  9U, 15U, 10U,
+                13U,  8U, 14U, 12U
+    );
+}
+
+

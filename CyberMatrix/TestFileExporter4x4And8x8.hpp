@@ -19,9 +19,10 @@ class TestFileExporter4x4And8x8 {
 
 public:
 
-    static bool Export(const Recipe4x4 &pRecipe4x4,
+    static bool Export(const std::string pFolder,
+                       const Recipe4x4 &pRecipe4x4,
                        const Recipe8x8 &pRecipe8x8) {
-        const std::string aTestsPath = FileIO::ProjectRoot("tests");
+        const std::string aTestsPath = FileIO::ProjectRoot(pFolder);
 
         printf("aTestsPath = %s\n", aTestsPath.c_str());
         

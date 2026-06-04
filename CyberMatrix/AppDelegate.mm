@@ -78,85 +78,11 @@ static void PrintGridComment(const Pick4& p, std::size_t index) {
 
 const std::vector<PrintRecipeToolEntry> aEntries = {
 
-    { "IronA",      { &Slice::_ShearA, &Slice::_FlipA, &Slice::_ZigZagA } },
-    { "IronB",      { &Slice::_ShearA, &Slice::_FlipA, &Slice::_ZigZagA, &Slice::_RotA } },
-    { "IronC",      { &Slice::_ShearA, &Slice::_FlipA, &Slice::_ZigZagA, &Slice::_RotC } },
-    { "IronD",      { &Slice::_ShearA, &Slice::_FlipA, &Slice::_ZigZagA, &Slice::_RotB } },
+    { "WizardA", { &Slice::_SwapAD, &Slice::_HexA, &Slice::_SwapTallQuartersA, &Slice::_ShearA, &Slice::_RotA, &Slice::_FlipB, &Slice::_RotC, &Slice::_HexB, &Slice::_FlipA } },
+    { "WizardB", { &Slice::_SwapAD, &Slice::_HexA, &Slice::_SwapTallQuartersA, &Slice::_ShearB, &Slice::_RotA, &Slice::_FlipB, &Slice::_RotC, &Slice::_HexB, &Slice::_FlipA } },
+    { "WizardC", { &Slice::_SwapAD, &Slice::_HexA, &Slice::_SwapTallQuartersA, &Slice::_ShearC, &Slice::_RotA, &Slice::_FlipB, &Slice::_HexB, &Slice::_FlipA } },
+    { "WizardD", { &Slice::_SwapAD, &Slice::_HexA, &Slice::_SwapTallQuartersA, &Slice::_ShearD, &Slice::_RotA, &Slice::_FlipB, &Slice::_HexB, &Slice::_FlipA } },
 
-    { "SteelA",     { &Slice::_ShearB, &Slice::_FlipA, &Slice::_ZigZagA } },
-    { "SteelB",     { &Slice::_ShearB, &Slice::_FlipA, &Slice::_ZigZagA, &Slice::_RotA } },
-    { "SteelC",     { &Slice::_ShearB, &Slice::_FlipA, &Slice::_ZigZagA, &Slice::_RotC } },
-    { "SteelD",     { &Slice::_ShearB, &Slice::_FlipA, &Slice::_ZigZagA, &Slice::_RotB } },
-
-    { "SilverA",    { &Slice::_ShearC, &Slice::_FlipA, &Slice::_ZigZagA } },
-    { "SilverB",    { &Slice::_ShearC, &Slice::_FlipA, &Slice::_ZigZagA, &Slice::_RotA } },
-    { "SilverC",    { &Slice::_ShearC, &Slice::_FlipA, &Slice::_ZigZagA, &Slice::_RotC } },
-    { "SilverD",    { &Slice::_ShearC, &Slice::_FlipA, &Slice::_ZigZagA, &Slice::_RotB } },
-
-    { "GoldA",      { &Slice::_ShearD, &Slice::_FlipA, &Slice::_ZigZagA } },
-    { "GoldB",      { &Slice::_ShearD, &Slice::_FlipA, &Slice::_ZigZagA, &Slice::_RotA } },
-    { "GoldC",      { &Slice::_ShearD, &Slice::_FlipA, &Slice::_ZigZagA, &Slice::_RotC } },
-    { "GoldD",      { &Slice::_ShearD, &Slice::_FlipA, &Slice::_ZigZagA, &Slice::_RotB } },
-
-    { "BronzeA",    { &Slice::_ShearA, &Slice::_FlipB, &Slice::_ZigZagA } },
-    { "BronzeB",    { &Slice::_ShearA, &Slice::_FlipB, &Slice::_ZigZagA, &Slice::_RotA } },
-    { "BronzeC",    { &Slice::_ShearA, &Slice::_FlipB, &Slice::_ZigZagA, &Slice::_RotC } },
-    { "BronzeD",    { &Slice::_ShearA, &Slice::_FlipB, &Slice::_ZigZagA, &Slice::_RotB } },
-
-    { "BrassA",     { &Slice::_ShearB, &Slice::_FlipB, &Slice::_ZigZagA } },
-    { "BrassB",     { &Slice::_ShearB, &Slice::_FlipB, &Slice::_ZigZagA, &Slice::_RotA } },
-    { "BrassC",     { &Slice::_ShearB, &Slice::_FlipB, &Slice::_ZigZagA, &Slice::_RotC } },
-    { "BrassD",     { &Slice::_ShearB, &Slice::_FlipB, &Slice::_ZigZagA, &Slice::_RotB } },
-
-    { "NickelA",    { &Slice::_ShearC, &Slice::_FlipB, &Slice::_ZigZagA } },
-    { "NickelB",    { &Slice::_ShearC, &Slice::_FlipB, &Slice::_ZigZagA, &Slice::_RotA } },
-    { "NickelC",    { &Slice::_ShearC, &Slice::_FlipB, &Slice::_ZigZagA, &Slice::_RotC } },
-    { "NickelD",    { &Slice::_ShearC, &Slice::_FlipB, &Slice::_ZigZagA, &Slice::_RotB } },
-
-    { "CobaltA",    { &Slice::_ShearD, &Slice::_FlipB, &Slice::_ZigZagA } },
-    { "CobaltB",    { &Slice::_ShearD, &Slice::_FlipB, &Slice::_ZigZagA, &Slice::_RotA } },
-    { "CobaltC",    { &Slice::_ShearD, &Slice::_FlipB, &Slice::_ZigZagA, &Slice::_RotC } },
-    { "CobaltD",    { &Slice::_ShearD, &Slice::_FlipB, &Slice::_ZigZagA, &Slice::_RotB } },
-
-    { "TitaniumA",  { &Slice::_ShearA, &Slice::_FlipA, &Slice::_ZigZagB } },
-    { "TitaniumB",  { &Slice::_ShearA, &Slice::_FlipA, &Slice::_ZigZagB, &Slice::_RotA } },
-    { "TitaniumC",  { &Slice::_ShearA, &Slice::_FlipA, &Slice::_ZigZagB, &Slice::_RotC } },
-    { "TitaniumD",  { &Slice::_ShearA, &Slice::_FlipA, &Slice::_ZigZagB, &Slice::_RotB } },
-
-    { "PlatinumA",  { &Slice::_ShearB, &Slice::_FlipA, &Slice::_ZigZagB } },
-    { "PlatinumB",  { &Slice::_ShearB, &Slice::_FlipA, &Slice::_ZigZagB, &Slice::_RotA } },
-    { "PlatinumC",  { &Slice::_ShearB, &Slice::_FlipA, &Slice::_ZigZagB, &Slice::_RotC } },
-    { "PlatinumD",  { &Slice::_ShearB, &Slice::_FlipA, &Slice::_ZigZagB, &Slice::_RotB } },
-
-    { "TungstenA",  { &Slice::_ShearC, &Slice::_FlipA, &Slice::_ZigZagB } },
-    { "TungstenB",  { &Slice::_ShearC, &Slice::_FlipA, &Slice::_ZigZagB, &Slice::_RotA } },
-    { "TungstenC",  { &Slice::_ShearC, &Slice::_FlipA, &Slice::_ZigZagB, &Slice::_RotC } },
-    { "TungstenD",  { &Slice::_ShearC, &Slice::_FlipA, &Slice::_ZigZagB, &Slice::_RotB } },
-
-    { "MercuryA",   { &Slice::_ShearD, &Slice::_FlipA, &Slice::_ZigZagB } },
-    { "MercuryB",   { &Slice::_ShearD, &Slice::_FlipA, &Slice::_ZigZagB, &Slice::_RotA } },
-    { "MercuryC",   { &Slice::_ShearD, &Slice::_FlipA, &Slice::_ZigZagB, &Slice::_RotC } },
-    { "MercuryD",   { &Slice::_ShearD, &Slice::_FlipA, &Slice::_ZigZagB, &Slice::_RotB } },
-
-    { "PalladiumA", { &Slice::_ShearA, &Slice::_FlipB, &Slice::_ZigZagB } },
-    { "PalladiumB", { &Slice::_ShearA, &Slice::_FlipB, &Slice::_ZigZagB, &Slice::_RotA } },
-    { "PalladiumC", { &Slice::_ShearA, &Slice::_FlipB, &Slice::_ZigZagB, &Slice::_RotC } },
-    { "PalladiumD", { &Slice::_ShearA, &Slice::_FlipB, &Slice::_ZigZagB, &Slice::_RotB } },
-
-    { "RhodiumA",   { &Slice::_ShearB, &Slice::_FlipB, &Slice::_ZigZagB } },
-    { "RhodiumB",   { &Slice::_ShearB, &Slice::_FlipB, &Slice::_ZigZagB, &Slice::_RotA } },
-    { "RhodiumC",   { &Slice::_ShearB, &Slice::_FlipB, &Slice::_ZigZagB, &Slice::_RotC } },
-    { "RhodiumD",   { &Slice::_ShearB, &Slice::_FlipB, &Slice::_ZigZagB, &Slice::_RotB } },
-
-    { "ChromiumA",  { &Slice::_ShearC, &Slice::_FlipB, &Slice::_ZigZagB } },
-    { "ChromiumB",  { &Slice::_ShearC, &Slice::_FlipB, &Slice::_ZigZagB, &Slice::_RotA } },
-    { "ChromiumC",  { &Slice::_ShearC, &Slice::_FlipB, &Slice::_ZigZagB, &Slice::_RotC } },
-    { "ChromiumD",  { &Slice::_ShearC, &Slice::_FlipB, &Slice::_ZigZagB, &Slice::_RotB } },
-
-    { "ZirconiumA", { &Slice::_ShearD, &Slice::_FlipB, &Slice::_ZigZagB } },
-    { "ZirconiumB", { &Slice::_ShearD, &Slice::_FlipB, &Slice::_ZigZagB, &Slice::_RotA } },
-    { "ZirconiumC", { &Slice::_ShearD, &Slice::_FlipB, &Slice::_ZigZagB, &Slice::_RotC } },
-    { "ZirconiumD", { &Slice::_ShearD, &Slice::_FlipB, &Slice::_ZigZagB, &Slice::_RotB } },
 };
 
 @interface AppDelegate ()
@@ -168,96 +94,72 @@ const std::vector<PrintRecipeToolEntry> aEntries = {
 
 - (void)applicationDidFinishLaunching:(NSNotification *)aNotification {
     
-    //TestFileExporter4x4And8x8::Export(RecipeFactory4x4::FalconD(), RecipeFactory8x8::FalconD());
+    //
+    //
     
-    
-    //UniqueQuarterTool::PrintCompareExistingOpsToEachOther();
-    
-    UniqueQuarterTool::PrintCompareCandidates();
+    //TestFileExporter4x4And8x8::Export("tests/_Falcon", RecipeFactory4x4::FalconD(), RecipeFactory8x8::FalconD());
     
     
     /*
     RecipeExporterQuadAndFull::Export({
-        { RecipeFactory4x4::IronA(),      RecipeFactory8x8::IronA() },
-        { RecipeFactory4x4::IronB(),      RecipeFactory8x8::IronB() },
-        { RecipeFactory4x4::IronC(),      RecipeFactory8x8::IronC() },
-        { RecipeFactory4x4::IronD(),      RecipeFactory8x8::IronD() },
-
-        { RecipeFactory4x4::SteelA(),     RecipeFactory8x8::SteelA() },
-        { RecipeFactory4x4::SteelB(),     RecipeFactory8x8::SteelB() },
-        { RecipeFactory4x4::SteelC(),     RecipeFactory8x8::SteelC() },
-        { RecipeFactory4x4::SteelD(),     RecipeFactory8x8::SteelD() },
-
-        { RecipeFactory4x4::SilverA(),    RecipeFactory8x8::SilverA() },
-        { RecipeFactory4x4::SilverB(),    RecipeFactory8x8::SilverB() },
-        { RecipeFactory4x4::SilverC(),    RecipeFactory8x8::SilverC() },
-        { RecipeFactory4x4::SilverD(),    RecipeFactory8x8::SilverD() },
-
-        { RecipeFactory4x4::GoldA(),      RecipeFactory8x8::GoldA() },
-        { RecipeFactory4x4::GoldB(),      RecipeFactory8x8::GoldB() },
-        { RecipeFactory4x4::GoldC(),      RecipeFactory8x8::GoldC() },
-        { RecipeFactory4x4::GoldD(),      RecipeFactory8x8::GoldD() },
-
-        { RecipeFactory4x4::BronzeA(),    RecipeFactory8x8::BronzeA() },
-        { RecipeFactory4x4::BronzeB(),    RecipeFactory8x8::BronzeB() },
-        { RecipeFactory4x4::BronzeC(),    RecipeFactory8x8::BronzeC() },
-        { RecipeFactory4x4::BronzeD(),    RecipeFactory8x8::BronzeD() },
-
-        { RecipeFactory4x4::BrassA(),     RecipeFactory8x8::BrassA() },
-        { RecipeFactory4x4::BrassB(),     RecipeFactory8x8::BrassB() },
-        { RecipeFactory4x4::BrassC(),     RecipeFactory8x8::BrassC() },
-        { RecipeFactory4x4::BrassD(),     RecipeFactory8x8::BrassD() },
-
-        { RecipeFactory4x4::NickelA(),    RecipeFactory8x8::NickelA() },
-        { RecipeFactory4x4::NickelB(),    RecipeFactory8x8::NickelB() },
-        { RecipeFactory4x4::NickelC(),    RecipeFactory8x8::NickelC() },
-        { RecipeFactory4x4::NickelD(),    RecipeFactory8x8::NickelD() },
-
-        { RecipeFactory4x4::CobaltA(),    RecipeFactory8x8::CobaltA() },
-        { RecipeFactory4x4::CobaltB(),    RecipeFactory8x8::CobaltB() },
-        { RecipeFactory4x4::CobaltC(),    RecipeFactory8x8::CobaltC() },
-        { RecipeFactory4x4::CobaltD(),    RecipeFactory8x8::CobaltD() },
-
-        { RecipeFactory4x4::TitaniumA(),  RecipeFactory8x8::TitaniumA() },
-        { RecipeFactory4x4::TitaniumB(),  RecipeFactory8x8::TitaniumB() },
-        { RecipeFactory4x4::TitaniumC(),  RecipeFactory8x8::TitaniumC() },
-        { RecipeFactory4x4::TitaniumD(),  RecipeFactory8x8::TitaniumD() },
-
-        { RecipeFactory4x4::PlatinumA(),  RecipeFactory8x8::PlatinumA() },
-        { RecipeFactory4x4::PlatinumB(),  RecipeFactory8x8::PlatinumB() },
-        { RecipeFactory4x4::PlatinumC(),  RecipeFactory8x8::PlatinumC() },
-        { RecipeFactory4x4::PlatinumD(),  RecipeFactory8x8::PlatinumD() },
-
-        { RecipeFactory4x4::TungstenA(),  RecipeFactory8x8::TungstenA() },
-        { RecipeFactory4x4::TungstenB(),  RecipeFactory8x8::TungstenB() },
-        { RecipeFactory4x4::TungstenC(),  RecipeFactory8x8::TungstenC() },
-        { RecipeFactory4x4::TungstenD(),  RecipeFactory8x8::TungstenD() },
-
-        { RecipeFactory4x4::MercuryA(),   RecipeFactory8x8::MercuryA() },
-        { RecipeFactory4x4::MercuryB(),   RecipeFactory8x8::MercuryB() },
-        { RecipeFactory4x4::MercuryC(),   RecipeFactory8x8::MercuryC() },
-        { RecipeFactory4x4::MercuryD(),   RecipeFactory8x8::MercuryD() },
-
-        { RecipeFactory4x4::PalladiumA(), RecipeFactory8x8::PalladiumA() },
-        { RecipeFactory4x4::PalladiumB(), RecipeFactory8x8::PalladiumB() },
-        { RecipeFactory4x4::PalladiumC(), RecipeFactory8x8::PalladiumC() },
-        { RecipeFactory4x4::PalladiumD(), RecipeFactory8x8::PalladiumD() },
-
-        { RecipeFactory4x4::RhodiumA(),   RecipeFactory8x8::RhodiumA() },
-        { RecipeFactory4x4::RhodiumB(),   RecipeFactory8x8::RhodiumB() },
-        { RecipeFactory4x4::RhodiumC(),   RecipeFactory8x8::RhodiumC() },
-        { RecipeFactory4x4::RhodiumD(),   RecipeFactory8x8::RhodiumD() },
-
-        { RecipeFactory4x4::ChromiumA(),  RecipeFactory8x8::ChromiumA() },
-        { RecipeFactory4x4::ChromiumB(),  RecipeFactory8x8::ChromiumB() },
-        { RecipeFactory4x4::ChromiumC(),  RecipeFactory8x8::ChromiumC() },
-        { RecipeFactory4x4::ChromiumD(),  RecipeFactory8x8::ChromiumD() },
-
-        { RecipeFactory4x4::ZirconiumA(), RecipeFactory8x8::ZirconiumA() },
-        { RecipeFactory4x4::ZirconiumB(), RecipeFactory8x8::ZirconiumB() },
-        { RecipeFactory4x4::ZirconiumC(), RecipeFactory8x8::ZirconiumC() },
-        { RecipeFactory4x4::ZirconiumD(), RecipeFactory8x8::ZirconiumD() },
+        { RecipeFactory4x4::WizardA(), RecipeFactory8x8::WizardA() },
+        { RecipeFactory4x4::WizardB(), RecipeFactory8x8::WizardB() },
+        { RecipeFactory4x4::WizardC(), RecipeFactory8x8::WizardC() },
+        { RecipeFactory4x4::WizardD(), RecipeFactory8x8::WizardD() },
     });
+    */
+    
+    //UniqueQuarterTool::PrintCompareCandidates();
+    
+    //UniqueQuarterTool::PrintCompareExistingOpsToEachOther();
+    
+    //return;
+    
+    //return;
+    
+    //UniqueQuarterTool::PrintCompareCandidates();
+    
+    //return;
+    
+    //PrintRecipeTool::PrintRecipeFactories(aEntries);
+    
+    //return;
+    
+    /*
+    RecipeExporterQuadAndFull::Export({
+        { RecipeFactory4x4::GlendaleA(),  RecipeFactory8x8::GlendaleA() },
+        { RecipeFactory4x4::GlendaleB(),  RecipeFactory8x8::GlendaleB() },
+        { RecipeFactory4x4::GlendaleC(),  RecipeFactory8x8::GlendaleC() },
+        { RecipeFactory4x4::GlendaleD(),  RecipeFactory8x8::GlendaleD() },
+
+        { RecipeFactory4x4::BurbankA(),   RecipeFactory8x8::BurbankA() },
+        { RecipeFactory4x4::BurbankB(),   RecipeFactory8x8::BurbankB() },
+        { RecipeFactory4x4::BurbankC(),   RecipeFactory8x8::BurbankC() },
+        { RecipeFactory4x4::BurbankD(),   RecipeFactory8x8::BurbankD() },
+
+        { RecipeFactory4x4::InglewoodA(), RecipeFactory8x8::InglewoodA() },
+        { RecipeFactory4x4::InglewoodB(), RecipeFactory8x8::InglewoodB() },
+        { RecipeFactory4x4::InglewoodC(), RecipeFactory8x8::InglewoodC() },
+        { RecipeFactory4x4::InglewoodD(), RecipeFactory8x8::InglewoodD() },
+
+        { RecipeFactory4x4::PasadenaA(),  RecipeFactory8x8::PasadenaA() },
+        { RecipeFactory4x4::PasadenaB(),  RecipeFactory8x8::PasadenaB() },
+        { RecipeFactory4x4::PasadenaC(),  RecipeFactory8x8::PasadenaC() },
+        { RecipeFactory4x4::PasadenaD(),  RecipeFactory8x8::PasadenaD() },
+
+        { RecipeFactory4x4::TorranceA(),  RecipeFactory8x8::TorranceA() },
+        { RecipeFactory4x4::TorranceB(),  RecipeFactory8x8::TorranceB() },
+        { RecipeFactory4x4::TorranceC(),  RecipeFactory8x8::TorranceC() },
+        { RecipeFactory4x4::TorranceD(),  RecipeFactory8x8::TorranceD() },
+
+        { RecipeFactory4x4::HawthorneA(), RecipeFactory8x8::HawthorneA() },
+        { RecipeFactory4x4::HawthorneB(), RecipeFactory8x8::HawthorneB() },
+        { RecipeFactory4x4::HawthorneC(), RecipeFactory8x8::HawthorneC() },
+        { RecipeFactory4x4::HawthorneD(), RecipeFactory8x8::HawthorneD() }
+    });
+    
+    return;
+    
     */
     
     
@@ -276,7 +178,10 @@ const std::vector<PrintRecipeToolEntry> aEntries = {
     });
     */
     
-    //PrintRecipeTool::PrintRecipeFactories(aEntries);
+    //
+    //
+    //
+    
     
     //
     

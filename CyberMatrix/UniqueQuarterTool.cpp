@@ -8,7 +8,7 @@
 #include <algorithm>
 #include <cstdio>
 
-static constexpr std::size_t kCandidateDistanceWarningThreshold = 12U;
+static constexpr std::size_t kCandidateDistanceWarningThreshold = 8U;
 
 static const std::vector<UniqueQuarterExistingOp> kExistingQuarterAOps = {
     
@@ -113,6 +113,8 @@ static const std::vector<UniqueQuarterExistingOp> kExistingQuarterAOps = {
     { "Quad_GooseC_4x4_A",    &M88::Quad_GooseC_4x4_A },
     { "Quad_GooseD_4x4_A",    &M88::Quad_GooseD_4x4_A },
     
+    
+    
     { "Quad_IronA_4x4_A",      &M88::Quad_IronA_4x4_A },
     { "Quad_IronB_4x4_A",      &M88::Quad_IronB_4x4_A },
     { "Quad_IronC_4x4_A",      &M88::Quad_IronC_4x4_A },
@@ -177,6 +179,171 @@ static const std::vector<UniqueQuarterExistingOp> kExistingQuarterAOps = {
     { "Quad_ZirconiumD_4x4_A", &M88::Quad_ZirconiumD_4x4_A },
     
     
+    { "Quad_HydrogenA_4x4_A",  &M88::Quad_HydrogenA_4x4_A },
+    { "Quad_HydrogenB_4x4_A",  &M88::Quad_HydrogenB_4x4_A },
+    { "Quad_HydrogenC_4x4_A",  &M88::Quad_HydrogenC_4x4_A },
+    { "Quad_HydrogenD_4x4_A",  &M88::Quad_HydrogenD_4x4_A },
+
+    { "Quad_HeliumA_4x4_A",    &M88::Quad_HeliumA_4x4_A },
+    { "Quad_HeliumB_4x4_A",    &M88::Quad_HeliumB_4x4_A },
+    { "Quad_HeliumC_4x4_A",    &M88::Quad_HeliumC_4x4_A },
+    { "Quad_HeliumD_4x4_A",    &M88::Quad_HeliumD_4x4_A },
+
+    { "Quad_NeonA_4x4_A",      &M88::Quad_NeonA_4x4_A },
+    { "Quad_NeonB_4x4_A",      &M88::Quad_NeonB_4x4_A },
+    { "Quad_NeonC_4x4_A",      &M88::Quad_NeonC_4x4_A },
+    { "Quad_NeonD_4x4_A",      &M88::Quad_NeonD_4x4_A },
+
+    { "Quad_ArgonA_4x4_A",     &M88::Quad_ArgonA_4x4_A },
+    { "Quad_ArgonB_4x4_A",     &M88::Quad_ArgonB_4x4_A },
+    { "Quad_ArgonC_4x4_A",     &M88::Quad_ArgonC_4x4_A },
+    { "Quad_ArgonD_4x4_A",     &M88::Quad_ArgonD_4x4_A },
+
+    { "Quad_KryptonA_4x4_A",   &M88::Quad_KryptonA_4x4_A },
+    { "Quad_KryptonB_4x4_A",   &M88::Quad_KryptonB_4x4_A },
+    { "Quad_KryptonC_4x4_A",   &M88::Quad_KryptonC_4x4_A },
+    { "Quad_KryptonD_4x4_A",   &M88::Quad_KryptonD_4x4_A },
+
+    { "Quad_XenonA_4x4_A",     &M88::Quad_XenonA_4x4_A },
+    { "Quad_XenonB_4x4_A",     &M88::Quad_XenonB_4x4_A },
+    { "Quad_XenonC_4x4_A",     &M88::Quad_XenonC_4x4_A },
+    { "Quad_XenonD_4x4_A",     &M88::Quad_XenonD_4x4_A },
+    
+    { "Quad_MapleA_4x4_A",     &M88::Quad_MapleA_4x4_A },
+    { "Quad_MapleB_4x4_A",     &M88::Quad_MapleB_4x4_A },
+    { "Quad_MapleC_4x4_A",     &M88::Quad_MapleC_4x4_A },
+    { "Quad_MapleD_4x4_A",     &M88::Quad_MapleD_4x4_A },
+
+    { "Quad_WillowA_4x4_A",    &M88::Quad_WillowA_4x4_A },
+    { "Quad_WillowB_4x4_A",    &M88::Quad_WillowB_4x4_A },
+    { "Quad_WillowC_4x4_A",    &M88::Quad_WillowC_4x4_A },
+    { "Quad_WillowD_4x4_A",    &M88::Quad_WillowD_4x4_A },
+
+
+    { "Quad_CedarA_4x4_A",     &M88::Quad_CedarA_4x4_A },
+    { "Quad_CedarB_4x4_A",     &M88::Quad_CedarB_4x4_A },
+    { "Quad_CedarC_4x4_A",     &M88::Quad_CedarC_4x4_A },
+    { "Quad_CedarD_4x4_A",     &M88::Quad_CedarD_4x4_A },
+
+    { "Quad_HickoryA_4x4_A",   &M88::Quad_HickoryA_4x4_A },
+    { "Quad_HickoryB_4x4_A",   &M88::Quad_HickoryB_4x4_A },
+    { "Quad_HickoryC_4x4_A",   &M88::Quad_HickoryC_4x4_A },
+    { "Quad_HickoryD_4x4_A",   &M88::Quad_HickoryD_4x4_A },
+
+    { "Quad_JuniperA_4x4_A",   &M88::Quad_JuniperA_4x4_A },
+    { "Quad_JuniperB_4x4_A",   &M88::Quad_JuniperB_4x4_A },
+    { "Quad_JuniperC_4x4_A",   &M88::Quad_JuniperC_4x4_A },
+    { "Quad_JuniperD_4x4_A",   &M88::Quad_JuniperD_4x4_A },
+    
+    { "Quad_TokyoA_4x4_A",    &M88::Quad_TokyoA_4x4_A },
+    { "Quad_TokyoB_4x4_A",    &M88::Quad_TokyoB_4x4_A },
+    { "Quad_TokyoC_4x4_A",    &M88::Quad_TokyoC_4x4_A },
+    { "Quad_TokyoD_4x4_A",    &M88::Quad_TokyoD_4x4_A },
+
+    { "Quad_KyotoA_4x4_A",    &M88::Quad_KyotoA_4x4_A },
+    { "Quad_KyotoB_4x4_A",    &M88::Quad_KyotoB_4x4_A },
+    { "Quad_KyotoC_4x4_A",    &M88::Quad_KyotoC_4x4_A },
+    { "Quad_KyotoD_4x4_A",    &M88::Quad_KyotoD_4x4_A },
+
+    { "Quad_OsakaA_4x4_A",    &M88::Quad_OsakaA_4x4_A },
+    { "Quad_OsakaB_4x4_A",    &M88::Quad_OsakaB_4x4_A },
+    { "Quad_OsakaC_4x4_A",    &M88::Quad_OsakaC_4x4_A },
+    { "Quad_OsakaD_4x4_A",    &M88::Quad_OsakaD_4x4_A },
+
+    { "Quad_NaraA_4x4_A",     &M88::Quad_NaraA_4x4_A },
+    { "Quad_NaraB_4x4_A",     &M88::Quad_NaraB_4x4_A },
+    { "Quad_NaraC_4x4_A",     &M88::Quad_NaraC_4x4_A },
+    { "Quad_NaraD_4x4_A",     &M88::Quad_NaraD_4x4_A },
+
+    { "Quad_KobeA_4x4_A",     &M88::Quad_KobeA_4x4_A },
+    { "Quad_KobeB_4x4_A",     &M88::Quad_KobeB_4x4_A },
+    { "Quad_KobeC_4x4_A",     &M88::Quad_KobeC_4x4_A },
+    { "Quad_KobeD_4x4_A",     &M88::Quad_KobeD_4x4_A },
+
+    { "Quad_SapporoA_4x4_A",  &M88::Quad_SapporoA_4x4_A },
+    { "Quad_SapporoB_4x4_A",  &M88::Quad_SapporoB_4x4_A },
+    { "Quad_SapporoC_4x4_A",  &M88::Quad_SapporoC_4x4_A },
+    { "Quad_SapporoD_4x4_A",  &M88::Quad_SapporoD_4x4_A },
+
+    { "Quad_NagoyaA_4x4_A",   &M88::Quad_NagoyaA_4x4_A },
+    { "Quad_NagoyaB_4x4_A",   &M88::Quad_NagoyaB_4x4_A },
+    { "Quad_NagoyaC_4x4_A",   &M88::Quad_NagoyaC_4x4_A },
+    { "Quad_NagoyaD_4x4_A",   &M88::Quad_NagoyaD_4x4_A },
+
+    { "Quad_FukuokaA_4x4_A",  &M88::Quad_FukuokaA_4x4_A },
+    { "Quad_FukuokaB_4x4_A",  &M88::Quad_FukuokaB_4x4_A },
+    { "Quad_FukuokaC_4x4_A",  &M88::Quad_FukuokaC_4x4_A },
+    { "Quad_FukuokaD_4x4_A",  &M88::Quad_FukuokaD_4x4_A },
+    
+    
+    { "Quad_GlendaleA_4x4_A",  &M88::Quad_GlendaleA_4x4_A },
+    { "Quad_GlendaleB_4x4_A",  &M88::Quad_GlendaleB_4x4_A },
+    { "Quad_GlendaleC_4x4_A",  &M88::Quad_GlendaleC_4x4_A },
+    { "Quad_GlendaleD_4x4_A",  &M88::Quad_GlendaleD_4x4_A },
+
+    { "Quad_BurbankA_4x4_A",   &M88::Quad_BurbankA_4x4_A },
+    { "Quad_BurbankB_4x4_A",   &M88::Quad_BurbankB_4x4_A },
+    { "Quad_BurbankC_4x4_A",   &M88::Quad_BurbankC_4x4_A },
+    { "Quad_BurbankD_4x4_A",   &M88::Quad_BurbankD_4x4_A },
+
+    { "Quad_InglewoodA_4x4_A", &M88::Quad_InglewoodA_4x4_A },
+    { "Quad_InglewoodB_4x4_A", &M88::Quad_InglewoodB_4x4_A },
+    { "Quad_InglewoodC_4x4_A", &M88::Quad_InglewoodC_4x4_A },
+    { "Quad_InglewoodD_4x4_A", &M88::Quad_InglewoodD_4x4_A },
+
+    { "Quad_PasadenaA_4x4_A",  &M88::Quad_PasadenaA_4x4_A },
+    { "Quad_PasadenaB_4x4_A",  &M88::Quad_PasadenaB_4x4_A },
+    { "Quad_PasadenaC_4x4_A",  &M88::Quad_PasadenaC_4x4_A },
+    { "Quad_PasadenaD_4x4_A",  &M88::Quad_PasadenaD_4x4_A },
+
+    { "Quad_TorranceA_4x4_A",  &M88::Quad_TorranceA_4x4_A },
+    { "Quad_TorranceB_4x4_A",  &M88::Quad_TorranceB_4x4_A },
+    { "Quad_TorranceC_4x4_A",  &M88::Quad_TorranceC_4x4_A },
+    { "Quad_TorranceD_4x4_A",  &M88::Quad_TorranceD_4x4_A },
+
+    { "Quad_HawthorneA_4x4_A", &M88::Quad_HawthorneA_4x4_A },
+    { "Quad_HawthorneB_4x4_A", &M88::Quad_HawthorneB_4x4_A },
+    { "Quad_HawthorneC_4x4_A", &M88::Quad_HawthorneC_4x4_A },
+    { "Quad_HawthorneD_4x4_A", &M88::Quad_HawthorneD_4x4_A },
+    
+    { "Quad_WizardA_4x4_A", &M88::Quad_WizardA_4x4_A },
+    { "Quad_WizardB_4x4_A", &M88::Quad_WizardB_4x4_A },
+    { "Quad_WizardC_4x4_A", &M88::Quad_WizardC_4x4_A },
+    { "Quad_WizardD_4x4_A", &M88::Quad_WizardD_4x4_A },
+    
+    
+    /*
+    { "Quad_YorkA_4x4_A",     &M88::Quad_YorkA_4x4_A },
+    { "Quad_YorkB_4x4_A",     &M88::Quad_YorkB_4x4_A },
+    { "Quad_YorkC_4x4_A",     &M88::Quad_YorkC_4x4_A },
+    { "Quad_YorkD_4x4_A",     &M88::Quad_YorkD_4x4_A },
+
+    { "Quad_EssexA_4x4_A",    &M88::Quad_EssexA_4x4_A },
+    { "Quad_EssexB_4x4_A",    &M88::Quad_EssexB_4x4_A },
+    { "Quad_EssexC_4x4_A",    &M88::Quad_EssexC_4x4_A },
+    { "Quad_EssexD_4x4_A",    &M88::Quad_EssexD_4x4_A },
+
+    { "Quad_WessexA_4x4_A",   &M88::Quad_WessexA_4x4_A },
+    { "Quad_WessexB_4x4_A",   &M88::Quad_WessexB_4x4_A },
+    { "Quad_WessexC_4x4_A",   &M88::Quad_WessexC_4x4_A },
+    { "Quad_WessexD_4x4_A",   &M88::Quad_WessexD_4x4_A },
+
+    { "Quad_MerciaA_4x4_A",   &M88::Quad_MerciaA_4x4_A },
+    { "Quad_MerciaB_4x4_A",   &M88::Quad_MerciaB_4x4_A },
+    { "Quad_MerciaC_4x4_A",   &M88::Quad_MerciaC_4x4_A },
+    { "Quad_MerciaD_4x4_A",   &M88::Quad_MerciaD_4x4_A },
+
+    { "Quad_SussexA_4x4_A",   &M88::Quad_SussexA_4x4_A },
+    { "Quad_SussexB_4x4_A",   &M88::Quad_SussexB_4x4_A },
+    { "Quad_SussexC_4x4_A",   &M88::Quad_SussexC_4x4_A },
+    { "Quad_SussexD_4x4_A",   &M88::Quad_SussexD_4x4_A },
+
+    { "Quad_UmbriaA_4x4_A",   &M88::Quad_UmbriaA_4x4_A },
+    { "Quad_UmbriaB_4x4_A",   &M88::Quad_UmbriaB_4x4_A },
+    { "Quad_UmbriaC_4x4_A",   &M88::Quad_UmbriaC_4x4_A },
+    { "Quad_UmbriaD_4x4_A",   &M88::Quad_UmbriaD_4x4_A },
+    */
+    
 };
 
 static const std::vector<UniqueQuarterCandidateOp> kCandidateQuarterOps = {
@@ -185,20 +352,26 @@ static const std::vector<UniqueQuarterCandidateOp> kCandidateQuarterOps = {
     { "Candidate_02", &UniqueQuarterTool::Candidate_02 },
     { "Candidate_03", &UniqueQuarterTool::Candidate_03 },
 
+    /*
     { "Candidate_04", &UniqueQuarterTool::Candidate_04 },
     { "Candidate_05", &UniqueQuarterTool::Candidate_05 },
     { "Candidate_06", &UniqueQuarterTool::Candidate_06 },
     { "Candidate_07", &UniqueQuarterTool::Candidate_07 },
 
+    
     { "Candidate_08", &UniqueQuarterTool::Candidate_08 },
     { "Candidate_09", &UniqueQuarterTool::Candidate_09 },
     { "Candidate_10", &UniqueQuarterTool::Candidate_10 },
     { "Candidate_11", &UniqueQuarterTool::Candidate_11 },
+    
+    
 
     { "Candidate_12", &UniqueQuarterTool::Candidate_12 },
     { "Candidate_13", &UniqueQuarterTool::Candidate_13 },
     { "Candidate_14", &UniqueQuarterTool::Candidate_14 },
     { "Candidate_15", &UniqueQuarterTool::Candidate_15 },
+    
+    
 
     { "Candidate_16", &UniqueQuarterTool::Candidate_16 },
     { "Candidate_17", &UniqueQuarterTool::Candidate_17 },
@@ -209,7 +382,9 @@ static const std::vector<UniqueQuarterCandidateOp> kCandidateQuarterOps = {
     { "Candidate_21", &UniqueQuarterTool::Candidate_21 },
     { "Candidate_22", &UniqueQuarterTool::Candidate_22 },
     { "Candidate_23", &UniqueQuarterTool::Candidate_23 },
-
+    
+    
+    
     { "Candidate_24", &UniqueQuarterTool::Candidate_24 },
     { "Candidate_25", &UniqueQuarterTool::Candidate_25 },
     { "Candidate_26", &UniqueQuarterTool::Candidate_26 },
@@ -220,10 +395,14 @@ static const std::vector<UniqueQuarterCandidateOp> kCandidateQuarterOps = {
     { "Candidate_30", &UniqueQuarterTool::Candidate_30 },
     { "Candidate_31", &UniqueQuarterTool::Candidate_31 },
     
+    
+    
     { "Candidate_32", &UniqueQuarterTool::Candidate_32 },
     { "Candidate_33", &UniqueQuarterTool::Candidate_33 },
     { "Candidate_34", &UniqueQuarterTool::Candidate_34 },
     { "Candidate_35", &UniqueQuarterTool::Candidate_35 },
+    
+   
 
     { "Candidate_36", &UniqueQuarterTool::Candidate_36 },
     { "Candidate_37", &UniqueQuarterTool::Candidate_37 },
@@ -259,391 +438,424 @@ static const std::vector<UniqueQuarterCandidateOp> kCandidateQuarterOps = {
     { "Candidate_61", &UniqueQuarterTool::Candidate_61 },
     { "Candidate_62", &UniqueQuarterTool::Candidate_62 },
     { "Candidate_63", &UniqueQuarterTool::Candidate_63 },
+    */
     
 };
 
 
-
-/*
- void UniqueQuarterTool::Candidate_00(UniqueQuarterGrid &pGrid) {
-     pGrid.ShearA();
-     pGrid.FlipA();
-     pGrid.ZigZagA();
-     
- }
-
- void UniqueQuarterTool::Candidate_01(UniqueQuarterGrid &pGrid) {
-     pGrid.ShearB();
-     pGrid.FlipA();
-     pGrid.ZigZagA();
-     
- }
-
- void UniqueQuarterTool::Candidate_02(UniqueQuarterGrid &pGrid) {
-     pGrid.ShearC();
-     pGrid.FlipA();
-     pGrid.ZigZagA();
-     
- }
-
- void UniqueQuarterTool::Candidate_03(UniqueQuarterGrid &pGrid) {
-     pGrid.ShearD();
-     pGrid.FlipA();
-     pGrid.ZigZagA();
-     
- }
-
- void UniqueQuarterTool::Candidate_04(UniqueQuarterGrid &pGrid) {
-     pGrid.ShearA();
-     pGrid.FlipB();
-     pGrid.ZigZagA();
-     
- }
-
- void UniqueQuarterTool::Candidate_05(UniqueQuarterGrid &pGrid) {
-     pGrid.ShearB();
-     pGrid.FlipB();
-     pGrid.ZigZagA();
-     
- }
-
- void UniqueQuarterTool::Candidate_06(UniqueQuarterGrid &pGrid) {
-     pGrid.ShearC();
-     pGrid.FlipB();
-     pGrid.ZigZagA();
-     
- }
-
- void UniqueQuarterTool::Candidate_07(UniqueQuarterGrid &pGrid) {
-     pGrid.ShearD();
-     pGrid.FlipB();
-     pGrid.ZigZagA();
- }
- */
-
 void UniqueQuarterTool::Candidate_00(UniqueQuarterGrid &pGrid) {
+    pGrid.SwapAD();
+    pGrid.HexA();
+    pGrid.SwapTallQuartersA();
     pGrid.ShearA();
+    pGrid.RotateRight();
+    pGrid.FlipB();
+    pGrid.Rotate180();
+    pGrid.HexB();
     pGrid.FlipA();
-    pGrid.ZigZagA();
 }
 
 void UniqueQuarterTool::Candidate_01(UniqueQuarterGrid &pGrid) {
-    pGrid.ShearA();
-    pGrid.FlipA();
-    pGrid.ZigZagA();
+    pGrid.SwapAD();
+    pGrid.HexA();
+    pGrid.SwapTallQuartersA();
+    pGrid.ShearB();
     pGrid.RotateRight();
+    pGrid.FlipB();
+    pGrid.Rotate180();
+    pGrid.HexB();
+    pGrid.FlipA();
 }
 
 void UniqueQuarterTool::Candidate_02(UniqueQuarterGrid &pGrid) {
-    pGrid.ShearA();
+    pGrid.SwapAD();
+    pGrid.HexA();
+    pGrid.SwapTallQuartersA();
+    pGrid.ShearC();
+    pGrid.RotateRight();
+    pGrid.FlipB();
+    pGrid.HexB();
     pGrid.FlipA();
-    pGrid.ZigZagA();
-    pGrid.Rotate180();
 }
 
 void UniqueQuarterTool::Candidate_03(UniqueQuarterGrid &pGrid) {
-    pGrid.ShearA();
+    pGrid.SwapAD();
+    pGrid.HexA();
+    pGrid.SwapTallQuartersA();
+    pGrid.ShearD();
+    pGrid.RotateRight();
+    pGrid.FlipB();
+    pGrid.HexB();
     pGrid.FlipA();
-    pGrid.ZigZagA();
-    pGrid.RotateLeft();
 }
 
 void UniqueQuarterTool::Candidate_04(UniqueQuarterGrid &pGrid) {
-    pGrid.ShearB();
-    pGrid.FlipA();
-    pGrid.ZigZagA();
+    pGrid.SwapAD();
+    pGrid.HexB();
+    pGrid.SwapLongQuartersB();
+    pGrid.ShearA();
+    pGrid.FlipC();
+    pGrid.SwapHalvesVer();
+    pGrid.FlipB();
 }
 
 void UniqueQuarterTool::Candidate_05(UniqueQuarterGrid &pGrid) {
+    pGrid.SwapAD();
+    pGrid.HexB();
+    pGrid.SwapLongQuartersB();
     pGrid.ShearB();
-    pGrid.FlipA();
-    pGrid.ZigZagA();
-    pGrid.RotateRight();
+    pGrid.FlipC();
+    pGrid.SwapHalvesVer();
+    pGrid.FlipB();
 }
 
 void UniqueQuarterTool::Candidate_06(UniqueQuarterGrid &pGrid) {
-    pGrid.ShearB();
-    pGrid.FlipA();
-    pGrid.ZigZagA();
-    pGrid.Rotate180();
+    pGrid.SwapAD();
+    pGrid.HexB();
+    pGrid.SwapLongQuartersB();
+    pGrid.ShearC();
+    pGrid.FlipC();
+    pGrid.FlipB();
+    pGrid.RotateRight();
 }
 
 void UniqueQuarterTool::Candidate_07(UniqueQuarterGrid &pGrid) {
-    pGrid.ShearB();
-    pGrid.FlipA();
-    pGrid.ZigZagA();
-    pGrid.RotateLeft();
+    pGrid.SwapAD();
+    pGrid.HexB();
+    pGrid.SwapLongQuartersB();
+    pGrid.ShearD();
+    pGrid.FlipC();
+    pGrid.FlipB();
+    pGrid.RotateRight();
 }
 
 void UniqueQuarterTool::Candidate_08(UniqueQuarterGrid &pGrid) {
-    pGrid.ShearC();
-    pGrid.FlipA();
-    pGrid.ZigZagA();
+    pGrid.SwapAD();
+    pGrid.ShearB();
+    pGrid.HexA();
+    pGrid.SwapTallQuartersC();
+    pGrid.ShearA();
+    pGrid.FlipB();
 }
 
 void UniqueQuarterTool::Candidate_09(UniqueQuarterGrid &pGrid) {
-    pGrid.ShearC();
-    pGrid.FlipA();
-    pGrid.ZigZagA();
-    pGrid.RotateRight();
+    pGrid.SwapAD();
+    pGrid.ShearB();
+    pGrid.HexA();
+    pGrid.SwapTallQuartersC();
+    pGrid.ShearB();
+    pGrid.FlipB();
 }
 
 void UniqueQuarterTool::Candidate_10(UniqueQuarterGrid &pGrid) {
+    pGrid.SwapAD();
+    pGrid.ShearB();
+    pGrid.HexA();
+    pGrid.SwapTallQuartersC();
     pGrid.ShearC();
-    pGrid.FlipA();
-    pGrid.ZigZagA();
-    pGrid.Rotate180();
+    pGrid.FlipB();
 }
 
 void UniqueQuarterTool::Candidate_11(UniqueQuarterGrid &pGrid) {
-    pGrid.ShearC();
-    pGrid.FlipA();
-    pGrid.ZigZagA();
-    pGrid.RotateLeft();
+    pGrid.SwapAD();
+    pGrid.ShearB();
+    pGrid.HexA();
+    pGrid.SwapTallQuartersC();
+    pGrid.ShearD();
+    pGrid.FlipB();
 }
 
 void UniqueQuarterTool::Candidate_12(UniqueQuarterGrid &pGrid) {
-    pGrid.ShearD();
-    pGrid.FlipA();
-    pGrid.ZigZagA();
+    pGrid.SwapAD();
+    pGrid.FlipD();
+    pGrid.HexB();
+    pGrid.SwapLongQuartersC();
+    pGrid.ShearA();
+    pGrid.FlipB();
 }
 
 void UniqueQuarterTool::Candidate_13(UniqueQuarterGrid &pGrid) {
-    pGrid.ShearD();
-    pGrid.FlipA();
-    pGrid.ZigZagA();
-    pGrid.RotateRight();
+    pGrid.SwapAD();
+    pGrid.FlipD();
+    pGrid.HexB();
+    pGrid.SwapLongQuartersC();
+    pGrid.ShearB();
+    pGrid.FlipB();
 }
 
 void UniqueQuarterTool::Candidate_14(UniqueQuarterGrid &pGrid) {
-    pGrid.ShearD();
-    pGrid.FlipA();
-    pGrid.ZigZagA();
-    pGrid.Rotate180();
+    pGrid.SwapAD();
+    pGrid.FlipD();
+    pGrid.HexB();
+    pGrid.SwapLongQuartersC();
+    pGrid.ShearC();
+    pGrid.FlipB();
 }
 
 void UniqueQuarterTool::Candidate_15(UniqueQuarterGrid &pGrid) {
+    pGrid.SwapAD();
+    pGrid.FlipD();
+    pGrid.HexB();
+    pGrid.SwapLongQuartersC();
     pGrid.ShearD();
-    pGrid.FlipA();
-    pGrid.ZigZagA();
-    pGrid.RotateLeft();
+    pGrid.FlipB();
 }
 
 void UniqueQuarterTool::Candidate_16(UniqueQuarterGrid &pGrid) {
+    pGrid.SwapBC();
+    pGrid.HexB();
+    pGrid.SwapTallQuartersB();
     pGrid.ShearA();
+    pGrid.RotateLeft();
     pGrid.FlipB();
-    pGrid.ZigZagA();
-}
-
-void UniqueQuarterTool::Candidate_17(UniqueQuarterGrid &pGrid) {
-    pGrid.ShearA();
-    pGrid.FlipB();
-    pGrid.ZigZagA();
-    pGrid.RotateRight();
-}
-
-void UniqueQuarterTool::Candidate_18(UniqueQuarterGrid &pGrid) {
-    pGrid.ShearA();
-    pGrid.FlipB();
-    pGrid.ZigZagA();
     pGrid.Rotate180();
 }
 
-void UniqueQuarterTool::Candidate_19(UniqueQuarterGrid &pGrid) {
-    pGrid.ShearA();
+void UniqueQuarterTool::Candidate_17(UniqueQuarterGrid &pGrid) {
+    pGrid.SwapBC();
+    pGrid.HexB();
+    pGrid.SwapTallQuartersB();
+    pGrid.ShearB();
+    pGrid.RotateLeft();
     pGrid.FlipB();
-    pGrid.ZigZagA();
+    pGrid.Rotate180();
+}
+
+void UniqueQuarterTool::Candidate_18(UniqueQuarterGrid &pGrid) {
+    pGrid.SwapBC();
+    pGrid.HexB();
+    pGrid.SwapTallQuartersB();
+    pGrid.ShearC();
+    pGrid.RotateLeft();
+    pGrid.FlipB();
+    pGrid.RotateLeft();
+}
+
+void UniqueQuarterTool::Candidate_19(UniqueQuarterGrid &pGrid) {
+    pGrid.SwapBC();
+    pGrid.HexB();
+    pGrid.SwapTallQuartersB();
+    pGrid.ShearD();
+    pGrid.RotateLeft();
+    pGrid.FlipB();
     pGrid.RotateLeft();
 }
 
 void UniqueQuarterTool::Candidate_20(UniqueQuarterGrid &pGrid) {
-    pGrid.ShearB();
+    pGrid.SwapBC();
+    pGrid.HexA();
+    pGrid.SwapLongQuartersA();
+    pGrid.ShearA();
+    pGrid.FlipD();
     pGrid.FlipB();
-    pGrid.ZigZagA();
 }
 
 void UniqueQuarterTool::Candidate_21(UniqueQuarterGrid &pGrid) {
+    pGrid.SwapBC();
+    pGrid.HexA();
+    pGrid.SwapLongQuartersA();
     pGrid.ShearB();
+    pGrid.FlipD();
     pGrid.FlipB();
-    pGrid.ZigZagA();
-    pGrid.RotateRight();
 }
 
 void UniqueQuarterTool::Candidate_22(UniqueQuarterGrid &pGrid) {
-    pGrid.ShearB();
+    pGrid.SwapBC();
+    pGrid.HexA();
+    pGrid.SwapLongQuartersA();
+    pGrid.ShearC();
+    pGrid.FlipD();
     pGrid.FlipB();
-    pGrid.ZigZagA();
-    pGrid.Rotate180();
 }
 
 void UniqueQuarterTool::Candidate_23(UniqueQuarterGrid &pGrid) {
-    pGrid.ShearB();
+    pGrid.SwapBC();
+    pGrid.HexA();
+    pGrid.SwapLongQuartersA();
+    pGrid.ShearD();
+    pGrid.FlipD();
     pGrid.FlipB();
-    pGrid.ZigZagA();
-    pGrid.RotateLeft();
 }
 
 void UniqueQuarterTool::Candidate_24(UniqueQuarterGrid &pGrid) {
+    pGrid.SwapBC();
     pGrid.ShearC();
+    pGrid.HexB();
+    pGrid.SwapTallQuartersC();
+    pGrid.ShearA();
     pGrid.FlipB();
-    pGrid.ZigZagA();
 }
 
 void UniqueQuarterTool::Candidate_25(UniqueQuarterGrid &pGrid) {
+    pGrid.SwapBC();
     pGrid.ShearC();
-    pGrid.FlipB();
-    pGrid.ZigZagA();
-    pGrid.RotateRight();
+    pGrid.HexB();
+    pGrid.SwapTallQuartersC();
+    pGrid.ShearB();
 }
 
 void UniqueQuarterTool::Candidate_26(UniqueQuarterGrid &pGrid) {
+    pGrid.SwapBC();
     pGrid.ShearC();
-    pGrid.FlipB();
-    pGrid.ZigZagA();
-    pGrid.Rotate180();
+    pGrid.HexB();
+    pGrid.SwapTallQuartersC();
+    pGrid.ShearC();
 }
 
 void UniqueQuarterTool::Candidate_27(UniqueQuarterGrid &pGrid) {
+    pGrid.SwapBC();
     pGrid.ShearC();
-    pGrid.FlipB();
-    pGrid.ZigZagA();
-    pGrid.RotateLeft();
+    pGrid.HexB();
+    pGrid.SwapTallQuartersC();
+    pGrid.ShearD();
 }
 
 void UniqueQuarterTool::Candidate_28(UniqueQuarterGrid &pGrid) {
-    pGrid.ShearD();
-    pGrid.FlipB();
-    pGrid.ZigZagA();
+    pGrid.SwapBC();
+    pGrid.FlipC();
+    pGrid.HexA();
+    pGrid.SwapLongQuartersC();
+    pGrid.ShearA();
+    pGrid.SwapHalvesVer();
 }
 
 void UniqueQuarterTool::Candidate_29(UniqueQuarterGrid &pGrid) {
-    pGrid.ShearD();
-    pGrid.FlipB();
-    pGrid.ZigZagA();
-    pGrid.RotateRight();
+    pGrid.SwapBC();
+    pGrid.FlipC();
+    pGrid.HexA();
+    pGrid.SwapLongQuartersC();
+    pGrid.ShearB();
+    pGrid.SwapHalvesVer();
 }
 
 void UniqueQuarterTool::Candidate_30(UniqueQuarterGrid &pGrid) {
-    pGrid.ShearD();
-    pGrid.FlipB();
-    pGrid.ZigZagA();
-    pGrid.Rotate180();
+    pGrid.SwapBC();
+    pGrid.FlipC();
+    pGrid.HexA();
+    pGrid.SwapLongQuartersC();
+    pGrid.ShearC();
+    pGrid.SwapHalvesVer();
 }
 
 void UniqueQuarterTool::Candidate_31(UniqueQuarterGrid &pGrid) {
+    pGrid.SwapBC();
+    pGrid.FlipC();
+    pGrid.HexA();
+    pGrid.SwapLongQuartersC();
     pGrid.ShearD();
-    pGrid.FlipB();
-    pGrid.ZigZagA();
-    pGrid.RotateLeft();
+    pGrid.SwapHalvesVer();
 }
 
-
 void UniqueQuarterTool::Candidate_32(UniqueQuarterGrid &pGrid) {
-    pGrid.ShearA();
-    pGrid.FlipA();
+    pGrid.RotateLeft();
+    pGrid.HexB();
+    pGrid.SwapLongQuartersC();
     pGrid.ZigZagB();
 }
 
 void UniqueQuarterTool::Candidate_33(UniqueQuarterGrid &pGrid) {
-    pGrid.ShearA();
-    pGrid.FlipA();
+    pGrid.RotateLeft();
+    pGrid.HexA();
+    pGrid.SwapLongQuartersA();
     pGrid.ZigZagB();
-    pGrid.RotateRight();
 }
 
 void UniqueQuarterTool::Candidate_34(UniqueQuarterGrid &pGrid) {
-    pGrid.ShearA();
-    pGrid.FlipA();
+    pGrid.RotateLeft();
+    pGrid.HexA();
+    pGrid.SwapLongQuartersB();
     pGrid.ZigZagB();
-    pGrid.Rotate180();
 }
 
 void UniqueQuarterTool::Candidate_35(UniqueQuarterGrid &pGrid) {
-    pGrid.ShearA();
-    pGrid.FlipA();
-    pGrid.ZigZagB();
     pGrid.RotateLeft();
+    pGrid.HexA();
+    pGrid.SwapLongQuartersC();
+    pGrid.ZigZagB();
 }
 
 void UniqueQuarterTool::Candidate_36(UniqueQuarterGrid &pGrid) {
-    pGrid.ShearB();
-    pGrid.FlipA();
-    pGrid.ZigZagB();
+    pGrid.RotateRight();
+    pGrid.HexB();
+    pGrid.SwapLongQuartersA();
+    pGrid.ZigZagC();
 }
 
 void UniqueQuarterTool::Candidate_37(UniqueQuarterGrid &pGrid) {
-    pGrid.ShearB();
-    pGrid.FlipA();
-    pGrid.ZigZagB();
     pGrid.RotateRight();
+    pGrid.HexB();
+    pGrid.SwapLongQuartersB();
+    pGrid.ZigZagC();
 }
 
 void UniqueQuarterTool::Candidate_38(UniqueQuarterGrid &pGrid) {
-    pGrid.ShearB();
-    pGrid.FlipA();
-    pGrid.ZigZagB();
-    pGrid.Rotate180();
+    pGrid.RotateRight();
+    pGrid.HexB();
+    pGrid.SwapLongQuartersC();
+    pGrid.ZigZagC();
 }
 
 void UniqueQuarterTool::Candidate_39(UniqueQuarterGrid &pGrid) {
-    pGrid.ShearB();
-    pGrid.FlipA();
-    pGrid.ZigZagB();
-    pGrid.RotateLeft();
+    pGrid.RotateRight();
+    pGrid.HexA();
+    pGrid.SwapLongQuartersA();
+    pGrid.ZigZagC();
 }
 
 void UniqueQuarterTool::Candidate_40(UniqueQuarterGrid &pGrid) {
-    pGrid.ShearC();
-    pGrid.FlipA();
-    pGrid.ZigZagB();
+    pGrid.RotateRight();
+    pGrid.HexA();
+    pGrid.SwapLongQuartersB();
+    pGrid.ZigZagC();
 }
 
 void UniqueQuarterTool::Candidate_41(UniqueQuarterGrid &pGrid) {
-    pGrid.ShearC();
-    pGrid.FlipA();
-    pGrid.ZigZagB();
     pGrid.RotateRight();
+    pGrid.HexA();
+    pGrid.SwapLongQuartersC();
+    pGrid.ZigZagC();
 }
 
 void UniqueQuarterTool::Candidate_42(UniqueQuarterGrid &pGrid) {
-    pGrid.ShearC();
-    pGrid.FlipA();
-    pGrid.ZigZagB();
-    pGrid.Rotate180();
+    pGrid.RotateLeft();
+    pGrid.HexB();
+    pGrid.SwapLongQuartersA();
+    pGrid.ZigZagC();
 }
 
 void UniqueQuarterTool::Candidate_43(UniqueQuarterGrid &pGrid) {
-    pGrid.ShearC();
-    pGrid.FlipA();
-    pGrid.ZigZagB();
     pGrid.RotateLeft();
+    pGrid.HexB();
+    pGrid.SwapLongQuartersB();
+    pGrid.ZigZagC();
 }
 
 void UniqueQuarterTool::Candidate_44(UniqueQuarterGrid &pGrid) {
-    pGrid.ShearD();
-    pGrid.FlipA();
-    pGrid.ZigZagB();
+    pGrid.RotateLeft();
+    pGrid.HexB();
+    pGrid.SwapLongQuartersC();
+    pGrid.ZigZagC();
 }
 
 void UniqueQuarterTool::Candidate_45(UniqueQuarterGrid &pGrid) {
-    pGrid.ShearD();
-    pGrid.FlipA();
-    pGrid.ZigZagB();
-    pGrid.RotateRight();
+    pGrid.RotateLeft();
+    pGrid.HexA();
+    pGrid.SwapLongQuartersA();
+    pGrid.ZigZagC();
 }
 
 void UniqueQuarterTool::Candidate_46(UniqueQuarterGrid &pGrid) {
-    pGrid.ShearD();
-    pGrid.FlipA();
-    pGrid.ZigZagB();
-    pGrid.Rotate180();
+    pGrid.RotateLeft();
+    pGrid.HexA();
+    pGrid.SwapLongQuartersB();
+    pGrid.ZigZagC();
 }
 
 void UniqueQuarterTool::Candidate_47(UniqueQuarterGrid &pGrid) {
-    pGrid.ShearD();
-    pGrid.FlipA();
-    pGrid.ZigZagB();
     pGrid.RotateLeft();
+    pGrid.HexA();
+    pGrid.SwapLongQuartersC();
+    pGrid.ZigZagC();
 }
 
 void UniqueQuarterTool::Candidate_48(UniqueQuarterGrid &pGrid) {
@@ -997,39 +1209,6 @@ void UniqueQuarterTool::PrintCompareCandidates() {
 
     std::printf("\n");
     std::printf("// ============================================================\n");
-    std::printf("// Candidate compare: distance >= %zu\n", kCandidateDistanceWarningThreshold);
-    std::printf("// ============================================================\n");
-
-    std::printf("\nCandidate quarter ops vs existing quarter ops\n");
-
-    for (const UniqueQuarterCompareResult &result : candidateVsExisting) {
-        if (result.mHammingDistance < kCandidateDistanceWarningThreshold) {
-            continue;
-        }
-
-        std::printf("  distance %2zu  %s  vs  %s%s\n",
-                    result.mHammingDistance,
-                    result.mCandidateName.c_str(),
-                    result.mExistingName.c_str(),
-                    result.mExactDuplicate ? "  DUPLICATE" : "");
-    }
-
-    std::printf("\nCandidate quarter ops vs candidate quarter ops\n");
-
-    for (const UniqueQuarterCandidateCompareResult &result : candidateVsCandidate) {
-        if (result.mHammingDistance < kCandidateDistanceWarningThreshold) {
-            continue;
-        }
-
-        std::printf("  distance %2zu  %s  vs  %s%s\n",
-                    result.mHammingDistance,
-                    result.mNameA.c_str(),
-                    result.mNameB.c_str(),
-                    result.mExactDuplicate ? "  DUPLICATE" : "");
-    }
-
-    std::printf("\n");
-    std::printf("// ============================================================\n");
     std::printf("// Candidate compare warnings: distance < %zu\n", kCandidateDistanceWarningThreshold);
     std::printf("// ============================================================\n");
 
@@ -1076,5 +1255,6 @@ void UniqueQuarterTool::PrintCompareCandidates() {
     if (!foundLowCandidateVsCandidate) {
         std::printf("  none\n");
     }
-}
 
+    std::printf("\n");
+}

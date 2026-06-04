@@ -1290,7 +1290,7 @@ void Slice::_ZigZagB() {
 
     for (std::size_t y = 0U; y < aHalf; y++) {
         for (std::size_t x = 1U; x < mSize; x += 2U) {
-            const std::size_t aDestX = x - 1U;
+            const std::size_t aDestX = (x + 1U) % mSize;
             const std::size_t aDestY = y + aHalf;
 
             mData[aDestX][aDestY] = mTempData[x][y];
@@ -1396,5 +1396,195 @@ void Slice::_SwapHalvesHor() {
             mData[aNewX][y] = mTempData[x][y];
         }
     }
+}
+
+void Slice::_SwapAB() {
+    std::memcpy(mTempData, mData, sizeof(mTempData));
+
+    // A B      B A
+    // C D  ->  C D
+
+    const std::size_t aHalf = mSize / 2U;
+
+    for (std::size_t x = 0U; x < aHalf; x++) {
+        for (std::size_t y = 0U; y < aHalf; y++) {
+            mData[x][y] = mTempData[x + aHalf][y];
+            mData[x + aHalf][y] = mTempData[x][y];
+        }
+    }
+}
+
+void Slice::_SwapBC() {
+    std::memcpy(mTempData, mData, sizeof(mTempData));
+
+    // A B      A C
+    // C D  ->  B D
+
+    const std::size_t aHalf = mSize / 2U;
+
+    for (std::size_t x = 0U; x < aHalf; x++) {
+        for (std::size_t y = 0U; y < aHalf; y++) {
+            mData[x + aHalf][y] = mTempData[x][y + aHalf];
+            mData[x][y + aHalf] = mTempData[x + aHalf][y];
+        }
+    }
+}
+
+void Slice::_SwapAD() {
+    std::memcpy(mTempData, mData, sizeof(mTempData));
+
+    // A B      D B
+    // C D  ->  C A
+
+    const std::size_t aHalf = mSize / 2U;
+
+    for (std::size_t x = 0U; x < aHalf; x++) {
+        for (std::size_t y = 0U; y < aHalf; y++) {
+            mData[x][y] = mTempData[x + aHalf][y + aHalf];
+            mData[x + aHalf][y + aHalf] = mTempData[x][y];
+        }
+    }
+}
+
+void Slice::_SwapLongQuartersA() {
+    std::memcpy(mTempData, mData, sizeof(mTempData));
+
+    // Row bands:
+    // A B C D  ->  B A D C
+
+    const std::size_t aQuarter = mSize / 4U;
+
+    for (std::size_t x = 0U; x < mSize; x++) {
+        for (std::size_t y = 0U; y < mSize; y++) {
+            const std::size_t aBand = y / aQuarter;
+            const std::size_t aBandY = y % aQuarter;
+            const std::size_t aNewBand = ((aBand & 1U) == 0U) ? aBand + 1U : aBand - 1U;
+            const std::size_t aNewY = aNewBand * aQuarter + aBandY;
+
+            mData[x][aNewY] = mTempData[x][y];
+        }
+    }
+}
+
+void Slice::_SwapLongQuartersB() {
+    std::memcpy(mTempData, mData, sizeof(mTempData));
+
+    // Row bands:
+    // A B C D  ->  C D A B
+
+    const std::size_t aQuarter = mSize / 4U;
+
+    for (std::size_t x = 0U; x < mSize; x++) {
+        for (std::size_t y = 0U; y < mSize; y++) {
+            const std::size_t aBand = y / aQuarter;
+            const std::size_t aBandY = y % aQuarter;
+            const std::size_t aNewBand = (aBand + 2U) & 3U;
+            const std::size_t aNewY = aNewBand * aQuarter + aBandY;
+
+            mData[x][aNewY] = mTempData[x][y];
+        }
+    }
+}
+
+void Slice::_SwapLongQuartersC() {
+    std::memcpy(mTempData, mData, sizeof(mTempData));
+
+    // Row bands:
+    // A B C D  ->  D C B A
+
+    const std::size_t aQuarter = mSize / 4U;
+
+    for (std::size_t x = 0U; x < mSize; x++) {
+        for (std::size_t y = 0U; y < mSize; y++) {
+            const std::size_t aBand = y / aQuarter;
+            const std::size_t aBandY = y % aQuarter;
+            const std::size_t aNewBand = 3U - aBand;
+            const std::size_t aNewY = aNewBand * aQuarter + aBandY;
+
+            mData[x][aNewY] = mTempData[x][y];
+        }
+    }
+}
+
+void Slice::_SwapTallQuartersA() {
+    std::memcpy(mTempData, mData, sizeof(mTempData));
+
+    // Column bands:
+    // A B C D  ->  B A D C
+
+    const std::size_t aQuarter = mSize / 4U;
+
+    for (std::size_t x = 0U; x < mSize; x++) {
+        for (std::size_t y = 0U; y < mSize; y++) {
+            const std::size_t aBand = x / aQuarter;
+            const std::size_t aBandX = x % aQuarter;
+            const std::size_t aNewBand = ((aBand & 1U) == 0U) ? aBand + 1U : aBand - 1U;
+            const std::size_t aNewX = aNewBand * aQuarter + aBandX;
+
+            mData[aNewX][y] = mTempData[x][y];
+        }
+    }
+}
+
+void Slice::_SwapTallQuartersB() {
+    std::memcpy(mTempData, mData, sizeof(mTempData));
+
+    // Column bands:
+    // A B C D  ->  C D A B
+
+    const std::size_t aQuarter = mSize / 4U;
+
+    for (std::size_t x = 0U; x < mSize; x++) {
+        for (std::size_t y = 0U; y < mSize; y++) {
+            const std::size_t aBand = x / aQuarter;
+            const std::size_t aBandX = x % aQuarter;
+            const std::size_t aNewBand = (aBand + 2U) & 3U;
+            const std::size_t aNewX = aNewBand * aQuarter + aBandX;
+
+            mData[aNewX][y] = mTempData[x][y];
+        }
+    }
+}
+
+void Slice::_SwapTallQuartersC() {
+    std::memcpy(mTempData, mData, sizeof(mTempData));
+
+    // Column bands:
+    // A B C D  ->  D C B A
+
+    const std::size_t aQuarter = mSize / 4U;
+
+    for (std::size_t x = 0U; x < mSize; x++) {
+        for (std::size_t y = 0U; y < mSize; y++) {
+            const std::size_t aBand = x / aQuarter;
+            const std::size_t aBandX = x % aQuarter;
+            const std::size_t aNewBand = 3U - aBand;
+            const std::size_t aNewX = aNewBand * aQuarter + aBandX;
+
+            mData[aNewX][y] = mTempData[x][y];
+        }
+    }
+}
+
+void Slice::_HexA() {
+    static const std::uint8_t kMap[4][4] = {
+        {  5,  1,  2,  6 },
+        {  4,  0,  3,  7 },
+        {  8, 12, 15, 11 },
+        {  9, 13, 14, 10 },
+    };
+
+    _ApplyBlockMap4x4(kMap);
+}
+
+void Slice::_HexB() {
+    static const std::uint8_t kMap[4][4] = {
+        {  0,  4,  7,  3 },
+        {  1,  5,  6,  2 },
+        { 13,  9, 10, 14 },
+        { 12,  8, 11, 15 },
+    };
+
+    _ApplyBlockMap4x4(kMap);
 }
 

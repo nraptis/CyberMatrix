@@ -67,8 +67,8 @@ public:
     void                        RealizeSlots();
     std::size_t                 FindPreparedSlotForValue(std::uint8_t pValue) const;
     
-    std::vector<Cycle>          FindCycles() const;
-    void                        PrintCycles() const;
+    std::vector<Cycle>                          FindCycles() const;
+    void                                        PrintCycles() const;
     void                                        PrintCycleCode(const char *pDataName) const;
     
     void                                        PrintRecipeFactory2x2(const std::string pName) const;
@@ -147,6 +147,21 @@ public:
     
     void                                        _SwapHalvesVer();
     void                                        _SwapHalvesHor();
+    
+    void                                        _SwapAB();
+    void                                        _SwapBC();
+    void                                        _SwapAD();
+    
+    void                                        _SwapLongQuartersA();
+    void                                        _SwapLongQuartersB();
+    void                                        _SwapLongQuartersC();
+
+    void                                        _SwapTallQuartersA();
+    void                                        _SwapTallQuartersB();
+    void                                        _SwapTallQuartersC();
+    
+    void                                        _HexA();
+    void                                        _HexB();
 
 private:
     static int                                  _PositiveModulo(int pValue, int pMod);
