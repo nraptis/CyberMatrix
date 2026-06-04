@@ -78,6 +78,73 @@ public:
     static Recipe8x8                    FalconD();
     
     
+    static Recipe8x8                    IronA();
+    static Recipe8x8                    IronB();
+    static Recipe8x8                    IronC();
+    static Recipe8x8                    IronD();
+    static Recipe8x8                    SteelA();
+    static Recipe8x8                    SteelB();
+    static Recipe8x8                    SteelC();
+    static Recipe8x8                    SteelD();
+    static Recipe8x8                    SilverA();
+    static Recipe8x8                    SilverB();
+    static Recipe8x8                    SilverC();
+    static Recipe8x8                    SilverD();
+    static Recipe8x8                    GoldA();
+    static Recipe8x8                    GoldB();
+    static Recipe8x8                    GoldC();
+    static Recipe8x8                    GoldD();
+    static Recipe8x8                    BronzeA();
+    static Recipe8x8                    BronzeB();
+    static Recipe8x8                    BronzeC();
+    static Recipe8x8                    BronzeD();
+    static Recipe8x8                    BrassA();
+    static Recipe8x8                    BrassB();
+    static Recipe8x8                    BrassC();
+    static Recipe8x8                    BrassD();
+    static Recipe8x8                    NickelA();
+    static Recipe8x8                    NickelB();
+    static Recipe8x8                    NickelC();
+    static Recipe8x8                    NickelD();
+    static Recipe8x8                    CobaltA();
+    static Recipe8x8                    CobaltB();
+    static Recipe8x8                    CobaltC();
+    static Recipe8x8                    CobaltD();
+    static Recipe8x8                    TitaniumA();
+    static Recipe8x8                    TitaniumB();
+    static Recipe8x8                    TitaniumC();
+    static Recipe8x8                    TitaniumD();
+    static Recipe8x8                    PlatinumA();
+    static Recipe8x8                    PlatinumB();
+    static Recipe8x8                    PlatinumC();
+    static Recipe8x8                    PlatinumD();
+    static Recipe8x8                    TungstenA();
+    static Recipe8x8                    TungstenB();
+    static Recipe8x8                    TungstenC();
+    static Recipe8x8                    TungstenD();
+    static Recipe8x8                    MercuryA();
+    static Recipe8x8                    MercuryB();
+    static Recipe8x8                    MercuryC();
+    static Recipe8x8                    MercuryD();
+    static Recipe8x8                    PalladiumA();
+    static Recipe8x8                    PalladiumB();
+    static Recipe8x8                    PalladiumC();
+    static Recipe8x8                    PalladiumD();
+    static Recipe8x8                    RhodiumA();
+    static Recipe8x8                    RhodiumB();
+    static Recipe8x8                    RhodiumC();
+    static Recipe8x8                    RhodiumD();
+    static Recipe8x8                    ChromiumA();
+    static Recipe8x8                    ChromiumB();
+    static Recipe8x8                    ChromiumC();
+    static Recipe8x8                    ChromiumD();
+    static Recipe8x8                    ZirconiumA();
+    static Recipe8x8                    ZirconiumB();
+    static Recipe8x8                    ZirconiumC();
+    static Recipe8x8                    ZirconiumD();
+    
+    
+    
     
 private:
     static Recipe8x8        MakeIdentityNamed(const char *pName);

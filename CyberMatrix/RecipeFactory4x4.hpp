@@ -89,6 +89,71 @@ public:
     static Recipe4x4                    FalconD();
     
     
+    static Recipe4x4                    IronA();
+    static Recipe4x4                    IronB();
+    static Recipe4x4                    IronC();
+    static Recipe4x4                    IronD();
+    static Recipe4x4                    SteelA();
+    static Recipe4x4                    SteelB();
+    static Recipe4x4                    SteelC();
+    static Recipe4x4                    SteelD();
+    static Recipe4x4                    SilverA();
+    static Recipe4x4                    SilverB();
+    static Recipe4x4                    SilverC();
+    static Recipe4x4                    SilverD();
+    static Recipe4x4                    GoldA();
+    static Recipe4x4                    GoldB();
+    static Recipe4x4                    GoldC();
+    static Recipe4x4                    GoldD();
+    static Recipe4x4                    BronzeA();
+    static Recipe4x4                    BronzeB();
+    static Recipe4x4                    BronzeC();
+    static Recipe4x4                    BronzeD();
+    static Recipe4x4                    BrassA();
+    static Recipe4x4                    BrassB();
+    static Recipe4x4                    BrassC();
+    static Recipe4x4                    BrassD();
+    static Recipe4x4                    NickelA();
+    static Recipe4x4                    NickelB();
+    static Recipe4x4                    NickelC();
+    static Recipe4x4                    NickelD();
+    static Recipe4x4                    CobaltA();
+    static Recipe4x4                    CobaltB();
+    static Recipe4x4                    CobaltC();
+    static Recipe4x4                    CobaltD();
+    static Recipe4x4                    TitaniumA();
+    static Recipe4x4                    TitaniumB();
+    static Recipe4x4                    TitaniumC();
+    static Recipe4x4                    TitaniumD();
+    static Recipe4x4                    PlatinumA();
+    static Recipe4x4                    PlatinumB();
+    static Recipe4x4                    PlatinumC();
+    static Recipe4x4                    PlatinumD();
+    static Recipe4x4                    TungstenA();
+    static Recipe4x4                    TungstenB();
+    static Recipe4x4                    TungstenC();
+    static Recipe4x4                    TungstenD();
+    static Recipe4x4                    MercuryA();
+    static Recipe4x4                    MercuryB();
+    static Recipe4x4                    MercuryC();
+    static Recipe4x4                    MercuryD();
+    static Recipe4x4                    PalladiumA();
+    static Recipe4x4                    PalladiumB();
+    static Recipe4x4                    PalladiumC();
+    static Recipe4x4                    PalladiumD();
+    static Recipe4x4                    RhodiumA();
+    static Recipe4x4                    RhodiumB();
+    static Recipe4x4                    RhodiumC();
+    static Recipe4x4                    RhodiumD();
+    static Recipe4x4                    ChromiumA();
+    static Recipe4x4                    ChromiumB();
+    static Recipe4x4                    ChromiumC();
+    static Recipe4x4                    ChromiumD();
+    static Recipe4x4                    ZirconiumA();
+    static Recipe4x4                    ZirconiumB();
+    static Recipe4x4                    ZirconiumC();
+    static Recipe4x4                    ZirconiumD();
+    
 private:
     static Recipe4x4 Make(const char *pName,
                           std::uint8_t p00,

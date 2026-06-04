@@ -61,8 +61,6 @@ public:
 
     static void PrintCompareCandidates();
 
-    static void ApplyCandidateIndexed(UniqueQuarterGrid &pGrid, int pIndex);
-
     static void Candidate_00(UniqueQuarterGrid &pGrid);
     static void Candidate_01(UniqueQuarterGrid &pGrid);
     static void Candidate_02(UniqueQuarterGrid &pGrid);
