@@ -15,34 +15,69 @@ struct Recipe8x8 {
 
 class RecipeFactory8x8 {
 public:
-    static Recipe8x8        Identity();
+    static Recipe8x8                    Identity();
     
     // Rotations
-    static Recipe8x8        RotA();
-    static Recipe8x8        RotB();
-    static Recipe8x8        RotC();
+    static Recipe8x8                    RotA();
+    static Recipe8x8                    RotB();
+    static Recipe8x8                    RotC();
     
-    static Recipe8x8        FlipA();
-    static Recipe8x8        FlipB();
-    static Recipe8x8        FlipC();
-    static Recipe8x8        FlipD();
+    static Recipe8x8                    FlipA();
+    static Recipe8x8                    FlipB();
+    static Recipe8x8                    FlipC();
+    static Recipe8x8                    FlipD();
     
-    static Recipe8x8        PinA();
-    static Recipe8x8        PinB();
+    static Recipe8x8                    PinA();
+    static Recipe8x8                    PinB();
+
     
-    static Recipe8x8        ReachA();
-    static Recipe8x8        ReachB();
-    static Recipe8x8        ReachC();
-    static Recipe8x8        ReachD();
+    static Recipe8x8                    ShearA();
+    static Recipe8x8                    ShearB();
+    static Recipe8x8                    ShearC();
+    static Recipe8x8                    ShearD();
+
+    static Recipe8x8                    JewelA();
+    static Recipe8x8                    JewelB();
+    static Recipe8x8                    JewelC();
+    static Recipe8x8                    JewelD();
     
-    static Recipe8x8        ShearA();
-    static Recipe8x8        ShearB();
-    static Recipe8x8        ShearC();
-    static Recipe8x8        ShearD();
+    static Recipe8x8                    CrystalA();
+    static Recipe8x8                    CrystalC();
+    static Recipe8x8                    CrystalB();
+    static Recipe8x8                    CrystalD();
     
-    static Recipe8x8        SwapRows();
-    static Recipe8x8        SwapColums();
-    static Recipe8x8        SwapBoth();
+    
+    static Recipe8x8                    OpalA();
+    static Recipe8x8                    OpalC();
+    static Recipe8x8                    OpalB();
+    static Recipe8x8                    OpalD();
+    
+    
+    static Recipe8x8                    PeridotA();
+    static Recipe8x8                    PeridotB();
+    static Recipe8x8                    PeridotC();
+    static Recipe8x8                    PeridotD();
+    
+    
+    static Recipe8x8                    SwanA();
+    static Recipe8x8                    SwanB();
+    static Recipe8x8                    SwanC();
+    static Recipe8x8                    SwanD();
+    static Recipe8x8                    GooseA();
+    static Recipe8x8                    GooseB();
+    static Recipe8x8                    GooseC();
+    static Recipe8x8                    GooseD();
+    
+    static Recipe8x8                    HeronA();
+    static Recipe8x8                    HeronB();
+    static Recipe8x8                    HeronC();
+    static Recipe8x8                    HeronD();
+    static Recipe8x8                    FalconA();
+    static Recipe8x8                    FalconB();
+    static Recipe8x8                    FalconC();
+    static Recipe8x8                    FalconD();
+    
+    
     
 private:
     static Recipe8x8        MakeIdentityNamed(const char *pName);

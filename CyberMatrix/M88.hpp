@@ -173,31 +173,15 @@ public:
     void                                        Full_SnakeD_EachMini_2x2();
     void                                        Full_SnakeD_EachQuad_2x2();
     
-    void                                        Full_CastleA_4x4();
-    void                                        Full_CastleA_EachQuad_4x4();
-    void                                        Full_CastleB_4x4();
-    void                                        Full_CastleB_EachQuad_4x4();
-    void                                        Full_CastleC_4x4();
-    void                                        Full_CastleC_EachQuad_4x4();
-    void                                        Full_CastleD_4x4();
-    void                                        Full_CastleD_EachQuad_4x4();
     
     void                                        Full_TowerA_4x4();
     void                                        Full_TowerA_EachQuad_4x4();
     void                                        Full_TowerB_4x4();
     void                                        Full_TowerB_EachQuad_4x4();
     
-    void                                        Full_FortressA_4x4();
-    void                                        Full_FortressA_EachQuad_4x4();
-    void                                        Full_FortressB_4x4();
-    void                                        Full_FortressB_EachQuad_4x4();
     
-    void                                        Full_PinA_4x4();
     void                                        Full_PinA_8x8();
-    void                                        Full_PinA_EachQuad_4x4();
-    void                                        Full_PinB_4x4();
     void                                        Full_PinB_8x8();
-    void                                        Full_PinB_EachQuad_4x4();
     
     void                                        Full_SwapA_2x2();
     void                                        Full_SwapA_EachMini_2x2();
@@ -212,31 +196,6 @@ public:
     void                                        Full_SwapD_EachMini_2x2();
     void                                        Full_SwapD_EachQuad_2x2();
     
-    void                                        Full_ReachA_4x4();
-    void                                        Full_ReachA_8x8();
-    void                                        Full_ReachA_EachQuad_4x4();
-    void                                        Full_ReachB_4x4();
-    void                                        Full_ReachB_8x8();
-    void                                        Full_ReachB_EachQuad_4x4();
-    void                                        Full_ReachC_4x4();
-    void                                        Full_ReachC_8x8();
-    void                                        Full_ReachC_EachQuad_4x4();
-    void                                        Full_ReachD_4x4();
-    void                                        Full_ReachD_8x8();
-    void                                        Full_ReachD_EachQuad_4x4();
-    
-    void                                        Full_SwapRows_4x4();
-    void                                        Full_SwapRows_8x8();
-    void                                        Full_SwapRows_EachQuad_4x4();
-    
-    void                                        Full_SwapColums_4x4();
-    void                                        Full_SwapColums_8x8();
-    void                                        Full_SwapColums_EachQuad_4x4();
-    
-    void                                        Full_SwapBoth_4x4();
-    void                                        Full_SwapBoth_8x8();
-    void                                        Full_SwapBoth_EachQuad_4x4();
-    
     void                                        Full_ShearA_4x4();
     void                                        Full_ShearA_8x8();
     void                                        Full_ShearA_EachQuad_4x4();
@@ -249,29 +208,6 @@ public:
     void                                        Full_ShearD_4x4();
     void                                        Full_ShearD_8x8();
     void                                        Full_ShearD_EachQuad_4x4();
-    
-    void                                        Full_RollHor1_4x4();
-    void                                        Full_RollHor1_EachQuad_4x4();
-    void                                        Full_RollHor2_4x4();
-    void                                        Full_RollHor2_EachQuad_4x4();
-    void                                        Full_RollHor3_4x4();
-    void                                        Full_RollHor3_EachQuad_4x4();
-    
-    void                                        Full_RollVer1_4x4();
-    void                                        Full_RollVer1_EachQuad_4x4();
-    void                                        Full_RollVer2_4x4();
-    void                                        Full_RollVer2_EachQuad_4x4();
-    void                                        Full_RollVer3_4x4();
-    void                                        Full_RollVer3_EachQuad_4x4();
-    
-    void                                        Full_FoldA_4x4();
-    void                                        Full_FoldA_EachQuad_4x4();
-    void                                        Full_FoldB_4x4();
-    void                                        Full_FoldB_EachQuad_4x4();
-    void                                        Full_FoldC_4x4();
-    void                                        Full_FoldC_EachQuad_4x4();
-    void                                        Full_FoldD_4x4();
-    void                                        Full_FoldD_EachQuad_4x4();
     
     
     // Quad A - 84
@@ -324,19 +260,10 @@ public:
     void                                        Quad_SnakeD_2x2_A();
     void                                        Quad_SnakeD_EachMini_2x2_A();
     
-    void                                        Quad_CastleA_4x4_A();
-    void                                        Quad_CastleB_4x4_A();
-    void                                        Quad_CastleC_4x4_A();
-    void                                        Quad_CastleD_4x4_A();
     
     void                                        Quad_TowerA_4x4_A();
     void                                        Quad_TowerB_4x4_A();
     
-    void                                        Quad_FortressA_4x4_A();
-    void                                        Quad_FortressB_4x4_A();
-    
-    void                                        Quad_PinA_4x4_A();
-    void                                        Quad_PinB_4x4_A();
     
     void                                        Quad_SwapA_2x2_A();
     void                                        Quad_SwapA_EachMini_2x2_A();
@@ -347,32 +274,11 @@ public:
     void                                        Quad_SwapD_2x2_A();
     void                                        Quad_SwapD_EachMini_2x2_A();
     
-    void                                        Quad_ReachA_4x4_A();
-    void                                        Quad_ReachB_4x4_A();
-    void                                        Quad_ReachC_4x4_A();
-    void                                        Quad_ReachD_4x4_A();
-    
-    void                                        Quad_SwapRows_4x4_A();
-    void                                        Quad_SwapColums_4x4_A();
-    void                                        Quad_SwapBoth_4x4_A();
-    
     void                                        Quad_ShearA_4x4_A();
     void                                        Quad_ShearB_4x4_A();
     void                                        Quad_ShearC_4x4_A();
     void                                        Quad_ShearD_4x4_A();
     
-    void                                        Quad_RollHor1_4x4_A();
-    void                                        Quad_RollHor2_4x4_A();
-    void                                        Quad_RollHor3_4x4_A();
-    
-    void                                        Quad_RollVer1_4x4_A();
-    void                                        Quad_RollVer2_4x4_A();
-    void                                        Quad_RollVer3_4x4_A();
-    
-    void                                        Quad_FoldA_4x4_A();
-    void                                        Quad_FoldB_4x4_A();
-    void                                        Quad_FoldC_4x4_A();
-    void                                        Quad_FoldD_4x4_A();
     
     // Quad B - 84
     void                                        Quad_RotA_2x2_B();
@@ -424,19 +330,10 @@ public:
     void                                        Quad_SnakeD_2x2_B();
     void                                        Quad_SnakeD_EachMini_2x2_B();
     
-    void                                        Quad_CastleA_4x4_B();
-    void                                        Quad_CastleB_4x4_B();
-    void                                        Quad_CastleC_4x4_B();
-    void                                        Quad_CastleD_4x4_B();
     
     void                                        Quad_TowerA_4x4_B();
     void                                        Quad_TowerB_4x4_B();
     
-    void                                        Quad_FortressA_4x4_B();
-    void                                        Quad_FortressB_4x4_B();
-    
-    void                                        Quad_PinA_4x4_B();
-    void                                        Quad_PinB_4x4_B();
     
     void                                        Quad_SwapA_2x2_B();
     void                                        Quad_SwapA_EachMini_2x2_B();
@@ -446,33 +343,11 @@ public:
     void                                        Quad_SwapC_EachMini_2x2_B();
     void                                        Quad_SwapD_2x2_B();
     void                                        Quad_SwapD_EachMini_2x2_B();
-    
-    void                                        Quad_ReachA_4x4_B();
-    void                                        Quad_ReachB_4x4_B();
-    void                                        Quad_ReachC_4x4_B();
-    void                                        Quad_ReachD_4x4_B();
-    
-    void                                        Quad_SwapRows_4x4_B();
-    void                                        Quad_SwapColums_4x4_B();
-    void                                        Quad_SwapBoth_4x4_B();
-    
+
     void                                        Quad_ShearA_4x4_B();
     void                                        Quad_ShearB_4x4_B();
     void                                        Quad_ShearC_4x4_B();
     void                                        Quad_ShearD_4x4_B();
-    
-    void                                        Quad_RollHor1_4x4_B();
-    void                                        Quad_RollHor2_4x4_B();
-    void                                        Quad_RollHor3_4x4_B();
-    
-    void                                        Quad_RollVer1_4x4_B();
-    void                                        Quad_RollVer2_4x4_B();
-    void                                        Quad_RollVer3_4x4_B();
-    
-    void                                        Quad_FoldA_4x4_B();
-    void                                        Quad_FoldB_4x4_B();
-    void                                        Quad_FoldC_4x4_B();
-    void                                        Quad_FoldD_4x4_B();
     
     // Quad C - 84
     void                                        Quad_RotA_2x2_C();
@@ -524,19 +399,10 @@ public:
     void                                        Quad_SnakeD_2x2_C();
     void                                        Quad_SnakeD_EachMini_2x2_C();
     
-    void                                        Quad_CastleA_4x4_C();
-    void                                        Quad_CastleB_4x4_C();
-    void                                        Quad_CastleC_4x4_C();
-    void                                        Quad_CastleD_4x4_C();
     
     void                                        Quad_TowerA_4x4_C();
     void                                        Quad_TowerB_4x4_C();
     
-    void                                        Quad_FortressA_4x4_C();
-    void                                        Quad_FortressB_4x4_C();
-    
-    void                                        Quad_PinA_4x4_C();
-    void                                        Quad_PinB_4x4_C();
     
     void                                        Quad_SwapA_2x2_C();
     void                                        Quad_SwapA_EachMini_2x2_C();
@@ -546,33 +412,11 @@ public:
     void                                        Quad_SwapC_EachMini_2x2_C();
     void                                        Quad_SwapD_2x2_C();
     void                                        Quad_SwapD_EachMini_2x2_C();
-    
-    void                                        Quad_ReachA_4x4_C();
-    void                                        Quad_ReachB_4x4_C();
-    void                                        Quad_ReachC_4x4_C();
-    void                                        Quad_ReachD_4x4_C();
-    
-    void                                        Quad_SwapRows_4x4_C();
-    void                                        Quad_SwapColums_4x4_C();
-    void                                        Quad_SwapBoth_4x4_C();
-    
+
     void                                        Quad_ShearA_4x4_C();
     void                                        Quad_ShearB_4x4_C();
     void                                        Quad_ShearC_4x4_C();
     void                                        Quad_ShearD_4x4_C();
-    
-    void                                        Quad_RollHor1_4x4_C();
-    void                                        Quad_RollHor2_4x4_C();
-    void                                        Quad_RollHor3_4x4_C();
-    
-    void                                        Quad_RollVer1_4x4_C();
-    void                                        Quad_RollVer2_4x4_C();
-    void                                        Quad_RollVer3_4x4_C();
-    
-    void                                        Quad_FoldA_4x4_C();
-    void                                        Quad_FoldB_4x4_C();
-    void                                        Quad_FoldC_4x4_C();
-    void                                        Quad_FoldD_4x4_C();
     
     // Quad D - 84
     void                                        Quad_RotA_2x2_D();
@@ -624,19 +468,10 @@ public:
     void                                        Quad_SnakeD_2x2_D();
     void                                        Quad_SnakeD_EachMini_2x2_D();
     
-    void                                        Quad_CastleA_4x4_D();
-    void                                        Quad_CastleB_4x4_D();
-    void                                        Quad_CastleC_4x4_D();
-    void                                        Quad_CastleD_4x4_D();
     
     void                                        Quad_TowerA_4x4_D();
     void                                        Quad_TowerB_4x4_D();
     
-    void                                        Quad_FortressA_4x4_D();
-    void                                        Quad_FortressB_4x4_D();
-    
-    void                                        Quad_PinA_4x4_D();
-    void                                        Quad_PinB_4x4_D();
     
     void                                        Quad_SwapA_2x2_D();
     void                                        Quad_SwapA_EachMini_2x2_D();
@@ -646,32 +481,14 @@ public:
     void                                        Quad_SwapC_EachMini_2x2_D();
     void                                        Quad_SwapD_2x2_D();
     void                                        Quad_SwapD_EachMini_2x2_D();
-    
-    void                                        Quad_ReachA_4x4_D();
-    void                                        Quad_ReachB_4x4_D();
-    void                                        Quad_ReachC_4x4_D();
-    void                                        Quad_ReachD_4x4_D();
-    
-    void                                        Quad_SwapRows_4x4_D();
-    void                                        Quad_SwapColums_4x4_D();
-    void                                        Quad_SwapBoth_4x4_D();
-    
+
     void                                        Quad_ShearA_4x4_D();
     void                                        Quad_ShearB_4x4_D();
     void                                        Quad_ShearC_4x4_D();
     void                                        Quad_ShearD_4x4_D();
     
-    void                                        Quad_RollHor1_4x4_D();
-    void                                        Quad_RollHor2_4x4_D();
-    void                                        Quad_RollHor3_4x4_D();
-    
-    void                                        Quad_RollVer1_4x4_D();
-    void                                        Quad_RollVer2_4x4_D();
-    void                                        Quad_RollVer3_4x4_D();
-    
     void                                        Quad_FoldA_4x4_D();
     void                                        Quad_FoldB_4x4_D();
-    void                                        Quad_FoldC_4x4_D();
     void                                        Quad_FoldD_4x4_D();
     
     // Mini - 304
@@ -1057,6 +874,290 @@ public:
     void                                        Mini_SwapD_2x2_N();
     void                                        Mini_SwapD_2x2_O();
     void                                        Mini_SwapD_2x2_P();
+    
+
+    void                                        Full_JewelA_8x8();
+    void                                        Full_JewelA_4x4();
+    void                                        Full_JewelA_EachQuad_4x4();
+    void                                        Quad_JewelA_4x4_A();
+    void                                        Quad_JewelA_4x4_B();
+    void                                        Quad_JewelA_4x4_C();
+    void                                        Quad_JewelA_4x4_D();
+
+
+    void                                        Full_JewelB_8x8();
+    void                                        Full_JewelB_4x4();
+    void                                        Full_JewelB_EachQuad_4x4();
+    void                                        Quad_JewelB_4x4_A();
+    void                                        Quad_JewelB_4x4_B();
+    void                                        Quad_JewelB_4x4_C();
+    void                                        Quad_JewelB_4x4_D();
+
+
+    void                                        Full_JewelC_8x8();
+    void                                        Full_JewelC_4x4();
+    void                                        Full_JewelC_EachQuad_4x4();
+    void                                        Quad_JewelC_4x4_A();
+    void                                        Quad_JewelC_4x4_B();
+    void                                        Quad_JewelC_4x4_C();
+    void                                        Quad_JewelC_4x4_D();
+
+
+    void                                        Full_JewelD_8x8();
+    void                                        Full_JewelD_4x4();
+    void                                        Full_JewelD_EachQuad_4x4();
+    void                                        Quad_JewelD_4x4_A();
+    void                                        Quad_JewelD_4x4_B();
+    void                                        Quad_JewelD_4x4_C();
+    void                                        Quad_JewelD_4x4_D();
+    
+    void                                        Full_CrystalA_8x8();
+    void                                        Full_CrystalA_4x4();
+    void                                        Full_CrystalA_EachQuad_4x4();
+    void                                        Quad_CrystalA_4x4_A();
+    void                                        Quad_CrystalA_4x4_B();
+    void                                        Quad_CrystalA_4x4_C();
+    void                                        Quad_CrystalA_4x4_D();
+    
+    
+    
+    void                                        Full_CrystalC_8x8();
+    void                                        Full_CrystalC_4x4();
+    void                                        Full_CrystalC_EachQuad_4x4();
+    void                                        Quad_CrystalC_4x4_A();
+    void                                        Quad_CrystalC_4x4_B();
+    void                                        Quad_CrystalC_4x4_C();
+    void                                        Quad_CrystalC_4x4_D();
+    
+    
+    
+    void                                        Full_CrystalB_8x8();
+    void                                        Full_CrystalB_4x4();
+    void                                        Full_CrystalB_EachQuad_4x4();
+    void                                        Quad_CrystalB_4x4_A();
+    void                                        Quad_CrystalB_4x4_B();
+    void                                        Quad_CrystalB_4x4_C();
+    void                                        Quad_CrystalB_4x4_D();
+    
+    
+    void                                        Full_CrystalD_8x8();
+    void                                        Full_CrystalD_4x4();
+    void                                        Full_CrystalD_EachQuad_4x4();
+    void                                        Quad_CrystalD_4x4_A();
+    void                                        Quad_CrystalD_4x4_B();
+    void                                        Quad_CrystalD_4x4_C();
+    void                                        Quad_CrystalD_4x4_D();
+    
+    
+    
+    
+    void                                        Full_OpalA_8x8();
+    void                                        Full_OpalA_4x4();
+    void                                        Full_OpalA_EachQuad_4x4();
+    void                                        Quad_OpalA_4x4_A();
+    void                                        Quad_OpalA_4x4_B();
+    void                                        Quad_OpalA_4x4_C();
+    void                                        Quad_OpalA_4x4_D();
+    
+
+    
+    void                                        Full_OpalC_8x8();
+    void                                        Full_OpalC_4x4();
+    void                                        Full_OpalC_EachQuad_4x4();
+    void                                        Quad_OpalC_4x4_A();
+    void                                        Quad_OpalC_4x4_B();
+    void                                        Quad_OpalC_4x4_C();
+    void                                        Quad_OpalC_4x4_D();
+    
+    
+    void                                        Full_OpalB_8x8();
+    void                                        Full_OpalB_4x4();
+    void                                        Full_OpalB_EachQuad_4x4();
+    void                                        Quad_OpalB_4x4_A();
+    void                                        Quad_OpalB_4x4_B();
+    void                                        Quad_OpalB_4x4_C();
+    void                                        Quad_OpalB_4x4_D();
+    
+    
+    void                                        Full_OpalD_8x8();
+    void                                        Full_OpalD_4x4();
+    void                                        Full_OpalD_EachQuad_4x4();
+    void                                        Quad_OpalD_4x4_A();
+    void                                        Quad_OpalD_4x4_B();
+    void                                        Quad_OpalD_4x4_C();
+    void                                        Quad_OpalD_4x4_D();
+    
+    
+    
+    
+    
+    void                                        Full_PeridotA_8x8();
+    void                                        Full_PeridotA_4x4();
+    void                                        Full_PeridotA_EachQuad_4x4();
+    void                                        Quad_PeridotA_4x4_A();
+    void                                        Quad_PeridotA_4x4_B();
+    void                                        Quad_PeridotA_4x4_C();
+    void                                        Quad_PeridotA_4x4_D();
+    
+    
+    void                                        Full_PeridotB_8x8();
+    void                                        Full_PeridotB_4x4();
+    void                                        Full_PeridotB_EachQuad_4x4();
+    void                                        Quad_PeridotB_4x4_A();
+    void                                        Quad_PeridotB_4x4_B();
+    void                                        Quad_PeridotB_4x4_C();
+    void                                        Quad_PeridotB_4x4_D();
+    
+    
+    void                                        Full_PeridotC_8x8();
+    void                                        Full_PeridotC_4x4();
+    void                                        Full_PeridotC_EachQuad_4x4();
+    void                                        Quad_PeridotC_4x4_A();
+    void                                        Quad_PeridotC_4x4_B();
+    void                                        Quad_PeridotC_4x4_C();
+    void                                        Quad_PeridotC_4x4_D();
+    
+    
+    void                                        Full_PeridotD_8x8();
+    void                                        Full_PeridotD_4x4();
+    void                                        Full_PeridotD_EachQuad_4x4();
+    void                                        Quad_PeridotD_4x4_A();
+    void                                        Quad_PeridotD_4x4_B();
+    void                                        Quad_PeridotD_4x4_C();
+    void                                        Quad_PeridotD_4x4_D();
+    
+    
+    
+    
+    void                                        Full_SwanA_4x4();
+    void                                        Full_SwanA_EachQuad_4x4();
+    void                                        Quad_SwanA_4x4_A();
+    void                                        Quad_SwanA_4x4_B();
+    void                                        Quad_SwanA_4x4_C();
+    void                                        Quad_SwanA_4x4_D();
+    void                                        Full_SwanB_4x4();
+    void                                        Full_SwanB_EachQuad_4x4();
+    void                                        Quad_SwanB_4x4_A();
+    void                                        Quad_SwanB_4x4_B();
+    void                                        Quad_SwanB_4x4_C();
+    void                                        Quad_SwanB_4x4_D();
+    void                                        Full_SwanC_4x4();
+    void                                        Full_SwanC_EachQuad_4x4();
+    void                                        Quad_SwanC_4x4_A();
+    void                                        Quad_SwanC_4x4_B();
+    void                                        Quad_SwanC_4x4_C();
+    void                                        Quad_SwanC_4x4_D();
+    void                                        Full_SwanD_4x4();
+    void                                        Full_SwanD_EachQuad_4x4();
+    void                                        Quad_SwanD_4x4_A();
+    void                                        Quad_SwanD_4x4_B();
+    void                                        Quad_SwanD_4x4_C();
+    void                                        Quad_SwanD_4x4_D();
+    void                                        Full_GooseA_4x4();
+    void                                        Full_GooseA_EachQuad_4x4();
+    void                                        Quad_GooseA_4x4_A();
+    void                                        Quad_GooseA_4x4_B();
+    void                                        Quad_GooseA_4x4_C();
+    void                                        Quad_GooseA_4x4_D();
+    void                                        Full_GooseB_4x4();
+    void                                        Full_GooseB_EachQuad_4x4();
+    void                                        Quad_GooseB_4x4_A();
+    void                                        Quad_GooseB_4x4_B();
+    void                                        Quad_GooseB_4x4_C();
+    void                                        Quad_GooseB_4x4_D();
+    void                                        Full_GooseC_4x4();
+    void                                        Full_GooseC_EachQuad_4x4();
+    void                                        Quad_GooseC_4x4_A();
+    void                                        Quad_GooseC_4x4_B();
+    void                                        Quad_GooseC_4x4_C();
+    void                                        Quad_GooseC_4x4_D();
+    void                                        Full_GooseD_4x4();
+    void                                        Full_GooseD_EachQuad_4x4();
+    void                                        Quad_GooseD_4x4_A();
+    void                                        Quad_GooseD_4x4_B();
+    void                                        Quad_GooseD_4x4_C();
+    void                                        Quad_GooseD_4x4_D();
+
+// ============================================================
+// 8x8 HPP
+// ============================================================
+
+    void                                        Full_SwanA_8x8();
+    void                                        Full_SwanB_8x8();
+    void                                        Full_SwanC_8x8();
+    void                                        Full_SwanD_8x8();
+    void                                        Full_GooseA_8x8();
+    void                                        Full_GooseB_8x8();
+    void                                        Full_GooseC_8x8();
+    void                                        Full_GooseD_8x8();
+    
+    
+    
+    
+    void                                        Full_HeronA_4x4();
+    void                                        Full_HeronA_EachQuad_4x4();
+    void                                        Quad_HeronA_4x4_A();
+    void                                        Quad_HeronA_4x4_B();
+    void                                        Quad_HeronA_4x4_C();
+    void                                        Quad_HeronA_4x4_D();
+    void                                        Full_HeronB_4x4();
+    void                                        Full_HeronB_EachQuad_4x4();
+    void                                        Quad_HeronB_4x4_A();
+    void                                        Quad_HeronB_4x4_B();
+    void                                        Quad_HeronB_4x4_C();
+    void                                        Quad_HeronB_4x4_D();
+    void                                        Full_HeronC_4x4();
+    void                                        Full_HeronC_EachQuad_4x4();
+    void                                        Quad_HeronC_4x4_A();
+    void                                        Quad_HeronC_4x4_B();
+    void                                        Quad_HeronC_4x4_C();
+    void                                        Quad_HeronC_4x4_D();
+    void                                        Full_HeronD_4x4();
+    void                                        Full_HeronD_EachQuad_4x4();
+    void                                        Quad_HeronD_4x4_A();
+    void                                        Quad_HeronD_4x4_B();
+    void                                        Quad_HeronD_4x4_C();
+    void                                        Quad_HeronD_4x4_D();
+    void                                        Full_FalconA_4x4();
+    void                                        Full_FalconA_EachQuad_4x4();
+    void                                        Quad_FalconA_4x4_A();
+    void                                        Quad_FalconA_4x4_B();
+    void                                        Quad_FalconA_4x4_C();
+    void                                        Quad_FalconA_4x4_D();
+    void                                        Full_FalconB_4x4();
+    void                                        Full_FalconB_EachQuad_4x4();
+    void                                        Quad_FalconB_4x4_A();
+    void                                        Quad_FalconB_4x4_B();
+    void                                        Quad_FalconB_4x4_C();
+    void                                        Quad_FalconB_4x4_D();
+    void                                        Full_FalconC_4x4();
+    void                                        Full_FalconC_EachQuad_4x4();
+    void                                        Quad_FalconC_4x4_A();
+    void                                        Quad_FalconC_4x4_B();
+    void                                        Quad_FalconC_4x4_C();
+    void                                        Quad_FalconC_4x4_D();
+    void                                        Full_FalconD_4x4();
+    void                                        Full_FalconD_EachQuad_4x4();
+    void                                        Quad_FalconD_4x4_A();
+    void                                        Quad_FalconD_4x4_B();
+    void                                        Quad_FalconD_4x4_C();
+    void                                        Quad_FalconD_4x4_D();
+
+// ============================================================
+// 8x8 HPP
+// ============================================================
+
+    void                                        Full_HeronA_8x8();
+    void                                        Full_HeronB_8x8();
+    void                                        Full_HeronC_8x8();
+    void                                        Full_HeronD_8x8();
+    void                                        Full_FalconA_8x8();
+    void                                        Full_FalconB_8x8();
+    void                                        Full_FalconC_8x8();
+    void                                        Full_FalconD_8x8();
+    
+    
+    
     
 };
 

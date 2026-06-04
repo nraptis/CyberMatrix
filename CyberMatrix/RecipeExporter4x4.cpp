@@ -8,6 +8,7 @@
 #include <cstdio>
 #include <string>
 #include <vector>
+#include <sstream>
 
 #include "M88.hpp"
 #include "M88Slice.hpp"
@@ -17,8 +18,8 @@ char RecipeExporter4x4::Letter(int pIndex) {
 }
 
 void RecipeExporter4x4::PrintHPPFunction(const char *pFunctionName) {
-    std::printf("    void                                        %s();\n",
-                pFunctionName);
+    const std::string aText = BuildHPPFunction(pFunctionName);
+    std::printf("%s", aText.c_str());
 }
 
 void RecipeExporter4x4::Export(const Recipe4x4 &pRecipe) {
@@ -27,55 +28,121 @@ void RecipeExporter4x4::Export(const Recipe4x4 &pRecipe) {
     std::printf("// ============================================================\n\n");
 
     std::printf("// ---------- HPP ----------\n");
-    ExportHPP(pRecipe);
+    std::printf("%s", BuildHPP(pRecipe).c_str());
 
     std::printf("\n// ---------- CPP ----------\n");
-    ExportCPP(pRecipe);
+    std::printf("%s", BuildCPP(pRecipe).c_str());
 }
 
 void RecipeExporter4x4::ExportHPP(const Recipe4x4 &pRecipe) {
-    ExportFullHPP(pRecipe);
-    ExportRepeatedHPP(pRecipe);
-    ExportQuadHPP(pRecipe);
+    std::printf("%s", BuildHPP(pRecipe).c_str());
 }
 
 void RecipeExporter4x4::ExportCPP(const Recipe4x4 &pRecipe) {
-    ExportFullCPP(pRecipe);
-    ExportRepeatedCPP(pRecipe);
-    ExportQuadCPP(pRecipe);
+    std::printf("%s", BuildCPP(pRecipe).c_str());
 }
 
 void RecipeExporter4x4::ExportFullHPP(const Recipe4x4 &pRecipe) {
-    std::string aName = "Full_";
-    aName += pRecipe.mName;
-    aName += "_4x4";
-
-    PrintHPPFunction(aName.c_str());
+    std::printf("%s", BuildFullHPP(pRecipe).c_str());
 }
 
 void RecipeExporter4x4::ExportRepeatedHPP(const Recipe4x4 &pRecipe) {
-    std::string aName = "Full_";
-    aName += pRecipe.mName;
-    aName += "_EachQuad_4x4";
-
-    PrintHPPFunction(aName.c_str());
+    std::printf("%s", BuildRepeatedHPP(pRecipe).c_str());
 }
 
-void RecipeExporter4x4::ExportQuadHPP(const Recipe4x4 &pRecipe) {
-    for (int i = 0; i < 4; i++) {
-        std::string aName = "Quad_";
-        aName += pRecipe.mName;
-        aName += "_4x4_";
-        aName += Letter(i);
 
-        PrintHPPFunction(aName.c_str());
-    }
+void RecipeExporter4x4::ExportQuadHPP(const Recipe4x4 &pRecipe) {
+    std::printf("%s", BuildQuadHPP(pRecipe).c_str());
+}
+
+void RecipeExporter4x4::ExportFullCPP(const Recipe4x4 &pRecipe) {
+    std::printf("%s", BuildFullCPP(pRecipe).c_str());
+}
+
+void RecipeExporter4x4::ExportQuadCPP(const Recipe4x4 &pRecipe) {
+    std::printf("%s", BuildQuadCPP(pRecipe).c_str());
+}
+
+void RecipeExporter4x4::ExportRepeatedCPP(const Recipe4x4 &pRecipe) {
+    std::printf("%s", BuildRepeatedCPP(pRecipe).c_str());
 }
 
 void RecipeExporter4x4::ExportOneCPP(const Recipe4x4 &pRecipe,
                                       const char *pFunctionName,
                                       int pRegionKind,
                                       int pRegionIndex) {
+    std::printf("%s",
+                BuildOneCPP(pRecipe,
+                            pFunctionName,
+                            pRegionKind,
+                            pRegionIndex).c_str());
+}
+
+std::string RecipeExporter4x4::BuildHPPFunction(const char *pFunctionName) {
+    std::ostringstream aStream;
+
+    aStream << "    void                                        "
+            << pFunctionName
+            << "();\n";
+
+    return aStream.str();
+}
+
+std::string RecipeExporter4x4::BuildHPP(const Recipe4x4 &pRecipe) {
+    std::ostringstream aStream;
+
+    aStream << BuildFullHPP(pRecipe);
+    aStream << BuildRepeatedHPP(pRecipe);
+    aStream << BuildQuadHPP(pRecipe);
+
+    return aStream.str();
+}
+
+std::string RecipeExporter4x4::BuildCPP(const Recipe4x4 &pRecipe) {
+    std::ostringstream aStream;
+
+    aStream << BuildFullCPP(pRecipe);
+    aStream << BuildRepeatedCPP(pRecipe);
+    aStream << BuildQuadCPP(pRecipe);
+
+    return aStream.str();
+}
+
+std::string RecipeExporter4x4::BuildFullHPP(const Recipe4x4 &pRecipe) {
+    std::string aName = "Full_";
+    aName += pRecipe.mName;
+    aName += "_4x4";
+
+    return BuildHPPFunction(aName.c_str());
+}
+
+std::string RecipeExporter4x4::BuildRepeatedHPP(const Recipe4x4 &pRecipe) {
+    std::string aName = "Full_";
+    aName += pRecipe.mName;
+    aName += "_EachQuad_4x4";
+
+    return BuildHPPFunction(aName.c_str());
+}
+
+std::string RecipeExporter4x4::BuildQuadHPP(const Recipe4x4 &pRecipe) {
+    std::ostringstream aStream;
+
+    for (int i = 0; i < 4; i++) {
+        std::string aName = "Quad_";
+        aName += pRecipe.mName;
+        aName += "_4x4_";
+        aName += Letter(i);
+
+        aStream << BuildHPPFunction(aName.c_str());
+    }
+
+    return aStream.str();
+}
+
+std::string RecipeExporter4x4::BuildOneCPP(const Recipe4x4 &pRecipe,
+                                           const char *pFunctionName,
+                                           int pRegionKind,
+                                           int pRegionIndex) {
     M88 aMatrix;
     aMatrix.Reset();
 
@@ -98,41 +165,50 @@ void RecipeExporter4x4::ExportOneCPP(const Recipe4x4 &pRecipe,
     std::vector<std::string> aNameChunks;
     aNameChunks.push_back(pFunctionName);
 
-    aSlice.PrintCPP(aNameChunks);
+    return aSlice.BuildCPP(aNameChunks);
 }
 
-void RecipeExporter4x4::ExportFullCPP(const Recipe4x4 &pRecipe) {
+std::string RecipeExporter4x4::BuildFullCPP(const Recipe4x4 &pRecipe) {
     std::string aName = "Full_";
     aName += pRecipe.mName;
     aName += "_4x4";
 
-    ExportOneCPP(pRecipe, aName.c_str(), 0, 0);
+    return BuildOneCPP(pRecipe, aName.c_str(), 0, 0);
 }
 
-void RecipeExporter4x4::ExportQuadCPP(const Recipe4x4 &pRecipe) {
+std::string RecipeExporter4x4::BuildQuadCPP(const Recipe4x4 &pRecipe) {
+    std::ostringstream aStream;
+
     for (int i = 0; i < 4; i++) {
         std::string aName = "Quad_";
         aName += pRecipe.mName;
         aName += "_4x4_";
         aName += Letter(i);
 
-        ExportOneCPP(pRecipe, aName.c_str(), 1, i);
+        aStream << BuildOneCPP(pRecipe, aName.c_str(), 1, i);
     }
+
+    return aStream.str();
 }
 
-void RecipeExporter4x4::ExportRepeatedCPP(const Recipe4x4 &pRecipe) {
+std::string RecipeExporter4x4::BuildRepeatedCPP(const Recipe4x4 &pRecipe) {
+    std::ostringstream aStream;
+
     std::string aName = "Full_";
     aName += pRecipe.mName;
     aName += "_EachQuad_4x4";
 
-    std::printf("void M88::%s() {\n", aName.c_str());
+    aStream << "void M88::" << aName << "() {\n";
 
     for (int i = 0; i < 4; i++) {
-        std::printf("    Quad_%s_4x4_%c();\n",
-                    pRecipe.mName,
-                    Letter(i));
+        aStream << "    Quad_"
+                << pRecipe.mName
+                << "_4x4_"
+                << Letter(i)
+                << "();\n";
     }
 
-    std::printf("}\n\n");
-}
+    aStream << "}\n\n";
 
+    return aStream.str();
+}

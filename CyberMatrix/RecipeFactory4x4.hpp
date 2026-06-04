@@ -29,34 +29,11 @@ public:
     
     static Recipe4x4        PinA();
     static Recipe4x4        PinB();
-    
-    static Recipe4x4        ReachA();
-    static Recipe4x4        ReachB();
-    static Recipe4x4        ReachC();
-    static Recipe4x4        ReachD();
-    
-    // hpp
-    static Recipe4x4        RollHor1();
-    static Recipe4x4        RollHor2();
-    static Recipe4x4        RollHor3();
 
-    static Recipe4x4        RollVer1();
-    static Recipe4x4        RollVer2();
-    static Recipe4x4        RollVer3();
-    
     static Recipe4x4        ShearA();
     static Recipe4x4        ShearB();
     static Recipe4x4        ShearC();
     static Recipe4x4        ShearD();
-
-    static Recipe4x4        SwapRows();
-    static Recipe4x4        SwapColums();
-    static Recipe4x4        SwapBoth();
-    
-    static Recipe4x4        FoldA();
-    static Recipe4x4        FoldB();
-    static Recipe4x4        FoldC();
-    static Recipe4x4        FoldD();
     
     static Recipe4x4        CastleA();
     static Recipe4x4        CastleB();
@@ -68,6 +45,49 @@ public:
     
     static Recipe4x4        FortressA();
     static Recipe4x4        FortressB();
+    
+    static Recipe4x4        JewelA();
+    static Recipe4x4        JewelB();
+    static Recipe4x4        JewelC();
+    static Recipe4x4        JewelD();
+    
+    
+    static Recipe4x4        CrystalA();
+    static Recipe4x4        CrystalC();
+    static Recipe4x4        CrystalB();
+    static Recipe4x4        CrystalD();
+    
+    
+    static Recipe4x4        OpalA();
+    static Recipe4x4        OpalC();
+    static Recipe4x4        OpalB();
+    static Recipe4x4        OpalD();
+    
+    
+    static Recipe4x4                    PeridotA();
+    static Recipe4x4                    PeridotB();
+    static Recipe4x4                    PeridotC();
+    static Recipe4x4                    PeridotD();
+    
+    
+    static Recipe4x4                    SwanA();
+    static Recipe4x4                    SwanB();
+    static Recipe4x4                    SwanC();
+    static Recipe4x4                    SwanD();
+    static Recipe4x4                    GooseA();
+    static Recipe4x4                    GooseB();
+    static Recipe4x4                    GooseC();
+    static Recipe4x4                    GooseD();
+    
+    static Recipe4x4                    HeronA();
+    static Recipe4x4                    HeronB();
+    static Recipe4x4                    HeronC();
+    static Recipe4x4                    HeronD();
+    static Recipe4x4                    FalconA();
+    static Recipe4x4                    FalconB();
+    static Recipe4x4                    FalconC();
+    static Recipe4x4                    FalconD();
+    
     
 private:
     static Recipe4x4 Make(const char *pName,

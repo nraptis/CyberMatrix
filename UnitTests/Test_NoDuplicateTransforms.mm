@@ -146,37 +146,12 @@ static std::vector<TransformEntry> BuildTransformList() {
         { "Full_SnakeD_EachMini_2x2", &M88::Full_SnakeD_EachMini_2x2 },
         { "Full_SnakeD_EachQuad_2x2", &M88::Full_SnakeD_EachQuad_2x2 },
 
-        { "Full_CastleA_4x4", &M88::Full_CastleA_4x4 },
-        { "Full_CastleA_EachQuad_4x4", &M88::Full_CastleA_EachQuad_4x4 },
-
-        { "Full_CastleB_4x4", &M88::Full_CastleB_4x4 },
-        { "Full_CastleB_EachQuad_4x4", &M88::Full_CastleB_EachQuad_4x4 },
-
-        { "Full_CastleC_4x4", &M88::Full_CastleC_4x4 },
-        { "Full_CastleC_EachQuad_4x4", &M88::Full_CastleC_EachQuad_4x4 },
-
-        { "Full_CastleD_4x4", &M88::Full_CastleD_4x4 },
-        { "Full_CastleD_EachQuad_4x4", &M88::Full_CastleD_EachQuad_4x4 },
 
         { "Full_TowerA_4x4", &M88::Full_TowerA_4x4 },
         { "Full_TowerA_EachQuad_4x4", &M88::Full_TowerA_EachQuad_4x4 },
 
         { "Full_TowerB_4x4", &M88::Full_TowerB_4x4 },
         { "Full_TowerB_EachQuad_4x4", &M88::Full_TowerB_EachQuad_4x4 },
-
-        { "Full_FortressA_4x4", &M88::Full_FortressA_4x4 },
-        { "Full_FortressA_EachQuad_4x4", &M88::Full_FortressA_EachQuad_4x4 },
-
-        { "Full_FortressB_4x4", &M88::Full_FortressB_4x4 },
-        { "Full_FortressB_EachQuad_4x4", &M88::Full_FortressB_EachQuad_4x4 },
-
-        { "Full_PinA_4x4", &M88::Full_PinA_4x4 },
-        { "Full_PinA_8x8", &M88::Full_PinA_8x8 },
-        { "Full_PinA_EachQuad_4x4", &M88::Full_PinA_EachQuad_4x4 },
-
-        { "Full_PinB_4x4", &M88::Full_PinB_4x4 },
-        { "Full_PinB_8x8", &M88::Full_PinB_8x8 },
-        { "Full_PinB_EachQuad_4x4", &M88::Full_PinB_EachQuad_4x4 },
 
         { "Full_SwapA_2x2", &M88::Full_SwapA_2x2 },
         { "Full_SwapA_EachMini_2x2", &M88::Full_SwapA_EachMini_2x2 },
@@ -186,41 +161,13 @@ static std::vector<TransformEntry> BuildTransformList() {
         { "Full_SwapB_EachMini_2x2", &M88::Full_SwapB_EachMini_2x2 },
         { "Full_SwapB_EachQuad_2x2", &M88::Full_SwapB_EachQuad_2x2 },
 
-        { "Full_SwapBoth_4x4", &M88::Full_SwapBoth_4x4 },
-        { "Full_SwapBoth_8x8", &M88::Full_SwapBoth_8x8 },
-        { "Full_SwapBoth_EachQuad_4x4", &M88::Full_SwapBoth_EachQuad_4x4 },
-
         { "Full_SwapC_2x2", &M88::Full_SwapC_2x2 },
         { "Full_SwapC_EachMini_2x2", &M88::Full_SwapC_EachMini_2x2 },
         { "Full_SwapC_EachQuad_2x2", &M88::Full_SwapC_EachQuad_2x2 },
 
-        { "Full_SwapColums_4x4", &M88::Full_SwapColums_4x4 },
-        { "Full_SwapColums_8x8", &M88::Full_SwapColums_8x8 },
-        { "Full_SwapColums_EachQuad_4x4", &M88::Full_SwapColums_EachQuad_4x4 },
-
         { "Full_SwapD_2x2", &M88::Full_SwapD_2x2 },
         { "Full_SwapD_EachMini_2x2", &M88::Full_SwapD_EachMini_2x2 },
         { "Full_SwapD_EachQuad_2x2", &M88::Full_SwapD_EachQuad_2x2 },
-
-        { "Full_SwapRows_4x4", &M88::Full_SwapRows_4x4 },
-        { "Full_SwapRows_8x8", &M88::Full_SwapRows_8x8 },
-        { "Full_SwapRows_EachQuad_4x4", &M88::Full_SwapRows_EachQuad_4x4 },
-
-        { "Full_ReachA_4x4", &M88::Full_ReachA_4x4 },
-        { "Full_ReachA_8x8", &M88::Full_ReachA_8x8 },
-        { "Full_ReachA_EachQuad_4x4", &M88::Full_ReachA_EachQuad_4x4 },
-
-        { "Full_ReachB_4x4", &M88::Full_ReachB_4x4 },
-        { "Full_ReachB_8x8", &M88::Full_ReachB_8x8 },
-        { "Full_ReachB_EachQuad_4x4", &M88::Full_ReachB_EachQuad_4x4 },
-
-        { "Full_ReachC_4x4", &M88::Full_ReachC_4x4 },
-        { "Full_ReachC_8x8", &M88::Full_ReachC_8x8 },
-        { "Full_ReachC_EachQuad_4x4", &M88::Full_ReachC_EachQuad_4x4 },
-
-        { "Full_ReachD_4x4", &M88::Full_ReachD_4x4 },
-        { "Full_ReachD_8x8", &M88::Full_ReachD_8x8 },
-        { "Full_ReachD_EachQuad_4x4", &M88::Full_ReachD_EachQuad_4x4 },
 
         { "Full_ShearA_4x4", &M88::Full_ShearA_4x4 },
         { "Full_ShearA_8x8", &M88::Full_ShearA_8x8 },
@@ -237,36 +184,6 @@ static std::vector<TransformEntry> BuildTransformList() {
         { "Full_ShearD_4x4", &M88::Full_ShearD_4x4 },
         { "Full_ShearD_8x8", &M88::Full_ShearD_8x8 },
         { "Full_ShearD_EachQuad_4x4", &M88::Full_ShearD_EachQuad_4x4 },
-
-        { "Full_RollHor1_4x4", &M88::Full_RollHor1_4x4 },
-        { "Full_RollHor1_EachQuad_4x4", &M88::Full_RollHor1_EachQuad_4x4 },
-
-        { "Full_RollHor2_4x4", &M88::Full_RollHor2_4x4 },
-        { "Full_RollHor2_EachQuad_4x4", &M88::Full_RollHor2_EachQuad_4x4 },
-
-        { "Full_RollHor3_4x4", &M88::Full_RollHor3_4x4 },
-        { "Full_RollHor3_EachQuad_4x4", &M88::Full_RollHor3_EachQuad_4x4 },
-
-        { "Full_RollVer1_4x4", &M88::Full_RollVer1_4x4 },
-        { "Full_RollVer1_EachQuad_4x4", &M88::Full_RollVer1_EachQuad_4x4 },
-
-        { "Full_RollVer2_4x4", &M88::Full_RollVer2_4x4 },
-        { "Full_RollVer2_EachQuad_4x4", &M88::Full_RollVer2_EachQuad_4x4 },
-
-        { "Full_RollVer3_4x4", &M88::Full_RollVer3_4x4 },
-        { "Full_RollVer3_EachQuad_4x4", &M88::Full_RollVer3_EachQuad_4x4 },
-
-        { "Full_FoldA_4x4", &M88::Full_FoldA_4x4 },
-        { "Full_FoldA_EachQuad_4x4", &M88::Full_FoldA_EachQuad_4x4 },
-
-        { "Full_FoldB_4x4", &M88::Full_FoldB_4x4 },
-        { "Full_FoldB_EachQuad_4x4", &M88::Full_FoldB_EachQuad_4x4 },
-
-        { "Full_FoldC_4x4", &M88::Full_FoldC_4x4 },
-        { "Full_FoldC_EachQuad_4x4", &M88::Full_FoldC_EachQuad_4x4 },
-
-        { "Full_FoldD_4x4", &M88::Full_FoldD_4x4 },
-        { "Full_FoldD_EachQuad_4x4", &M88::Full_FoldD_EachQuad_4x4 },
 
         { "Quad_RotA_2x2_A", &M88::Quad_RotA_2x2_A },
         { "Quad_RotA_2x2_B", &M88::Quad_RotA_2x2_B },
@@ -467,25 +384,6 @@ static std::vector<TransformEntry> BuildTransformList() {
         { "Quad_SnakeD_EachMini_2x2_C", &M88::Quad_SnakeD_EachMini_2x2_C },
         { "Quad_SnakeD_EachMini_2x2_D", &M88::Quad_SnakeD_EachMini_2x2_D },
 
-        { "Quad_CastleA_4x4_A", &M88::Quad_CastleA_4x4_A },
-        { "Quad_CastleA_4x4_B", &M88::Quad_CastleA_4x4_B },
-        { "Quad_CastleA_4x4_C", &M88::Quad_CastleA_4x4_C },
-        { "Quad_CastleA_4x4_D", &M88::Quad_CastleA_4x4_D },
-
-        { "Quad_CastleB_4x4_A", &M88::Quad_CastleB_4x4_A },
-        { "Quad_CastleB_4x4_B", &M88::Quad_CastleB_4x4_B },
-        { "Quad_CastleB_4x4_C", &M88::Quad_CastleB_4x4_C },
-        { "Quad_CastleB_4x4_D", &M88::Quad_CastleB_4x4_D },
-
-        { "Quad_CastleC_4x4_A", &M88::Quad_CastleC_4x4_A },
-        { "Quad_CastleC_4x4_B", &M88::Quad_CastleC_4x4_B },
-        { "Quad_CastleC_4x4_C", &M88::Quad_CastleC_4x4_C },
-        { "Quad_CastleC_4x4_D", &M88::Quad_CastleC_4x4_D },
-
-        { "Quad_CastleD_4x4_A", &M88::Quad_CastleD_4x4_A },
-        { "Quad_CastleD_4x4_B", &M88::Quad_CastleD_4x4_B },
-        { "Quad_CastleD_4x4_C", &M88::Quad_CastleD_4x4_C },
-        { "Quad_CastleD_4x4_D", &M88::Quad_CastleD_4x4_D },
 
         { "Quad_TowerA_4x4_A", &M88::Quad_TowerA_4x4_A },
         { "Quad_TowerA_4x4_B", &M88::Quad_TowerA_4x4_B },
@@ -497,25 +395,6 @@ static std::vector<TransformEntry> BuildTransformList() {
         { "Quad_TowerB_4x4_C", &M88::Quad_TowerB_4x4_C },
         { "Quad_TowerB_4x4_D", &M88::Quad_TowerB_4x4_D },
 
-        { "Quad_FortressA_4x4_A", &M88::Quad_FortressA_4x4_A },
-        { "Quad_FortressA_4x4_B", &M88::Quad_FortressA_4x4_B },
-        { "Quad_FortressA_4x4_C", &M88::Quad_FortressA_4x4_C },
-        { "Quad_FortressA_4x4_D", &M88::Quad_FortressA_4x4_D },
-
-        { "Quad_FortressB_4x4_A", &M88::Quad_FortressB_4x4_A },
-        { "Quad_FortressB_4x4_B", &M88::Quad_FortressB_4x4_B },
-        { "Quad_FortressB_4x4_C", &M88::Quad_FortressB_4x4_C },
-        { "Quad_FortressB_4x4_D", &M88::Quad_FortressB_4x4_D },
-
-        { "Quad_PinA_4x4_A", &M88::Quad_PinA_4x4_A },
-        { "Quad_PinA_4x4_B", &M88::Quad_PinA_4x4_B },
-        { "Quad_PinA_4x4_C", &M88::Quad_PinA_4x4_C },
-        { "Quad_PinA_4x4_D", &M88::Quad_PinA_4x4_D },
-
-        { "Quad_PinB_4x4_A", &M88::Quad_PinB_4x4_A },
-        { "Quad_PinB_4x4_B", &M88::Quad_PinB_4x4_B },
-        { "Quad_PinB_4x4_C", &M88::Quad_PinB_4x4_C },
-        { "Quad_PinB_4x4_D", &M88::Quad_PinB_4x4_D },
 
         { "Quad_SwapA_2x2_A", &M88::Quad_SwapA_2x2_A },
         { "Quad_SwapA_2x2_B", &M88::Quad_SwapA_2x2_B },
@@ -535,11 +414,6 @@ static std::vector<TransformEntry> BuildTransformList() {
         { "Quad_SwapB_EachMini_2x2_C", &M88::Quad_SwapB_EachMini_2x2_C },
         { "Quad_SwapB_EachMini_2x2_D", &M88::Quad_SwapB_EachMini_2x2_D },
 
-        { "Quad_SwapBoth_4x4_A", &M88::Quad_SwapBoth_4x4_A },
-        { "Quad_SwapBoth_4x4_B", &M88::Quad_SwapBoth_4x4_B },
-        { "Quad_SwapBoth_4x4_C", &M88::Quad_SwapBoth_4x4_C },
-        { "Quad_SwapBoth_4x4_D", &M88::Quad_SwapBoth_4x4_D },
-
         { "Quad_SwapC_2x2_A", &M88::Quad_SwapC_2x2_A },
         { "Quad_SwapC_2x2_B", &M88::Quad_SwapC_2x2_B },
         { "Quad_SwapC_2x2_C", &M88::Quad_SwapC_2x2_C },
@@ -549,11 +423,6 @@ static std::vector<TransformEntry> BuildTransformList() {
         { "Quad_SwapC_EachMini_2x2_C", &M88::Quad_SwapC_EachMini_2x2_C },
         { "Quad_SwapC_EachMini_2x2_D", &M88::Quad_SwapC_EachMini_2x2_D },
 
-        { "Quad_SwapColums_4x4_A", &M88::Quad_SwapColums_4x4_A },
-        { "Quad_SwapColums_4x4_B", &M88::Quad_SwapColums_4x4_B },
-        { "Quad_SwapColums_4x4_C", &M88::Quad_SwapColums_4x4_C },
-        { "Quad_SwapColums_4x4_D", &M88::Quad_SwapColums_4x4_D },
-
         { "Quad_SwapD_2x2_A", &M88::Quad_SwapD_2x2_A },
         { "Quad_SwapD_2x2_B", &M88::Quad_SwapD_2x2_B },
         { "Quad_SwapD_2x2_C", &M88::Quad_SwapD_2x2_C },
@@ -562,32 +431,7 @@ static std::vector<TransformEntry> BuildTransformList() {
         { "Quad_SwapD_EachMini_2x2_B", &M88::Quad_SwapD_EachMini_2x2_B },
         { "Quad_SwapD_EachMini_2x2_C", &M88::Quad_SwapD_EachMini_2x2_C },
         { "Quad_SwapD_EachMini_2x2_D", &M88::Quad_SwapD_EachMini_2x2_D },
-
-        { "Quad_SwapRows_4x4_A", &M88::Quad_SwapRows_4x4_A },
-        { "Quad_SwapRows_4x4_B", &M88::Quad_SwapRows_4x4_B },
-        { "Quad_SwapRows_4x4_C", &M88::Quad_SwapRows_4x4_C },
-        { "Quad_SwapRows_4x4_D", &M88::Quad_SwapRows_4x4_D },
-
-        { "Quad_ReachA_4x4_A", &M88::Quad_ReachA_4x4_A },
-        { "Quad_ReachA_4x4_B", &M88::Quad_ReachA_4x4_B },
-        { "Quad_ReachA_4x4_C", &M88::Quad_ReachA_4x4_C },
-        { "Quad_ReachA_4x4_D", &M88::Quad_ReachA_4x4_D },
-
-        { "Quad_ReachB_4x4_A", &M88::Quad_ReachB_4x4_A },
-        { "Quad_ReachB_4x4_B", &M88::Quad_ReachB_4x4_B },
-        { "Quad_ReachB_4x4_C", &M88::Quad_ReachB_4x4_C },
-        { "Quad_ReachB_4x4_D", &M88::Quad_ReachB_4x4_D },
-
-        { "Quad_ReachC_4x4_A", &M88::Quad_ReachC_4x4_A },
-        { "Quad_ReachC_4x4_B", &M88::Quad_ReachC_4x4_B },
-        { "Quad_ReachC_4x4_C", &M88::Quad_ReachC_4x4_C },
-        { "Quad_ReachC_4x4_D", &M88::Quad_ReachC_4x4_D },
-
-        { "Quad_ReachD_4x4_A", &M88::Quad_ReachD_4x4_A },
-        { "Quad_ReachD_4x4_B", &M88::Quad_ReachD_4x4_B },
-        { "Quad_ReachD_4x4_C", &M88::Quad_ReachD_4x4_C },
-        { "Quad_ReachD_4x4_D", &M88::Quad_ReachD_4x4_D },
-
+        
         { "Quad_ShearA_4x4_A", &M88::Quad_ShearA_4x4_A },
         { "Quad_ShearA_4x4_B", &M88::Quad_ShearA_4x4_B },
         { "Quad_ShearA_4x4_C", &M88::Quad_ShearA_4x4_C },
@@ -607,56 +451,7 @@ static std::vector<TransformEntry> BuildTransformList() {
         { "Quad_ShearD_4x4_B", &M88::Quad_ShearD_4x4_B },
         { "Quad_ShearD_4x4_C", &M88::Quad_ShearD_4x4_C },
         { "Quad_ShearD_4x4_D", &M88::Quad_ShearD_4x4_D },
-
-        { "Quad_RollHor1_4x4_A", &M88::Quad_RollHor1_4x4_A },
-        { "Quad_RollHor1_4x4_B", &M88::Quad_RollHor1_4x4_B },
-        { "Quad_RollHor1_4x4_C", &M88::Quad_RollHor1_4x4_C },
-        { "Quad_RollHor1_4x4_D", &M88::Quad_RollHor1_4x4_D },
-
-        { "Quad_RollHor2_4x4_A", &M88::Quad_RollHor2_4x4_A },
-        { "Quad_RollHor2_4x4_B", &M88::Quad_RollHor2_4x4_B },
-        { "Quad_RollHor2_4x4_C", &M88::Quad_RollHor2_4x4_C },
-        { "Quad_RollHor2_4x4_D", &M88::Quad_RollHor2_4x4_D },
-
-        { "Quad_RollHor3_4x4_A", &M88::Quad_RollHor3_4x4_A },
-        { "Quad_RollHor3_4x4_B", &M88::Quad_RollHor3_4x4_B },
-        { "Quad_RollHor3_4x4_C", &M88::Quad_RollHor3_4x4_C },
-        { "Quad_RollHor3_4x4_D", &M88::Quad_RollHor3_4x4_D },
-
-        { "Quad_RollVer1_4x4_A", &M88::Quad_RollVer1_4x4_A },
-        { "Quad_RollVer1_4x4_B", &M88::Quad_RollVer1_4x4_B },
-        { "Quad_RollVer1_4x4_C", &M88::Quad_RollVer1_4x4_C },
-        { "Quad_RollVer1_4x4_D", &M88::Quad_RollVer1_4x4_D },
-
-        { "Quad_RollVer2_4x4_A", &M88::Quad_RollVer2_4x4_A },
-        { "Quad_RollVer2_4x4_B", &M88::Quad_RollVer2_4x4_B },
-        { "Quad_RollVer2_4x4_C", &M88::Quad_RollVer2_4x4_C },
-        { "Quad_RollVer2_4x4_D", &M88::Quad_RollVer2_4x4_D },
-
-        { "Quad_RollVer3_4x4_A", &M88::Quad_RollVer3_4x4_A },
-        { "Quad_RollVer3_4x4_B", &M88::Quad_RollVer3_4x4_B },
-        { "Quad_RollVer3_4x4_C", &M88::Quad_RollVer3_4x4_C },
-        { "Quad_RollVer3_4x4_D", &M88::Quad_RollVer3_4x4_D },
-
-        { "Quad_FoldA_4x4_A", &M88::Quad_FoldA_4x4_A },
-        { "Quad_FoldA_4x4_B", &M88::Quad_FoldA_4x4_B },
-        { "Quad_FoldA_4x4_C", &M88::Quad_FoldA_4x4_C },
-        { "Quad_FoldA_4x4_D", &M88::Quad_FoldA_4x4_D },
-
-        { "Quad_FoldB_4x4_A", &M88::Quad_FoldB_4x4_A },
-        { "Quad_FoldB_4x4_B", &M88::Quad_FoldB_4x4_B },
-        { "Quad_FoldB_4x4_C", &M88::Quad_FoldB_4x4_C },
-        { "Quad_FoldB_4x4_D", &M88::Quad_FoldB_4x4_D },
-
-        { "Quad_FoldC_4x4_A", &M88::Quad_FoldC_4x4_A },
-        { "Quad_FoldC_4x4_B", &M88::Quad_FoldC_4x4_B },
-        { "Quad_FoldC_4x4_C", &M88::Quad_FoldC_4x4_C },
-        { "Quad_FoldC_4x4_D", &M88::Quad_FoldC_4x4_D },
-
-        { "Quad_FoldD_4x4_A", &M88::Quad_FoldD_4x4_A },
-        { "Quad_FoldD_4x4_B", &M88::Quad_FoldD_4x4_B },
-        { "Quad_FoldD_4x4_C", &M88::Quad_FoldD_4x4_C },
-        { "Quad_FoldD_4x4_D", &M88::Quad_FoldD_4x4_D },
+        
     };
 }
 

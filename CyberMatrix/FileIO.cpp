@@ -44,7 +44,7 @@ std::filesystem::path CompileTimeProjectRoot() {
 
 bool LooksLikeProjectRoot(const std::filesystem::path &pPath) {
     std::error_code aError;
-    return std::filesystem::exists(pPath / "MeanMachine.xcodeproj", aError);
+    return std::filesystem::exists(pPath / "CyberMatrix.xcodeproj", aError);
 }
 
 std::filesystem::path FindProjectRoot(const std::filesystem::path &pStart) {

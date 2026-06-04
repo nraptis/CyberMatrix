@@ -13,7 +13,8 @@
 #include <set>
 #include <algorithm>
 #include <cstdlib>
-
+#include <sstream>
+#include <unordered_map>
 
 Quint::Quint() {
     mXA = 0;
@@ -333,6 +334,10 @@ void Slice::_Weave(Quint &pQuintA, Quint &pQuintB) {
     mData[pQuintA.mXD][pQuintA.mYD] = mTempData[pQuintB.mXD][pQuintB.mYD]; mData[pQuintB.mXD][pQuintB.mYD] = mTempData[pQuintA.mXD][pQuintA.mYD];
 }
 
+void Slice::_Identity() {
+    
+}
+
 void Slice::_RotA(Quint &pQuint) {
     Quint aOther = pQuint;
     aOther.RotA();
@@ -430,182 +435,6 @@ void Slice::_FlipD() {
         for (std::size_t y = 0; y < mSize; y++) {
             const std::size_t aNewX = mSize - 1U - y;
             const std::size_t aNewY = mSize - 1U - x;
-            mData[aNewX][aNewY] = mTempData[x][y];
-        }
-    }
-}
-
-void Slice::_PinA() {
-    // Starts right:
-    // each ring's top-left corner moves to that ring's top-right corner.
-    _Pin(1);
-}
-
-void Slice::_PinB() {
-    // Starts left:
-    // reverse of PinA.
-    _Pin(-1);
-}
-
-void Slice::_Pin(int pStartDirection) {
-    const std::size_t aRingCount = mSize / 2U;
-
-    for (std::size_t aRing = 0U; aRing < aRingCount; aRing++) {
-        const std::size_t aMin = aRing;
-        const std::size_t aMax = mSize - 1U - aRing;
-        const std::size_t aSide = aMax - aMin + 1U;
-        const std::size_t aShift = aSide - 1U;
-
-        int aDirection = pStartDirection;
-
-        if ((aRing & 1U) != 0U) {
-            aDirection = -aDirection;
-        }
-
-        for (std::size_t aStep = 0U; aStep < aShift; aStep++) {
-            std::memcpy(mTempData, mData, sizeof(mTempData));
-
-            if (aDirection > 0) {
-                // Right / clockwise:
-                // top-left moves right along the top edge.
-                for (std::size_t x = aMin; x < aMax; x++) {
-                    mData[x + 1U][aMin] = mTempData[x][aMin];
-                }
-
-                for (std::size_t y = aMin; y < aMax; y++) {
-                    mData[aMax][y + 1U] = mTempData[aMax][y];
-                }
-
-                for (std::size_t x = aMax; x > aMin; x--) {
-                    mData[x - 1U][aMax] = mTempData[x][aMax];
-                }
-
-                for (std::size_t y = aMax; y > aMin; y--) {
-                    mData[aMin][y - 1U] = mTempData[aMin][y];
-                }
-            } else {
-                // Left / counter-clockwise:
-                // top-left moves down along the left edge.
-                for (std::size_t x = aMin; x < aMax; x++) {
-                    mData[x][aMin] = mTempData[x + 1U][aMin];
-                }
-
-                for (std::size_t y = aMin; y < aMax; y++) {
-                    mData[aMax][y] = mTempData[aMax][y + 1U];
-                }
-
-                for (std::size_t x = aMax; x > aMin; x--) {
-                    mData[x][aMax] = mTempData[x - 1U][aMax];
-                }
-
-                for (std::size_t y = aMax; y > aMin; y--) {
-                    mData[aMin][y] = mTempData[aMin][y - 1U];
-                }
-            }
-        }
-    }
-}
-
-void Slice::_ReachA() {
-    std::memcpy(mTempData, mData, sizeof(mTempData));
-    
-    for (std::size_t y = 0; y < mSize; y += 2) {
-        int aStartX = 1;
-        if ((y & 2) == 0) { aStartX = (1 - aStartX); }
-        for (std::size_t x = aStartX; x <= (mSize - 3); x += 4) {
-            mData[x][y] = mTempData[x + 2][y];
-            mData[x][y + 1] = mTempData[x + 2][y + 1];
-            
-            mData[x + 2][y] = mTempData[x][y];
-            mData[x + 2][y + 1] = mTempData[x][y + 1];
-            
-        }
-    }
-}
-
-void Slice::_ReachB() {
-    std::memcpy(mTempData, mData, sizeof(mTempData));
-    
-    for (std::size_t y = 0; y < mSize; y += 2) {
-        int aStartX = 0;
-        if ((y & 2) == 0) { aStartX = (1 - aStartX); }
-        for (std::size_t x = aStartX; x <= (mSize - 3); x += 4) {
-            mData[x][y] = mTempData[x + 2][y];
-            mData[x][y + 1] = mTempData[x + 2][y + 1];
-            
-            mData[x + 2][y] = mTempData[x][y];
-            mData[x + 2][y + 1] = mTempData[x][y + 1];
-            
-        }
-    }
-}
-
-void Slice::_ReachC() {
-    std::memcpy(mTempData, mData, sizeof(mTempData));
-    
-    for (std::size_t x = 0; x < mSize; x += 2) {
-        int aStartY = 1;
-        if ((x & 2) == 0) { aStartY = (1 - aStartY); }
-        
-        for (std::size_t y = aStartY; y <= (mSize - 3); y += 4) {
-            mData[x][y] = mTempData[x][y + 2];
-            mData[x + 1][y] = mTempData[x + 1][y + 2];
-            
-            mData[x][y + 2] = mTempData[x][y];
-            mData[x + 1][y + 2] = mTempData[x + 1][y];
-        }
-    }
-}
-
-void Slice::_ReachD() {
-    std::memcpy(mTempData, mData, sizeof(mTempData));
-    
-    for (std::size_t x = 0; x < mSize; x += 2) {
-        int aStartY = 0;
-        if ((x & 2) == 0) { aStartY = (1 - aStartY); }
-        
-        for (std::size_t y = aStartY; y <= (mSize - 3); y += 4) {
-            mData[x][y] = mTempData[x][y + 2];
-            mData[x + 1][y] = mTempData[x + 1][y + 2];
-            
-            mData[x][y + 2] = mTempData[x][y];
-            mData[x + 1][y + 2] = mTempData[x + 1][y];
-        }
-    }
-}
-
-
-
-void Slice::_SwapRows() {
-    std::memcpy(mTempData, mData, sizeof(mTempData));
-
-    for (std::size_t x = 0; x < mSize; x++) {
-        for (std::size_t y = 0; y < mSize; y += 2) {
-            mData[x][y] = mTempData[x][y + 1U];
-            mData[x][y + 1U] = mTempData[x][y];
-        }
-    }
-}
-
-void Slice::_SwapColumns() {
-    std::memcpy(mTempData, mData, sizeof(mTempData));
-
-    for (std::size_t x = 0; x < mSize; x += 2) {
-        for (std::size_t y = 0; y < mSize; y++) {
-            mData[x][y] = mTempData[x + 1U][y];
-            mData[x + 1U][y] = mTempData[x][y];
-        }
-    }
-}
-
-void Slice::_SwapBoth() {
-    std::memcpy(mTempData, mData, sizeof(mTempData));
-
-    for (std::size_t x = 0; x < mSize; x++) {
-        for (std::size_t y = 0; y < mSize; y++) {
-            const std::size_t aNewX = x ^ 1U;
-            const std::size_t aNewY = y ^ 1U;
-
             mData[aNewX][aNewY] = mTempData[x][y];
         }
     }
@@ -854,231 +683,373 @@ void Slice::PrintVerifyExpected(const std::string pClass, const std::string pTyp
 }
 
 void Slice::PrintRecipeFactory2x2(const std::string pName) const {
+    const std::string aHPP = BuildRecipeFactory2x2HPP(pName);
+    const std::string aCPP = BuildRecipeFactory2x2CPP(pName);
 
-    if (mSize != 2U) {
-        printf("// PrintRecipeFactory2x2 requires mSize == 2, got %zu\n", mSize);
-        return;
-    }
-
-    std::vector<int> aList;
-    for (int n = 0; n < mSize; n++) {
-        for (int i = 0; i < mSize; i++) {
-            aList.push_back(mData[i][n]);
-        }
-    }
-
-    std::sort(aList.begin(), aList.end());
-
-    std::unordered_map<int, int> aMap;
-    for (int i = 0; i < aList.size(); i++) {
-        aMap[aList[i]] = i;
-    }
-
-    printf("\tstatic Recipe2x2\t\t%s();\n\n", pName.c_str());
-
-    printf("Recipe2x2 RecipeFactory2x2::%s() {\n", pName.c_str());
-
-    auto Letter = [](int pValue) -> char {
-        return static_cast<char>('A' + pValue);
-    };
-
-    printf("\t//  A  B      %c  %c\n",
-           Letter(aMap[mData[0][0]]),
-           Letter(aMap[mData[1][0]]));
-
-    printf("\t//  C  D  ->  %c  %c\n",
-           Letter(aMap[mData[0][1]]),
-           Letter(aMap[mData[1][1]]));
-
-    printf("\treturn Make(\"%s\",\n", pName.c_str());
-
-    for (int n = 0; n < mSize; n++) {
-        printf("\t\t\t\t");
-
-        for (int i = 0; i < mSize; i++) {
-            printf("%2dU", aMap[mData[i][n]]);
-
-            const bool aLast = (n == (mSize - 1)) && (i == (mSize - 1));
-
-            if (!aLast) {
-                printf(", ");
-            }
-        }
-
-        printf("\n");
-    }
-
-    printf("\t);\n");
-    printf("}\n\n");
+    std::printf("%s\n", aHPP.c_str());
+    std::printf("%s", aCPP.c_str());
 }
 
 void Slice::PrintRecipeFactory4x4(const std::string pName) const {
+    const std::string aHPP = BuildRecipeFactory4x4HPP(pName);
+    const std::string aCPP = BuildRecipeFactory4x4CPP(pName);
 
-    if (mSize != 4U) {
-        printf("// PrintRecipeFactory4x4 requires mSize == 4, got %zu\n", mSize);
-        return;
-    }
-
-    std::vector<int> aList;
-    for (int n = 0; n < mSize; n++) {
-        for (int i = 0; i < mSize; i++) {
-            aList.push_back(mData[i][n]);
-        }
-    }
-
-    std::sort(aList.begin(), aList.end());
-
-    std::unordered_map<int, int> aMap;
-    for (int i = 0; i < aList.size(); i++) {
-        aMap[aList[i]] = i;
-    }
-
-    printf("\tstatic Recipe4x4\t\t%s();\n\n", pName.c_str());
-
-    printf("Recipe4x4 RecipeFactory4x4::%s() {\n", pName.c_str());
-
-    auto Letter = [](int pValue) -> char {
-        return static_cast<char>('A' + pValue);
-    };
-
-    printf("\t//  A  B  C  D      %c  %c  %c  %c\n",
-           Letter(aMap[mData[0][0]]),
-           Letter(aMap[mData[1][0]]),
-           Letter(aMap[mData[2][0]]),
-           Letter(aMap[mData[3][0]]));
-
-    printf("\t//  E  F  G  H  ->  %c  %c  %c  %c\n",
-           Letter(aMap[mData[0][1]]),
-           Letter(aMap[mData[1][1]]),
-           Letter(aMap[mData[2][1]]),
-           Letter(aMap[mData[3][1]]));
-
-    printf("\t//  I  J  K  L      %c  %c  %c  %c\n",
-           Letter(aMap[mData[0][2]]),
-           Letter(aMap[mData[1][2]]),
-           Letter(aMap[mData[2][2]]),
-           Letter(aMap[mData[3][2]]));
-
-    printf("\t//  M  N  O  P      %c  %c  %c  %c\n",
-           Letter(aMap[mData[0][3]]),
-           Letter(aMap[mData[1][3]]),
-           Letter(aMap[mData[2][3]]),
-           Letter(aMap[mData[3][3]]));
-
-    printf("\treturn Make(\"%s\",\n", pName.c_str());
-
-    for (int n = 0; n < mSize; n++) {
-        printf("\t\t\t\t");
-
-        for (int i = 0; i < mSize; i++) {
-            printf("%2dU", aMap[mData[i][n]]);
-
-            const bool aLast = (n == (mSize - 1)) && (i == (mSize - 1));
-
-            if (!aLast) {
-                printf(", ");
-            }
-        }
-
-        printf("\n");
-    }
-
-    printf("\t);\n");
-    printf("}\n\n");
+    std::printf("%s\n", aHPP.c_str());
+    std::printf("%s", aCPP.c_str());
 }
 
 
 void Slice::PrintRecipeFactory8x8(const std::string pName) const {
+    const std::string aHPP = BuildRecipeFactory8x8HPP(pName);
+    const std::string aCPP = BuildRecipeFactory8x8CPP(pName);
 
-    
-    if (mSize != 8U) {
-        printf("// PrintRecipeFactory8x8 requires mSize == 8, got %zu\n", mSize);
-        return;
+    std::printf("%s\n", aHPP.c_str());
+    std::printf("%s", aCPP.c_str());
+}
+
+std::string Slice::BuildRecipeFactory4x4HPP(const std::string &pName) const {
+    std::ostringstream aStream;
+
+    aStream << "    static Recipe4x4                    " << pName << "();\n";
+
+    return aStream.str();
+}
+
+std::string Slice::BuildRecipeFactory8x8HPP(const std::string &pName) const {
+    std::ostringstream aStream;
+
+    aStream << "    static Recipe8x8                    " << pName << "();\n";
+
+    return aStream.str();
+}
+
+std::string Slice::BuildRecipeFactory2x2HPP(const std::string &pName) const {
+    std::ostringstream aStream;
+
+    aStream << "    static Recipe2x2                    " << pName << "();\n";
+
+    return aStream.str();
+}
+
+std::string Slice::BuildRecipeFactory4x4CPP(const std::string &pName) const {
+    std::ostringstream aStream;
+
+    if (mSize != 4U) {
+        aStream << "// BuildRecipeFactory4x4CPP requires mSize == 4, got "
+                << mSize
+                << "\n";
+        return aStream.str();
     }
-    
-    auto PrintLabel = [](int pValue) {
-        const char aRow = static_cast<char>('A' + (pValue >> 3));
-        const char aCol = static_cast<char>('A' + (pValue & 7));
-        std::printf("%c%c", aRow, aCol);
-    };
-
-    auto PrintInputLabel = [](int pY, int pX) {
-        const char aRow = static_cast<char>('A' + pY);
-        const char aCol = static_cast<char>('A' + pX);
-        std::printf("%c%c", aRow, aCol);
-    };
 
     std::vector<int> aList;
-    for (int n = 0; n < mSize; n++) {
-        for (int i = 0; i < mSize; i++) {
-            aList.push_back(mData[i][n]);
+
+    for (int y = 0; y < static_cast<int>(mSize); y++) {
+        for (int x = 0; x < static_cast<int>(mSize); x++) {
+            aList.push_back(mData[x][y]);
         }
     }
 
     std::sort(aList.begin(), aList.end());
 
     std::unordered_map<int, int> aMap;
-    for (int i = 0; i < aList.size(); i++) {
+
+    for (int i = 0; i < static_cast<int>(aList.size()); i++) {
         aMap[aList[i]] = i;
     }
 
     auto Letter = [](int pValue) -> char {
-        if (pValue < 26) {
-            return static_cast<char>('A' + pValue);
-        }
-        return static_cast<char>('a' + (pValue - 26));
+        return static_cast<char>('A' + pValue);
     };
 
-    printf("\tstatic Recipe8x8\t\t%s();\n\n", pName.c_str());
+    aStream << "Recipe4x4 RecipeFactory4x4::" << pName << "() {\n";
 
-    printf("Recipe8x8 RecipeFactory8x8::%s() {\n", pName.c_str());
+    aStream << "    //  A  B  C  D      "
+            << Letter(aMap.at(mData[0][0])) << "  "
+            << Letter(aMap.at(mData[1][0])) << "  "
+            << Letter(aMap.at(mData[2][0])) << "  "
+            << Letter(aMap.at(mData[3][0])) << "\n";
+
+    aStream << "    //  E  F  G  H  ->  "
+            << Letter(aMap.at(mData[0][1])) << "  "
+            << Letter(aMap.at(mData[1][1])) << "  "
+            << Letter(aMap.at(mData[2][1])) << "  "
+            << Letter(aMap.at(mData[3][1])) << "\n";
+
+    aStream << "    //  I  J  K  L      "
+            << Letter(aMap.at(mData[0][2])) << "  "
+            << Letter(aMap.at(mData[1][2])) << "  "
+            << Letter(aMap.at(mData[2][2])) << "  "
+            << Letter(aMap.at(mData[3][2])) << "\n";
+
+    aStream << "    //  M  N  O  P      "
+            << Letter(aMap.at(mData[0][3])) << "  "
+            << Letter(aMap.at(mData[1][3])) << "  "
+            << Letter(aMap.at(mData[2][3])) << "  "
+            << Letter(aMap.at(mData[3][3])) << "\n";
+
+    aStream << "    return Make(\"" << pName << "\",\n";
+
+    for (int y = 0; y < static_cast<int>(mSize); y++) {
+        aStream << "                ";
+
+        for (int x = 0; x < static_cast<int>(mSize); x++) {
+            const int aValue = aMap.at(mData[x][y]);
+
+            if (aValue < 10) {
+                aStream << ' ';
+            }
+
+            aStream << aValue << "U";
+
+            const bool aLast =
+                (y == static_cast<int>(mSize) - 1) &&
+                (x == static_cast<int>(mSize) - 1);
+
+            if (!aLast) {
+                aStream << ", ";
+            }
+        }
+
+        aStream << "\n";
+    }
+
+    aStream << "    );\n";
+    aStream << "}\n\n";
+
+    return aStream.str();
+}
+
+std::string Slice::BuildCPP(std::vector<std::string> pNameChunks) const {
+    std::ostringstream aStream;
+
+    const std::string aName = BuildFunctionName(pNameChunks);
+    const std::vector<Cycle> aCycles = FindCycles();
+
+    const std::size_t kMaxStatementsPerLine = 8U;
+
+    aStream << "void M88::" << aName << "() {\n";
+
+    if (aCycles.empty()) {
+        aStream << "    // identity transform\n";
+        aStream << "}\n\n";
+        return aStream.str();
+    }
+
+    aStream << "    std::uint8_t aHold = 0;\n";
+
+    for (std::size_t i = 0; i < aCycles.size(); i++) {
+        const Cycle &aCycle = aCycles[i];
+
+        if (aCycle.mSlots.size() <= 1U) {
+            continue;
+        }
+
+        std::size_t aStatementsOnLine = 0U;
+
+        aStream << "    aHold = mData[" << aCycle.mSlots[0] << "];";
+        aStatementsOnLine++;
+
+        for (std::size_t j = 0; j + 1U < aCycle.mSlots.size(); j++) {
+            if (aStatementsOnLine >= kMaxStatementsPerLine) {
+                aStream << "\n    ";
+                aStatementsOnLine = 0U;
+            } else {
+                aStream << " ";
+            }
+
+            aStream << "mData[" << aCycle.mSlots[j] << "] = mData["
+                    << aCycle.mSlots[j + 1U] << "];";
+
+            aStatementsOnLine++;
+        }
+
+        if (aStatementsOnLine >= kMaxStatementsPerLine) {
+            aStream << "\n    ";
+        } else {
+            aStream << " ";
+        }
+
+        aStream << "mData[" << aCycle.mSlots[aCycle.mSlots.size() - 1U]
+                << "] = aHold;\n";
+    }
+
+    aStream << "}\n\n";
+
+    return aStream.str();
+}
+
+std::string Slice::BuildRecipeFactory8x8CPP(const std::string &pName) const {
+    std::ostringstream aStream;
+
+    if (mSize != 8U) {
+        aStream << "// BuildRecipeFactory8x8CPP requires mSize == 8, got "
+                << mSize
+                << "\n";
+        return aStream.str();
+    }
+
+    std::vector<int> aList;
+
+    for (int y = 0; y < static_cast<int>(mSize); y++) {
+        for (int x = 0; x < static_cast<int>(mSize); x++) {
+            aList.push_back(mData[x][y]);
+        }
+    }
+
+    std::sort(aList.begin(), aList.end());
+
+    std::unordered_map<int, int> aMap;
+
+    for (int i = 0; i < static_cast<int>(aList.size()); i++) {
+        aMap[aList[i]] = i;
+    }
+
+    auto AppendLabel = [](std::ostringstream &pStream, int pValue) {
+        const char aRow = static_cast<char>('A' + (pValue >> 3));
+        const char aCol = static_cast<char>('A' + (pValue & 7));
+
+        pStream << aRow << aCol;
+    };
+
+    auto AppendInputLabel = [](std::ostringstream &pStream, int pY, int pX) {
+        const char aRow = static_cast<char>('A' + pY);
+        const char aCol = static_cast<char>('A' + pX);
+
+        pStream << aRow << aCol;
+    };
+
+    aStream << "Recipe8x8 RecipeFactory8x8::" << pName << "() {\n";
 
     for (int y = 0; y < 8; y++) {
-        std::printf("\t//  ");
+        aStream << "    //  ";
 
         for (int x = 0; x < 8; x++) {
-            PrintInputLabel(y, x);
+            AppendInputLabel(aStream, y, x);
+
             if (x < 7) {
-                std::printf(" ");
+                aStream << " ";
             }
         }
 
         if (y == 1) {
-            std::printf("  ->  ");
+            aStream << "  ->  ";
         } else {
-            std::printf("      ");
+            aStream << "      ";
         }
 
         for (int x = 0; x < 8; x++) {
-            PrintLabel(aMap[mData[x][y]]);
+            AppendLabel(aStream, aMap.at(mData[x][y]));
+
             if (x < 7) {
-                std::printf(" ");
+                aStream << " ";
             }
         }
 
-        std::printf("\n");
+        aStream << "\n";
     }
 
-    printf("\treturn Make(\"%s\",\n", pName.c_str());
+    aStream << "    return Make(\"" << pName << "\",\n";
 
-    for (int n = 0; n < mSize; n++) {
-        printf("\t\t\t\t");
+    for (int y = 0; y < static_cast<int>(mSize); y++) {
+        aStream << "                ";
 
-        for (int i = 0; i < mSize; i++) {
-            printf("%2dU", aMap[mData[i][n]]);
+        for (int x = 0; x < static_cast<int>(mSize); x++) {
+            const int aValue = aMap.at(mData[x][y]);
 
-            const bool aLast = (n == (mSize - 1)) && (i == (mSize - 1));
+            if (aValue < 10) {
+                aStream << ' ';
+            }
+
+            aStream << aValue << "U";
+
+            const bool aLast =
+                (y == static_cast<int>(mSize) - 1) &&
+                (x == static_cast<int>(mSize) - 1);
 
             if (!aLast) {
-                printf(", ");
+                aStream << ", ";
             }
         }
 
-        printf("\n");
+        aStream << "\n";
     }
 
-    printf("\t);\n");
-    printf("}\n\n");
+    aStream << "    );\n";
+    aStream << "}\n\n";
+
+    return aStream.str();
+}
+
+std::string Slice::BuildRecipeFactory2x2CPP(const std::string &pName) const {
+    std::ostringstream aStream;
+
+    if (mSize != 2U) {
+        aStream << "// BuildRecipeFactory2x2CPP requires mSize == 2, got "
+                << mSize
+                << "\n";
+        return aStream.str();
+    }
+
+    std::vector<int> aList;
+
+    for (int y = 0; y < static_cast<int>(mSize); y++) {
+        for (int x = 0; x < static_cast<int>(mSize); x++) {
+            aList.push_back(mData[x][y]);
+        }
+    }
+
+    std::sort(aList.begin(), aList.end());
+
+    std::unordered_map<int, int> aMap;
+
+    for (int i = 0; i < static_cast<int>(aList.size()); i++) {
+        aMap[aList[i]] = i;
+    }
+
+    auto Letter = [](int pValue) -> char {
+        return static_cast<char>('A' + pValue);
+    };
+
+    aStream << "Recipe2x2 RecipeFactory2x2::" << pName << "() {\n";
+
+    aStream << "    //  A  B      "
+            << Letter(aMap.at(mData[0][0])) << "  "
+            << Letter(aMap.at(mData[1][0])) << "\n";
+
+    aStream << "    //  C  D  ->  "
+            << Letter(aMap.at(mData[0][1])) << "  "
+            << Letter(aMap.at(mData[1][1])) << "\n";
+
+    aStream << "    return Make(\"" << pName << "\",\n";
+
+    for (int y = 0; y < static_cast<int>(mSize); y++) {
+        aStream << "                ";
+
+        for (int x = 0; x < static_cast<int>(mSize); x++) {
+            const int aValue = aMap.at(mData[x][y]);
+
+            if (aValue < 10) {
+                aStream << ' ';
+            }
+
+            aStream << aValue << "U";
+
+            const bool aLast =
+                (y == static_cast<int>(mSize) - 1) &&
+                (x == static_cast<int>(mSize) - 1);
+
+            if (!aLast) {
+                aStream << ", ";
+            }
+        }
+
+        aStream << "\n";
+    }
+
+    aStream << "    );\n";
+    aStream << "}\n\n";
+
+    return aStream.str();
 }
 
 std::string Slice::BuildFunctionName(std::vector<std::string> pNameChunks) {
@@ -1153,3 +1124,277 @@ void Slice::PrintCPP(std::vector<std::string> pNameChunks) const {
 
     std::printf("}\n\n");
 }
+
+int Slice::_PositiveModulo(int pValue, int pMod) {
+    int aResult = pValue % pMod;
+
+    if (aResult < 0) {
+        aResult += pMod;
+    }
+
+    return aResult;
+}
+
+void Slice::_SpiralRect(std::size_t pX,
+                        std::size_t pY,
+                        std::size_t pWidth,
+                        std::size_t pHeight,
+                        int pAmount) {
+    std::vector<std::pair<std::size_t, std::size_t>> aPath;
+
+    if (pWidth == 0U || pHeight == 0U) {
+        return;
+    }
+
+    if (pWidth == 1U && pHeight == 1U) {
+        return;
+    }
+
+    // Top edge, left to right.
+    for (std::size_t x = 0U; x < pWidth; x++) {
+        aPath.push_back({ pX + x, pY });
+    }
+
+    // Right edge, top + 1 to bottom.
+    for (std::size_t y = 1U; y < pHeight; y++) {
+        aPath.push_back({ pX + pWidth - 1U, pY + y });
+    }
+
+    // Bottom edge, right - 1 to left.
+    if (pHeight > 1U) {
+        for (std::size_t x = pWidth - 1U; x-- > 0U;) {
+            aPath.push_back({ pX + x, pY + pHeight - 1U });
+        }
+    }
+
+    // Left edge, bottom - 1 to top + 1.
+    if (pWidth > 1U) {
+        for (std::size_t y = pHeight - 1U; y-- > 1U;) {
+            aPath.push_back({ pX, pY + y });
+        }
+    }
+
+    const int aCount = static_cast<int>(aPath.size());
+
+    if (aCount <= 1) {
+        return;
+    }
+
+    const int aShift = _PositiveModulo(pAmount, aCount);
+
+    if (aShift == 0) {
+        return;
+    }
+
+    std::memcpy(mTempData, mData, sizeof(mTempData));
+
+    for (std::size_t i = 0U; i < aPath.size(); i++) {
+        const std::size_t aDestIndex = static_cast<std::size_t>(
+            _PositiveModulo(static_cast<int>(i) + aShift, aCount)
+        );
+
+        const std::size_t aSourceX = aPath[i].first;
+        const std::size_t aSourceY = aPath[i].second;
+
+        const std::size_t aDestX = aPath[aDestIndex].first;
+        const std::size_t aDestY = aPath[aDestIndex].second;
+
+        mData[aDestX][aDestY] = mTempData[aSourceX][aSourceY];
+    }
+}
+
+void Slice::_JewelA() {
+    const int aShift = static_cast<int>(mSize / 2U);
+
+    // Horizontal bands: top half-style rows in 2-row strips.
+    // First band forward, second band backward, alternating.
+    for (std::size_t y = 0U; y + 1U < mSize; y += 2U) {
+        const int aAmount = ((y / 2U) & 1U) == 0U ? aShift : -aShift;
+        _SpiralRect(0U, y, mSize, 2U, aAmount);
+    }
+}
+
+void Slice::_JewelB() {
+    const int aShift = static_cast<int>(mSize / 2U);
+
+    // Same as JewelA, reversed signs.
+    for (std::size_t y = 0U; y + 1U < mSize; y += 2U) {
+        const int aAmount = ((y / 2U) & 1U) == 0U ? -aShift : aShift;
+        _SpiralRect(0U, y, mSize, 2U, aAmount);
+    }
+}
+
+void Slice::_JewelC() {
+    const int aShift = static_cast<int>(mSize / 2U);
+
+    // Vertical bands: 2-column strips.
+    // First band forward, second band backward, alternating.
+    for (std::size_t x = 0U; x + 1U < mSize; x += 2U) {
+        const int aAmount = ((x / 2U) & 1U) == 0U ? aShift : -aShift;
+        _SpiralRect(x, 0U, 2U, mSize, aAmount);
+    }
+}
+
+void Slice::_JewelD() {
+    const int aShift = static_cast<int>(mSize / 2U);
+
+    // Same as JewelC, reversed signs.
+    for (std::size_t x = 0U; x + 1U < mSize; x += 2U) {
+        const int aAmount = ((x / 2U) & 1U) == 0U ? -aShift : aShift;
+        _SpiralRect(x, 0U, 2U, mSize, aAmount);
+    }
+}
+
+void Slice::_ZigZagA() {
+    std::memcpy(mTempData, mData, sizeof(mTempData));
+
+    // Pattern:
+    //
+    // a x b x      f x e x
+    // c x d x  ->  h x g x
+    // x e x f      x a x b
+    // x g x h      x c x d
+
+    const std::size_t aHalf = mSize / 2U;
+
+    for (std::size_t y = 0U; y < aHalf; y++) {
+        for (std::size_t x = 0U; x < mSize; x += 2U) {
+            const std::size_t aDestX = x + 1U;
+            const std::size_t aDestY = y + aHalf;
+
+            mData[aDestX][aDestY] = mTempData[x][y];
+        }
+    }
+
+    for (std::size_t y = aHalf; y < mSize; y++) {
+        for (std::size_t x = 1U; x < mSize; x += 2U) {
+            const std::size_t aDestX = (x + 1U) % mSize;
+            const std::size_t aDestY = y - aHalf;
+
+            mData[aDestX][aDestY] = mTempData[x][y];
+        }
+    }
+}
+
+void Slice::_ZigZagB() {
+    std::memcpy(mTempData, mData, sizeof(mTempData));
+
+    // Pattern:
+    //
+    // x a x b      x e x f
+    // x c x d  ->  x g x h
+    // e x f x      b x a x
+    // g x h x      d x c x
+
+    const std::size_t aHalf = mSize / 2U;
+
+    for (std::size_t y = 0U; y < aHalf; y++) {
+        for (std::size_t x = 1U; x < mSize; x += 2U) {
+            const std::size_t aDestX = x - 1U;
+            const std::size_t aDestY = y + aHalf;
+
+            mData[aDestX][aDestY] = mTempData[x][y];
+        }
+    }
+
+    for (std::size_t y = aHalf; y < mSize; y++) {
+        for (std::size_t x = 0U; x < mSize; x += 2U) {
+            const std::size_t aDestX = x + 1U;
+            const std::size_t aDestY = y - aHalf;
+
+            mData[aDestX][aDestY] = mTempData[x][y];
+        }
+    }
+}
+
+void Slice::_ZigZagC() {
+    std::memcpy(mTempData, mData, sizeof(mTempData));
+
+    // Pattern:
+    //
+    // a x b x      e x f x
+    // c x d x  ->  g x h x
+    // x e x f      x b x a
+    // x g x h      x d x c
+
+    const std::size_t aHalf = mSize / 2U;
+
+    for (std::size_t y = 0U; y < aHalf; y++) {
+        for (std::size_t x = 0U; x < mSize; x += 2U) {
+            const std::size_t aDestX = (x + mSize - 1U) % mSize;
+            const std::size_t aDestY = y + aHalf;
+
+            mData[aDestX][aDestY] = mTempData[x][y];
+        }
+    }
+
+    for (std::size_t y = aHalf; y < mSize; y++) {
+        for (std::size_t x = 1U; x < mSize; x += 2U) {
+            const std::size_t aDestX = x - 1U;
+            const std::size_t aDestY = y - aHalf;
+
+            mData[aDestX][aDestY] = mTempData[x][y];
+        }
+    }
+}
+
+void Slice::_ZigZagD() {
+    std::memcpy(mTempData, mData, sizeof(mTempData));
+
+    // Pattern:
+    //
+    // x a x b      x f x e
+    // x c x d  ->  x h x g
+    // e x f x      a x b x
+    // g x h x      c x d x
+
+    const std::size_t aHalf = mSize / 2U;
+
+    for (std::size_t y = 0U; y < aHalf; y++) {
+        for (std::size_t x = 1U; x < mSize; x += 2U) {
+            const std::size_t aDestX = x - 1U;
+            const std::size_t aDestY = y + aHalf;
+
+            mData[aDestX][aDestY] = mTempData[x][y];
+        }
+    }
+
+    for (std::size_t y = aHalf; y < mSize; y++) {
+        for (std::size_t x = 0U; x < mSize; x += 2U) {
+            const std::size_t aDestX = (x + mSize - 1U) % mSize;
+            const std::size_t aDestY = y - aHalf;
+
+            mData[aDestX][aDestY] = mTempData[x][y];
+        }
+    }
+}
+
+
+void Slice::_SwapHalvesVer() {
+    std::memcpy(mTempData, mData, sizeof(mTempData));
+
+    const std::size_t aHalf = mSize / 2U;
+
+    for (std::size_t x = 0U; x < mSize; x++) {
+        for (std::size_t y = 0U; y < mSize; y++) {
+            const std::size_t aNewY = (y + aHalf) % mSize;
+
+            mData[x][aNewY] = mTempData[x][y];
+        }
+    }
+}
+
+void Slice::_SwapHalvesHor() {
+    std::memcpy(mTempData, mData, sizeof(mTempData));
+
+    const std::size_t aHalf = mSize / 2U;
+
+    for (std::size_t x = 0U; x < mSize; x++) {
+        for (std::size_t y = 0U; y < mSize; y++) {
+            const std::size_t aNewX = (x + aHalf) % mSize;
+
+            mData[aNewX][y] = mTempData[x][y];
+        }
+    }
+}
+

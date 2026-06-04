@@ -27,6 +27,20 @@
 #include "TestExporter4x4.hpp"
 #include "TestExporter8x8.hpp"
 
+#include "TestFileExporter4x4And8x8.hpp"
+
+
+#include "UniqueQuarterTool.hpp"
+#include "PrintRecipeTool.hpp"
+
+#include "RecipeExporterQuadAndFull.hpp"
+
+struct SliceRecipePrintEntry {
+    std::string mName;
+    void (Slice::*mFunctionA)();
+    void (Slice::*mFunctionB)();
+};
+
 
 struct Pick4 {
     std::uint8_t t[4];
@@ -62,6 +76,19 @@ static void PrintGridComment(const Pick4& p, std::size_t index) {
     }
 }
 
+const std::vector<PrintRecipeToolEntry> aEntries = {
+
+    { "HeronA",  { &Slice::_ZigZagA, &Slice::_ZigZagD, &Slice::_SwapHalvesVer } },
+    { "HeronB",  { &Slice::_ZigZagA, &Slice::_ZigZagD, &Slice::_SwapHalvesVer, &Slice::_RotA } },
+    { "HeronC",  { &Slice::_ZigZagA, &Slice::_ZigZagD, &Slice::_SwapHalvesVer, &Slice::_RotC } },
+    { "HeronD",  { &Slice::_ZigZagA, &Slice::_ZigZagD, &Slice::_SwapHalvesVer, &Slice::_RotB } },
+
+    { "FalconA", { &Slice::_ZigZagC, &Slice::_ZigZagB, &Slice::_SwapHalvesVer } },
+    { "FalconB", { &Slice::_ZigZagC, &Slice::_ZigZagB, &Slice::_SwapHalvesVer, &Slice::_RotA } },
+    { "FalconC", { &Slice::_ZigZagC, &Slice::_ZigZagB, &Slice::_SwapHalvesVer, &Slice::_RotC } },
+    { "FalconD", { &Slice::_ZigZagC, &Slice::_ZigZagB, &Slice::_SwapHalvesVer, &Slice::_RotB } },
+};
+
 @interface AppDelegate ()
 
 @property (strong) IBOutlet NSWindow *window;
@@ -71,28 +98,103 @@ static void PrintGridComment(const Pick4& p, std::size_t index) {
 
 - (void)applicationDidFinishLaunching:(NSNotification *)aNotification {
     
+    //TestFileExporter4x4And8x8::Export(RecipeFactory4x4::FalconD(), RecipeFactory8x8::FalconD());
+    
+    /*
+    RecipeExporterQuadAndFull::Export({
+        { RecipeFactory4x4::HeronA(),  RecipeFactory8x8::HeronA() },
+        { RecipeFactory4x4::HeronB(),  RecipeFactory8x8::HeronB() },
+        { RecipeFactory4x4::HeronC(),  RecipeFactory8x8::HeronC() },
+        { RecipeFactory4x4::HeronD(),  RecipeFactory8x8::HeronD() },
+
+        { RecipeFactory4x4::FalconA(), RecipeFactory8x8::FalconA() },
+        { RecipeFactory4x4::FalconB(), RecipeFactory8x8::FalconB() },
+        { RecipeFactory4x4::FalconC(), RecipeFactory8x8::FalconC() },
+        { RecipeFactory4x4::FalconD(), RecipeFactory8x8::FalconD() }
+    });
+    */
+    
+    //PrintRecipeTool::PrintRecipeFactories(aEntries);
+    
+    //UniqueQuarterTool::PrintCompareCandidates();
+    
+    
+    //TestFileExporter4x4And8x8::Export(RecipeFactory4x4::GooseD(), RecipeFactory8x8::GooseD());
+    //return;
+    
+    
+    //RecipeExporter4x4::Export(RecipeFactory4x4::SwanA());
+    //RecipeExporter8x8::Export(RecipeFactory8x8::SwanA());
+    
+    //UniqueQuarterTool::PrintCompareExistingOpsToEachOther();
+    
+    /*
+    RecipeExporterQuadAndFull::Export({
+        { RecipeFactory4x4::SwanA(),  RecipeFactory8x8::SwanA() },
+        { RecipeFactory4x4::SwanB(),  RecipeFactory8x8::SwanB() },
+        { RecipeFactory4x4::SwanC(),  RecipeFactory8x8::SwanC() },
+        { RecipeFactory4x4::SwanD(),  RecipeFactory8x8::SwanD() },
+
+        { RecipeFactory4x4::GooseA(), RecipeFactory8x8::GooseA() },
+        { RecipeFactory4x4::GooseB(), RecipeFactory8x8::GooseB() },
+        { RecipeFactory4x4::GooseC(), RecipeFactory8x8::GooseC() },
+        { RecipeFactory4x4::GooseD(), RecipeFactory8x8::GooseD() }
+    });
+    */
+    
+    
+    
+    //RecipeExporter4x4::Export(RecipeFactory4x4::PeridotD());
+    //TestExporter4x4::Export(RecipeFactory4x4::CrystalA());
+    
+    
+    //DebugCandidateAIdentity();
+    //printf("?");
+    
+    //RecipeExporter8x8::Export(RecipeFactory8x8::PeridotD());
+    //TestExporter8x8::Export(RecipeFactory8x8::JewelA());
+    
+    
+    //PrintRecipeTool::PrintRecipeFactories(aEntries);
+    
+    
+    //UniqueQuarterTool::PrintCompareCandidates();
+    
+    
+    //return;
+    
+
+
     
     //RecipeExporter2x2::Export(RecipeFactory2x2::SwapD());
     //TestExporter2x2::Export(RecipeFactory2x2::SwapD());
     
     //RecipeExporter4x4::Export(RecipeFactory4x4::FoldD());
-    TestExporter4x4::Export(RecipeFactory4x4::FoldD());
+    //TestExporter4x4::Export(RecipeFactory4x4::PeridotA());
     
     //RecipeExporter8x8::Export(RecipeFactory8x8::ShearD());
-    //TestExporter8x8::Export(RecipeFactory8x8::ShearD());
+    //TestExporter8x8::Export(RecipeFactory8x8::PeridotB());
     
+    /*
+    TestFileExporter4x4And8x8::Export(RecipeFactory4x4::JewelD(),
+                                      RecipeFactory8x8::JewelD());
+    */
+    
+    //TestUniqueMatrix();
     
     
     /*
-    const std::string aName = "ShearD";
-    void (Slice::*aFunction)() = &Slice::_ShearD;
+    const std::string aName = "NameA";
+    void (Slice::*aFunctionA)() = &Slice::_Identity;
+    void (Slice::*aFunctionB)() = &Slice::_RotA;
 
     M88 aMatrix;
 
     aMatrix.Reset();
     Slice aSliceA = aMatrix.GetQuadA();
     aSliceA.PrepareSlots();
-    (aSliceA.*aFunction)();
+    (aSliceA.*aFunctionA)();
+    (aSliceA.*aFunctionB)();
     aSliceA.RealizeSlots();
     aMatrix.RecordStart();
     aMatrix.Paste(aSliceA);
@@ -102,16 +204,14 @@ static void PrintGridComment(const Pick4& p, std::size_t index) {
     aMatrix.Reset();
     Slice aSliceB = aMatrix.GetFull();
     aSliceB.PrepareSlots();
-    (aSliceB.*aFunction)();
+    (aSliceB.*aFunctionA)();
+    (aSliceB.*aFunctionB)();
     aSliceB.RealizeSlots();
     aMatrix.RecordStart();
     aMatrix.Paste(aSliceB);
     aMatrix.RecordStop();
     aSliceB.PrintRecipeFactory8x8(aName);
     */
-    
-    
-    
     
     
     
