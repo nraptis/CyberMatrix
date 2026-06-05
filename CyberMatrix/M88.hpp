@@ -89,7 +89,14 @@ public:
     // Byte Dispatch
     // ============================================================
     void                                        SlickshotMini(std::uint8_t pByte);
-
+    void                                        SlickshotQuadA(std::uint8_t pByte);
+    void                                        SlickshotQuadB(std::uint8_t pByte);
+    void                                        SlickshotQuadC(std::uint8_t pByte);
+    void                                        SlickshotQuadD(std::uint8_t pByte);
+    void                                        SlickshotFullA(std::uint8_t pByte);
+    void                                        SlickshotFullB(std::uint8_t pByte);
+    
+    
 
     // ============================================================
     // Full Ops (708)

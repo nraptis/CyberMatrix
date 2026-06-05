@@ -85,6 +85,218 @@ const std::vector<PrintRecipeToolEntry> aEntries = {
 
 };
 
+
+std::vector<std::uint8_t> M88CaptureData(const M88& pMatrix) {
+    std::vector<std::uint8_t> aVector(64);
+
+    for (int i = 0; i < 64; i++) {
+        aVector[i] = pMatrix.mData[i];
+    }
+
+    return aVector;
+}
+
+
+
+void GatherSlickshotMatrices(
+    std::vector<std::vector<std::uint8_t>>& aResMini,
+    std::vector<std::vector<std::uint8_t>>& aResQuadA,
+    std::vector<std::vector<std::uint8_t>>& aResQuadB,
+    std::vector<std::vector<std::uint8_t>>& aResQuadC,
+    std::vector<std::vector<std::uint8_t>>& aResQuadD,
+    std::vector<std::vector<std::uint8_t>>& aResFullA,
+    std::vector<std::vector<std::uint8_t>>& aResFullB
+) {
+    aResMini.clear();
+    aResQuadA.clear();
+    aResQuadB.clear();
+    aResQuadC.clear();
+    aResQuadD.clear();
+    aResFullA.clear();
+    aResFullB.clear();
+
+    aResMini.reserve(256);
+    aResQuadA.reserve(256);
+    aResQuadB.reserve(256);
+    aResQuadC.reserve(256);
+    aResQuadD.reserve(256);
+    aResFullA.reserve(256);
+    aResFullB.reserve(256);
+
+    for (int aByte = 0; aByte < 256; aByte++) {
+        const std::uint8_t aCode = static_cast<std::uint8_t>(aByte);
+
+        {
+            M88 aMatrix;
+            aMatrix.Reset();
+            aMatrix.SlickshotMini(aCode);
+            aResMini.push_back(M88CaptureData(aMatrix));
+        }
+
+        {
+            M88 aMatrix;
+            aMatrix.Reset();
+            aMatrix.SlickshotQuadA(aCode);
+            aResQuadA.push_back(M88CaptureData(aMatrix));
+        }
+
+        {
+            M88 aMatrix;
+            aMatrix.Reset();
+            aMatrix.SlickshotQuadB(aCode);
+            aResQuadB.push_back(M88CaptureData(aMatrix));
+        }
+
+        {
+            M88 aMatrix;
+            aMatrix.Reset();
+            aMatrix.SlickshotQuadC(aCode);
+            aResQuadC.push_back(M88CaptureData(aMatrix));
+        }
+
+        {
+            M88 aMatrix;
+            aMatrix.Reset();
+            aMatrix.SlickshotQuadD(aCode);
+            aResQuadD.push_back(M88CaptureData(aMatrix));
+        }
+
+        {
+            M88 aMatrix;
+            aMatrix.Reset();
+            aMatrix.SlickshotFullA(aCode);
+            aResFullA.push_back(M88CaptureData(aMatrix));
+        }
+
+        {
+            M88 aMatrix;
+            aMatrix.Reset();
+            aMatrix.SlickshotFullB(aCode);
+            aResFullB.push_back(M88CaptureData(aMatrix));
+        }
+    }
+}
+
+static int DifferenceCount(
+    const std::vector<std::uint8_t>& a,
+    const std::vector<std::uint8_t>& b
+) {
+    int aCount = 0;
+
+    for (int i = 0; i < 64; i++) {
+        if (a[i] != b[i]) {
+            aCount++;
+        }
+    }
+
+    return aCount;
+}
+
+static int LowestDifferenceCount(
+    const std::vector<std::vector<std::uint8_t>>& aList
+) {
+    int aLowest = 64;
+
+    for (int i = 0; i < static_cast<int>(aList.size()); i++) {
+        for (int j = i + 1; j < static_cast<int>(aList.size()); j++) {
+            int aDiff = DifferenceCount(aList[i], aList[j]);
+
+            if (aDiff < aLowest) {
+                aLowest = aDiff;
+            }
+        }
+    }
+
+    return aLowest;
+}
+
+void TestSlickshotLowestDifferences() {
+    
+    std::vector<std::vector<std::uint8_t>> aResMini;
+    std::vector<std::vector<std::uint8_t>> aResQuadA;
+    std::vector<std::vector<std::uint8_t>> aResQuadB;
+    std::vector<std::vector<std::uint8_t>> aResQuadC;
+    std::vector<std::vector<std::uint8_t>> aResQuadD;
+    std::vector<std::vector<std::uint8_t>> aResFullA;
+    std::vector<std::vector<std::uint8_t>> aResFullB;
+
+    GatherSlickshotMatrices(
+        aResMini,
+        aResQuadA,
+        aResQuadB,
+        aResQuadC,
+        aResQuadD,
+        aResFullA,
+        aResFullB
+    );
+
+    int aLowestMini  = LowestDifferenceCount(aResMini);
+    int aLowestQuadA = LowestDifferenceCount(aResQuadA);
+    int aLowestQuadB = LowestDifferenceCount(aResQuadB);
+    int aLowestQuadC = LowestDifferenceCount(aResQuadC);
+    int aLowestQuadD = LowestDifferenceCount(aResQuadD);
+    int aLowestFullA = LowestDifferenceCount(aResFullA);
+    int aLowestFullB = LowestDifferenceCount(aResFullB);
+
+    printf("Mini  lowest diff = %d\n", aLowestMini);
+    printf("QuadA lowest diff = %d\n", aLowestQuadA);
+    printf("QuadB lowest diff = %d\n", aLowestQuadB);
+    printf("QuadC lowest diff = %d\n", aLowestQuadC);
+    printf("QuadD lowest diff = %d\n", aLowestQuadD);
+    printf("FullA lowest diff = %d\n", aLowestFullA);
+    printf("FullB lowest diff = %d\n", aLowestFullB);
+}
+
+struct DiffRecord {
+    int i;
+    int j;
+    int diff;
+};
+
+static std::vector<DiffRecord> LowestDifferenceRecords(
+    const std::vector<std::vector<std::uint8_t>>& aList,
+    int aCount
+) {
+    std::vector<DiffRecord> aRecords;
+
+    for (int i = 0; i < static_cast<int>(aList.size()); i++) {
+        for (int j = i + 1; j < static_cast<int>(aList.size()); j++) {
+            int aDiff = DifferenceCount(aList[i], aList[j]);
+
+            DiffRecord aRecord;
+            aRecord.i = i;
+            aRecord.j = j;
+            aRecord.diff = aDiff;
+
+            aRecords.push_back(aRecord);
+        }
+    }
+
+    std::sort(
+        aRecords.begin(),
+        aRecords.end(),
+        [](const DiffRecord& a, const DiffRecord& b) {
+            return a.diff < b.diff;
+        }
+    );
+
+    if (static_cast<int>(aRecords.size()) > aCount) {
+        aRecords.resize(aCount);
+    }
+
+    return aRecords;
+}
+
+
+static void AppendList(
+    std::vector<std::vector<std::uint8_t>>& aBigList,
+    const std::vector<std::vector<std::uint8_t>>& aList
+) {
+    for (int i = 0; i < static_cast<int>(aList.size()); i++) {
+        aBigList.push_back(aList[i]);
+    }
+}
+
 @interface AppDelegate ()
 
 @property (strong) IBOutlet NSWindow *window;
@@ -93,6 +305,58 @@ const std::vector<PrintRecipeToolEntry> aEntries = {
 @implementation AppDelegate
 
 - (void)applicationDidFinishLaunching:(NSNotification *)aNotification {
+    
+    
+    //TestSlickshotLowestDifferences();
+    
+    std::vector<std::vector<std::uint8_t>> aResMini;
+        std::vector<std::vector<std::uint8_t>> aResQuadA;
+        std::vector<std::vector<std::uint8_t>> aResQuadB;
+        std::vector<std::vector<std::uint8_t>> aResQuadC;
+        std::vector<std::vector<std::uint8_t>> aResQuadD;
+        std::vector<std::vector<std::uint8_t>> aResFullA;
+        std::vector<std::vector<std::uint8_t>> aResFullB;
+
+        GatherSlickshotMatrices(
+            aResMini,
+            aResQuadA,
+            aResQuadB,
+            aResQuadC,
+            aResQuadD,
+            aResFullA,
+            aResFullB
+        );
+
+        std::vector<std::vector<std::uint8_t>> aBigList;
+        aBigList.reserve(256 * 7);
+
+        AppendList(aBigList, aResMini);
+        AppendList(aBigList, aResQuadA);
+        AppendList(aBigList, aResQuadB);
+        AppendList(aBigList, aResQuadC);
+        AppendList(aBigList, aResQuadD);
+        AppendList(aBigList, aResFullA);
+        AppendList(aBigList, aResFullB);
+
+        int aLowest = 64;
+
+        for (int i = 0; i < static_cast<int>(aBigList.size()); i++) {
+            for (int j = i + 1; j < static_cast<int>(aBigList.size()); j++) {
+                int aDiff = DifferenceCount(aBigList[i], aBigList[j]);
+
+                if (aDiff < aLowest) {
+                    aLowest = aDiff;
+                }
+
+                if (aDiff == 0) {
+                    printf("Duplicate slickshot matrix output: big index %d == %d\n");
+                    exit(0);
+                }
+            }
+        }
+
+        printf("All slickshots lowest diff = %d\n", aLowest);
+    
     
     //
     //
